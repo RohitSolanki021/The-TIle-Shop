@@ -1272,30 +1272,12 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
         `⏳ Pending: ₹${invoice.pending_balance.toFixed(2)}\n` +
         `📊 Status: ${invoice.status}`;
       
-      let pdfBlob;
-      
-      // Try client-side PDF generation first
-      if (useClientPdf) {
-        const templateBytes = await loadPdfTemplate();
-        if (templateBytes) {
-          try {
-            const data = convertInvoiceToSections(invoice);
-            const pdfBytes = await generateInvoicePDF(data, templateBytes);
-            pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-          } catch (clientError) {
-            console.warn('Client-side PDF failed for share:', clientError);
-          }
-        }
-      }
-      
-      // Fallback to server if client failed
-      if (!pdfBlob) {
-        const encodedInvoiceId = encodeURIComponent(invoice.invoice_id);
-        const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
-          responseType: 'blob'
-        });
-        pdfBlob = new Blob([response.data], { type: 'application/pdf' });
-      }
+      // Get PDF from server
+      const encodedInvoiceId = encodeURIComponent(invoice.invoice_id);
+      const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
+        responseType: 'blob'
+      });
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
       
       const safeFileName = invoice.invoice_id.replace(/\//g, '-');
       const pdfFile = new File([pdfBlob], `Invoice_${safeFileName}.pdf`, { type: 'application/pdf' });
@@ -1316,14 +1298,17 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
         document.body.appendChild(link);
         link.click();
         link.remove();
+        window.URL.revokeObjectURL(url);
         
         // Open WhatsApp with message
-        const pdfUrl = `${BACKEND_URL}/api/public/invoices/${invoice.invoice_id}/pdf`;
+        const encodedInvoiceIdForUrl = encodeURIComponent(invoice.invoice_id);
+        const pdfUrl = `${BACKEND_URL}/api/invoices/${encodedInvoiceIdForUrl}/pdf`;
         const fullMessage = message + `\n\n📥 Download Invoice PDF:\n${pdfUrl}`;
         const encodedMessage = encodeURIComponent(fullMessage);
         window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
       }
     } catch (error) {
+      console.error('WhatsApp share error:', error);
       alert('Error sharing on WhatsApp: ' + error.message);
     }
   };
