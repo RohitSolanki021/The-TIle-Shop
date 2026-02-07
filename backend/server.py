@@ -1120,11 +1120,13 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         y_pos -= 14
         
-        # GST Amount (if applicable)
+        # GST Amount section
         gst_amount = invoice.get('gst_amount', 0)
         gst_percent = invoice.get('gst_percent', 0)
+        
+        c.setFont("Helvetica", 9)
         if gst_percent > 0 or gst_amount > 0:
-            c.setFont("Helvetica", 9)
+            # GST is provided - show normal GST row
             c.drawRightString(totals_x + 100, y_pos, f"GST Amount ({gst_percent:.0f}%) :")
             if use_dejavusans:
                 try:
@@ -1136,7 +1138,14 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             else:
                 c.setFont("Helvetica", 9)
                 c.drawString(totals_x + 105, y_pos, f"Rs.{gst_amount:.2f}")
-            y_pos -= 14
+        else:
+            # GST is empty - show placeholder text
+            c.drawRightString(totals_x + 100, y_pos, "GST :")
+            c.setFont("Helvetica-Oblique", 8)
+            c.setFillColorRGB(0.5, 0.5, 0.5)  # Gray color for placeholder
+            c.drawString(totals_x + 105, y_pos, "Would be applied at the time of billing")
+            c.setFillColorRGB(0, 0, 0)  # Reset to black
+        y_pos -= 14
         
         # Final Amount (highlighted)
         c.setFillColorRGB(0.35, 0.22, 0.15)
