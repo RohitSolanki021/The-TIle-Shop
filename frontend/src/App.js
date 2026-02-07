@@ -25,7 +25,7 @@ function App() {
   
   // PDF template state for client-side generation
   const [pdfTemplateBytes, setPdfTemplateBytes] = useState(null);
-  const [useClientPdf, setUseClientPdf] = useState(true); // Use client-side PDF by default
+  const [useClientPdf, setUseClientPdf] = useState(false); // Temporarily disable client-side PDF to test
   
   // Load PDF template for client-side generation
   const loadPdfTemplate = useCallback(async () => {
