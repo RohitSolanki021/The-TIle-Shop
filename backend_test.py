@@ -317,10 +317,29 @@ class TileShopBackendTester:
         
         self.log("Verifying invoice data structure...")
         
-        encoded_invoice_id = quote(self.test_invoice_id, safe='')
-        response = self.make_request("GET", f"/invoices/{encoded_invoice_id}")
+        # Get all invoices and find ours (since GET /invoices/{id} doesn't handle path slashes)
+        response = self.make_request("GET", "/invoices")
         
-        if response and response.status_code == 200:
+        if not response or response.status_code != 200:
+            self.log("❌ Failed to get invoices list")
+            return False
+        
+        invoices = response.json()
+        target_invoice = None
+        
+        for invoice in invoices:
+            if invoice.get('invoice_id') == self.test_invoice_id:
+                target_invoice = invoice
+                break
+        
+        if not target_invoice:
+            self.log(f"❌ Invoice {self.test_invoice_id} not found in invoices list")
+            return False
+        
+        self.log(f"✅ Invoice found in list")
+        invoice = target_invoice
+        
+        if True:
             invoice = response.json()
             line_items = invoice.get('line_items', [])
             
