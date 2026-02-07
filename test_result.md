@@ -208,6 +208,8 @@ test_plan:
 
 agent_communication:
   - agent: "main"
+    message: "PAGINATION FIX IMPLEMENTED: Refactored PDF generation to ensure header and table column headers (SR NO, NAME, IMAGE, SIZE, etc.) repeat on EVERY page. Key changes: 1) New create_page_overlay() function creates single-page overlay for each page 2) Each page loads fresh template PDF copy 3) Fixed MAX_CONTENT_Y undefined variable bug 4) Row Y resets correctly on new pages. Please test with multi-page invoices."
+  - agent: "main"
     message: "All remaining issues fixed: Emergent scripts removed, dashboard icons now white. Screenshot verified."
   - agent: "testing"
     message: "Backend testing completed successfully. All focus areas verified: 1) Invoice ID format TTS/XXX/YYYY-YY working with proper auto-increment and financial year logic. 2) PDF generation using template overlay method confirmed (579KB+ file size). URL-encoded invoice IDs handled correctly. All backend APIs functional. No critical issues found."
