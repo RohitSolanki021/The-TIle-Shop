@@ -666,22 +666,43 @@ async def delete_invoice(invoice_id: str):
 # ==================== PDF GENERATION ====================
 
 def generate_invoice_pdf(invoice: dict, output_path: str):
-    """Generate PDF matching THE TILE SHOP reference template EXACTLY"""
+    """Generate PDF matching THE TILE SHOP reference template PIXEL-PERFECT"""
     try:
         import tempfile
         import os as os_module
         
-        # A4 size in points (595.28 x 841.89)
+        # A4 size in points
         c = canvas.Canvas(output_path, pagesize=A4)
         width, height = A4  # 595.28 x 841.89 points
         
-        # EXACT MARGINS matching reference template (in points, 1mm = 2.835pt)
-        MARGIN_LEFT = 15 * 2.835    # 15mm = 42.5pt
-        MARGIN_RIGHT = 15 * 2.835   # 15mm from right edge
-        MARGIN_TOP = 20 * 2.835     # 20mm = 56.7pt
+        # =================================================================
+        # EXACT MEASUREMENTS FROM REFERENCE PDF ANALYSIS
+        # =================================================================
+        MARGIN_LEFT = 26.7      # 9.4mm - exact from reference
+        MARGIN_RIGHT = 26.7     # 9.4mm
+        TOP_START = 10.9        # 3.8mm from top edge
         
-        # Content width
-        CONTENT_WIDTH = width - MARGIN_LEFT - MARGIN_RIGHT  # ~510pt
+        CONTENT_WIDTH = width - MARGIN_LEFT - MARGIN_RIGHT  # 542.1pt
+        
+        # Table column X positions (exact from reference)
+        TABLE_LEFT = 28.3
+        TABLE_RIGHT = 567.2
+        TABLE_WIDTH = TABLE_RIGHT - TABLE_LEFT  # 538.9pt
+        
+        COL_SR = 28.3
+        COL_NAME = 51.6
+        COL_IMAGE = 98.3
+        COL_SIZE = 273.5
+        COL_RATE_BOX = 381.8
+        COL_RATE_SQFT = 410.4
+        COL_QTY = 439.0
+        COL_DISC = 482.6
+        COL_AMOUNT = 527.0
+        
+        # Colors from reference (RGB 0-1 scale)
+        BROWN = (0.35, 0.22, 0.15)         # #5A3825 - Headers
+        LIGHT_BEIGE = (0.996, 0.969, 0.969) # #FEF7F7 - Background
+        GRAY_TEXT = (0.4, 0.4, 0.4)
         
         # Register DejaVuSans font for Rupee symbol
         use_dejavusans = False
@@ -691,224 +712,248 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         except:
             pass
         
-        # ==================== ROW 1: LOGO + COMPANY HEADER + QUOTATION BOX ====================
-        y_pos = height - MARGIN_TOP  # Start from top margin
+        # =================================================================
+        # PAGE BACKGROUND - Light beige like reference
+        # =================================================================
+        c.setFillColorRGB(*LIGHT_BEIGE)
+        c.rect(0, 0, width, height, fill=1, stroke=0)
         
-        # LOGO - Exact position and size from reference
+        # =================================================================
+        # QUOTATION BOX (Top right) - FIRST to match reference layering
+        # =================================================================
+        qbox_y = height - TOP_START  # From top
+        qbox_x = 261.9  # Exact from reference
+        qbox_width = 130
+        qbox_header_height = 18
+        qbox_content_height = 55
+        
+        # Quotation header (brown background)
+        c.setFillColorRGB(*BROWN)
+        c.rect(qbox_x, qbox_y - qbox_header_height, qbox_width, qbox_header_height, fill=1, stroke=0)
+        
+        c.setFillColorRGB(1, 1, 1)
+        c.setFont("Helvetica-Bold", 15)
+        c.drawCentredString(qbox_x + qbox_width/2, qbox_y - qbox_header_height + 4, "Quotation")
+        
+        # Quotation content box (white background with border)
+        c.setFillColorRGB(1, 1, 1)
+        c.rect(qbox_x, qbox_y - qbox_header_height - qbox_content_height, qbox_width, qbox_content_height, fill=1, stroke=0)
+        c.setStrokeColorRGB(*BROWN)
+        c.setLineWidth(0.5)
+        c.rect(qbox_x, qbox_y - qbox_header_height - qbox_content_height, qbox_width, qbox_content_height, stroke=1, fill=0)
+        
+        # Quotation details
+        c.setFillColorRGB(0, 0, 0)
+        detail_y = qbox_y - qbox_header_height - 15
+        
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(qbox_x + 5, detail_y, "Quotation No. :")
+        c.setFont("Helvetica", 7.5)
+        c.drawString(qbox_x + 70, detail_y, invoice['invoice_id'])
+        
+        detail_y -= 14
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(qbox_x + 5, detail_y, "Date :")
+        invoice_date = invoice['invoice_date']
+        if isinstance(invoice_date, str):
+            invoice_date = datetime.fromisoformat(invoice_date)
+        c.setFont("Helvetica", 7.5)
+        c.drawString(qbox_x + 70, detail_y, invoice_date.strftime("%d/%m/%Y"))
+        
+        detail_y -= 14
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(qbox_x + 5, detail_y, "Reference Name :")
+        ref_name = invoice.get('reference_name', '') or ''
+        c.setFont("Helvetica", 7.5)
+        c.drawString(qbox_x + 70, detail_y, ref_name[:15] if ref_name else '')
+        
+        # =================================================================
+        # LOGO (Top left)
+        # =================================================================
         logo_path = ROOT_DIR / "assets" / "logo.png"
-        logo_width = 35 * 2.835   # 35mm = ~99pt
-        logo_height = 35 * 2.835  # 35mm = ~99pt (square logo)
+        logo_x = MARGIN_LEFT
+        logo_y_top = height - 44.9  # Exact from reference
+        logo_size = 85  # ~30mm
         
         if logo_path.exists():
             try:
-                c.drawImage(str(logo_path), MARGIN_LEFT, y_pos - logo_height, 
-                           width=logo_width, height=logo_height, 
+                c.drawImage(str(logo_path), logo_x, logo_y_top - logo_size, 
+                           width=logo_size, height=logo_size, 
                            preserveAspectRatio=True, mask='auto')
             except Exception as e:
                 logger.warning(f"Could not draw logo: {e}")
         
-        # COMPANY HEADER - Right of logo
-        header_x = MARGIN_LEFT + logo_width + 10  # 10pt gap after logo
+        # =================================================================
+        # COMPANY HEADER (Right of logo)
+        # =================================================================
+        header_x = 112.6  # Exact from reference
+        header_y = height - 44.9
         
-        # Company Name - 18pt Bold (matching reference)
-        c.setFont("Helvetica-Bold", 18)
-        c.setFillColorRGB(0.35, 0.22, 0.15)  # Dark brown #5A3825
-        c.drawString(header_x, y_pos - 15, "THE TILE SHOP")
+        # Company Name - 12pt Bold (exact from reference)
+        c.setFont("Helvetica-Bold", 12)
+        c.setFillColorRGB(*BROWN)
+        c.drawString(header_x, header_y, "THE TILE SHOP")
         
-        # Subsidiary text - 9pt
-        c.setFont("Helvetica", 9)
-        c.setFillColorRGB(0.4, 0.4, 0.4)
-        c.drawString(header_x, y_pos - 28, "A Subsidiary of SHREE SONANA SHETRPAL CERAMIC")
+        # Subsidiary text - 7.5pt
+        c.setFont("Helvetica", 7.5)
+        c.setFillColorRGB(*GRAY_TEXT)
+        c.drawString(header_x, header_y - 14, "A Subsidiary of")
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(header_x + 52, header_y - 14, "SHREE SONANA SHETRPAL")
+        c.drawString(header_x, header_y - 24, "CERAMIC")
         
-        # Address and contact - 8pt
+        # Address lines - 7.5pt
         c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica", 8)
-        c.drawString(header_x, y_pos - 42, "S No. 19, Shop No. 2, Near Pravin Electronics, Pune Saswad Road,")
-        c.drawString(header_x, y_pos - 53, "Gondhale Nagar, Hadapsar, Pune - 411028")
-        c.drawString(header_x, y_pos - 66, "Contact: +91 879 601 5150 / +91 702 099 8244")
-        c.drawString(header_x, y_pos - 78, "Email: thetileshoppune@gmail.com")
-        c.drawString(header_x, y_pos - 90, "GSTIN: 27ALBPJ3478P1ZJ")
+        c.setFont("Helvetica", 7.5)
+        c.drawString(header_x, header_y - 40, "S No. 19, Shop No. 2,")
+        c.drawString(header_x, header_y - 50, "Near Pravin Electronics, Pune Saswad Road,")
+        c.drawString(header_x, header_y - 61, "Gondhale Nagar, Hadapsar, Pune - 411028")
+        c.drawString(header_x, header_y - 77, "Contact:")
+        c.drawString(header_x + 35, header_y - 77, "+91 879 601 5150 / +91 702 099 8244")
+        c.drawString(header_x, header_y - 88, "Email:")
+        c.drawString(header_x + 25, header_y - 88, "thetileshoppune@gmail.com")
+        c.drawString(header_x, header_y - 99, "GSTIN:")
+        c.setFont("Helvetica-Bold", 7.6)
+        c.drawString(header_x + 28, header_y - 99, "27ALBPJ3478P1ZJ")
         
-        # QUOTATION BOX - Right side
-        qbox_width = 50 * 2.835   # 50mm = ~142pt
-        qbox_height = 25 * 2.835  # 25mm = ~71pt
-        qbox_x = width - MARGIN_RIGHT - qbox_width
-        qbox_y = y_pos - 5
+        # =================================================================
+        # BUYER (BILL TO) BOX - Left side
+        # =================================================================
+        buyer_y = height - 163.4  # Exact from reference
+        buyer_x = 35.6
+        box_width = 260
+        box_height = 50
+        header_h = 15
         
-        # Quotation header bar (brown background)
-        header_bar_height = 6 * 2.835  # 6mm
-        c.setFillColorRGB(0.35, 0.22, 0.15)
-        c.rect(qbox_x, qbox_y - header_bar_height, qbox_width, header_bar_height, fill=1, stroke=0)
-        
+        # Header bar
+        c.setFillColorRGB(*BROWN)
+        c.rect(buyer_x, buyer_y, box_width, header_h, fill=1, stroke=0)
         c.setFillColorRGB(1, 1, 1)
-        c.setFont("Helvetica-Bold", 11)
-        c.drawCentredString(qbox_x + qbox_width/2, qbox_y - header_bar_height + 4, "Quotation")
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(buyer_x + 5, buyer_y + 4, "Buyer (Bill To):")
         
-        # Quotation box border
-        c.setStrokeColorRGB(0.35, 0.22, 0.15)
-        c.setLineWidth(1)
-        c.rect(qbox_x, qbox_y - qbox_height, qbox_width, qbox_height - header_bar_height, stroke=1, fill=0)
-        
-        # Quotation details inside box
-        c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica", 8)
-        detail_y = qbox_y - header_bar_height - 12
-        
-        c.drawString(qbox_x + 5, detail_y, "Quotation No.:")
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(qbox_x + 55, detail_y, invoice['invoice_id'])
-        
-        detail_y -= 13
-        c.setFont("Helvetica", 8)
-        c.drawString(qbox_x + 5, detail_y, "Date:")
-        invoice_date = invoice['invoice_date']
-        if isinstance(invoice_date, str):
-            invoice_date = datetime.fromisoformat(invoice_date)
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(qbox_x + 55, detail_y, invoice_date.strftime("%d/%m/%Y"))
-        
-        detail_y -= 13
-        c.setFont("Helvetica", 8)
-        c.drawString(qbox_x + 5, detail_y, "Reference Name:")
-        ref_name = invoice.get('reference_name', '') or ''
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(qbox_x + 55, detail_y, ref_name[:15] if ref_name else '')
-        
-        # ==================== HORIZONTAL DIVIDER LINE ====================
-        y_pos = y_pos - logo_height - 8
-        c.setStrokeColorRGB(0.35, 0.22, 0.15)
-        c.setLineWidth(0.5)
-        c.line(MARGIN_LEFT, y_pos, width - MARGIN_RIGHT, y_pos)
-        
-        # ==================== ROW 2: BUYER & CONSIGNEE BOXES ====================
-        y_pos -= 5
-        
-        # Two equal columns with 10mm gap between them
-        gap = 10 * 2.835  # 10mm gap
-        col_width = (CONTENT_WIDTH - gap) / 2  # Each column
-        
-        left_col_x = MARGIN_LEFT
-        right_col_x = MARGIN_LEFT + col_width + gap
-        
-        # Box height
-        box_height = 18 * 2.835  # 18mm = ~51pt
-        header_height = 5 * 2.835  # 5mm header
-        
-        # BUYER (BILL TO) - Left column
-        c.setFillColorRGB(0.35, 0.22, 0.15)
-        c.rect(left_col_x, y_pos - header_height, col_width, header_height, fill=1, stroke=0)
+        # Content box
         c.setFillColorRGB(1, 1, 1)
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(left_col_x + 5, y_pos - header_height + 4, "Buyer (Bill To)")
-        
-        c.setStrokeColorRGB(0.35, 0.22, 0.15)
+        c.rect(buyer_x, buyer_y - box_height, box_width, box_height, fill=1, stroke=0)
+        c.setStrokeColorRGB(*BROWN)
         c.setLineWidth(0.5)
-        c.rect(left_col_x, y_pos - box_height, col_width, box_height - header_height, stroke=1, fill=0)
+        c.rect(buyer_x, buyer_y - box_height, box_width, box_height, stroke=1, fill=0)
         
+        # Buyer content
         c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica-Bold", 9)
-        buyer_y = y_pos - header_height - 12
-        c.drawString(left_col_x + 5, buyer_y, invoice.get('customer_name', '')[:40])
+        c.setFont("Helvetica-Bold", 8)
+        content_y = buyer_y - 12
+        c.drawString(buyer_x + 5, content_y, invoice.get('customer_name', '')[:35])
         
-        c.setFont("Helvetica", 8)
-        buyer_y -= 11
-        c.drawString(left_col_x + 5, buyer_y, f"Phone: {invoice.get('customer_phone', '')}")
+        c.setFont("Helvetica", 7.5)
+        content_y -= 11
+        c.drawString(buyer_x + 5, content_y, f"Phone: {invoice.get('customer_phone', '')}")
         
-        buyer_y -= 11
+        content_y -= 11
         address = invoice.get('customer_address', '')
-        if len(address) > 50:
-            c.drawString(left_col_x + 5, buyer_y, address[:50])
-            buyer_y -= 10
-            c.drawString(left_col_x + 5, buyer_y, address[50:100])
+        if len(address) > 45:
+            c.drawString(buyer_x + 5, content_y, address[:45])
+            content_y -= 10
+            c.drawString(buyer_x + 5, content_y, address[45:90])
         else:
-            c.drawString(left_col_x + 5, buyer_y, address)
+            c.drawString(buyer_x + 5, content_y, address)
         
         if invoice.get('customer_gstin'):
-            buyer_y -= 11
-            c.drawString(left_col_x + 5, buyer_y, f"GSTIN: {invoice['customer_gstin']}")
+            content_y -= 10
+            c.drawString(buyer_x + 5, content_y, f"GSTIN: {invoice['customer_gstin']}")
         
-        # CONSIGNEE (SHIP TO) - Right column
-        c.setFillColorRGB(0.35, 0.22, 0.15)
-        c.rect(right_col_x, y_pos - header_height, col_width, header_height, fill=1, stroke=0)
+        # =================================================================
+        # CONSIGNEE (SHIP TO) BOX - Right side
+        # =================================================================
+        consignee_x = 305.5  # Exact from reference
+        
+        # Header bar
+        c.setFillColorRGB(*BROWN)
+        c.rect(consignee_x, buyer_y, box_width, header_h, fill=1, stroke=0)
         c.setFillColorRGB(1, 1, 1)
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(right_col_x + 5, y_pos - header_height + 4, "Consignee (Ship To)")
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(consignee_x + 5, buyer_y + 4, "Consignee (Ship To):")
         
-        c.setStrokeColorRGB(0.35, 0.22, 0.15)
-        c.rect(right_col_x, y_pos - box_height, col_width, box_height - header_height, stroke=1, fill=0)
+        # Content box
+        c.setFillColorRGB(1, 1, 1)
+        c.rect(consignee_x, buyer_y - box_height, box_width, box_height, fill=1, stroke=0)
+        c.setStrokeColorRGB(*BROWN)
+        c.rect(consignee_x, buyer_y - box_height, box_width, box_height, stroke=1, fill=0)
         
+        # Consignee content
         consignee_name = invoice.get('consignee_name') or invoice.get('customer_name', '')
         consignee_phone = invoice.get('consignee_phone') or invoice.get('customer_phone', '')
         consignee_address = invoice.get('consignee_address') or invoice.get('customer_address', '')
         
         c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica-Bold", 9)
-        consignee_y = y_pos - header_height - 12
-        c.drawString(right_col_x + 5, consignee_y, consignee_name[:40])
-        
-        c.setFont("Helvetica", 8)
-        consignee_y -= 11
-        c.drawString(right_col_x + 5, consignee_y, f"Phone: {consignee_phone}")
-        
-        consignee_y -= 11
-        if len(consignee_address) > 50:
-            c.drawString(right_col_x + 5, consignee_y, consignee_address[:50])
-            consignee_y -= 10
-            c.drawString(right_col_x + 5, consignee_y, consignee_address[50:100])
-        else:
-            c.drawString(right_col_x + 5, consignee_y, consignee_address)
-        
-        y_pos = y_pos - box_height - 8
-        
-        # ==================== ITEMS TABLE ====================
-        table_left = MARGIN_LEFT
-        table_right = width - MARGIN_RIGHT
-        table_width = table_right - table_left
-        
-        # Column percentages matching reference exactly
-        col_pcts = {
-            'sr': 0.04, 'name': 0.16, 'image': 0.12, 'size': 0.10,
-            'rate_box': 0.10, 'rate_sqft': 0.10, 'qty': 0.10, 'disc': 0.08, 'amount': 0.12
-        }
-        
-        # Calculate column positions
-        col_sr = table_left
-        col_name = col_sr + col_pcts['sr'] * table_width
-        col_image = col_name + col_pcts['name'] * table_width
-        col_size = col_image + col_pcts['image'] * table_width
-        col_rate_box = col_size + col_pcts['size'] * table_width
-        col_rate_sqft = col_rate_box + col_pcts['rate_box'] * table_width
-        col_qty = col_rate_sqft + col_pcts['rate_sqft'] * table_width
-        col_disc = col_qty + col_pcts['qty'] * table_width
-        col_amount = col_disc + col_pcts['disc'] * table_width
-        
-        col_positions = [col_sr, col_name, col_image, col_size, col_rate_box, 
-                        col_rate_sqft, col_qty, col_disc, col_amount, table_right]
-        
-        # TABLE HEADER - Brown background
-        tbl_header_height = 8 * 2.835  # 8mm
-        c.setFillColorRGB(0.35, 0.22, 0.15)
-        c.rect(table_left, y_pos - tbl_header_height, table_width, tbl_header_height, fill=1, stroke=0)
-        
-        c.setFillColorRGB(1, 1, 1)
         c.setFont("Helvetica-Bold", 8)
-        header_y = y_pos - tbl_header_height + 7
+        content_y = buyer_y - 12
+        c.drawString(consignee_x + 5, content_y, consignee_name[:35])
         
-        headers = ["SR NO.", "NAME", "IMAGE", "SIZE", "RATE/BOX", "RATE/SQFT", "QUANTITY", "DISC.(%)", "AMOUNT"]
-        for i, header in enumerate(headers):
-            col_center = (col_positions[i] + col_positions[i + 1]) / 2
-            c.drawCentredString(col_center, header_y, header)
+        c.setFont("Helvetica", 7.5)
+        content_y -= 11
+        c.drawString(consignee_x + 5, content_y, f"Phone: {consignee_phone}")
         
-        # Vertical lines in header
-        c.setStrokeColorRGB(1, 1, 1)
+        content_y -= 11
+        if len(consignee_address) > 45:
+            c.drawString(consignee_x + 5, content_y, consignee_address[:45])
+            content_y -= 10
+            c.drawString(consignee_x + 5, content_y, consignee_address[45:90])
+        else:
+            c.drawString(consignee_x + 5, content_y, consignee_address)
+        
+        # =================================================================
+        # ITEMS TABLE
+        # =================================================================
+        table_y = height - 223.8  # Exact from reference
+        table_header_h = 23.3  # Exact from reference
+        
+        # Table header background (light beige matching reference)
+        c.setFillColorRGB(*LIGHT_BEIGE)
+        c.rect(TABLE_LEFT, table_y - table_header_h, TABLE_WIDTH, table_header_h, fill=1, stroke=0)
+        
+        # Table header border
+        c.setStrokeColorRGB(*BROWN)
         c.setLineWidth(0.5)
+        c.rect(TABLE_LEFT, table_y - table_header_h, TABLE_WIDTH, table_header_h, stroke=1, fill=0)
+        
+        # Draw vertical lines for columns
+        col_positions = [COL_SR, COL_NAME, COL_IMAGE, COL_SIZE, COL_RATE_BOX, 
+                        COL_RATE_SQFT, COL_QTY, COL_DISC, COL_AMOUNT, TABLE_RIGHT]
+        
         for pos in col_positions[1:-1]:
-            c.line(pos, y_pos, pos, y_pos - tbl_header_height)
+            c.line(pos, table_y, pos, table_y - table_header_h)
         
-        y_pos -= tbl_header_height
-        table_start_y = y_pos
+        # Header text - 7pt (exact from reference)
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica-Bold", 7)
         
-        # GROUP ITEMS BY LOCATION
+        header_text_y = table_y - 8
+        header_text_y2 = table_y - 17
+        
+        # Two-line headers
+        c.drawCentredString((COL_SR + COL_NAME)/2, header_text_y, "SR")
+        c.drawCentredString((COL_SR + COL_NAME)/2, header_text_y2, "NO.")
+        
+        c.drawCentredString((COL_NAME + COL_IMAGE)/2, header_text_y - 4, "NAME")
+        c.drawCentredString((COL_IMAGE + COL_SIZE)/2, header_text_y - 4, "IMAGE")
+        c.drawCentredString((COL_SIZE + COL_RATE_BOX)/2, header_text_y - 4, "SIZE")
+        
+        c.drawCentredString((COL_RATE_BOX + COL_RATE_SQFT)/2, header_text_y, "RATE /")
+        c.drawCentredString((COL_RATE_BOX + COL_RATE_SQFT)/2, header_text_y2, "BOX")
+        
+        c.drawCentredString((COL_RATE_SQFT + COL_QTY)/2, header_text_y, "RATE /")
+        c.drawCentredString((COL_RATE_SQFT + COL_QTY)/2, header_text_y2, "SQFT")
+        
+        c.drawCentredString((COL_QTY + COL_DISC)/2, header_text_y - 4, "QUANTITY")
+        c.drawCentredString((COL_DISC + COL_AMOUNT)/2, header_text_y - 4, "DISC. (%)")
+        c.drawCentredString((COL_AMOUNT + TABLE_RIGHT)/2, header_text_y - 4, "AMOUNT")
+        
+        y_pos = table_y - table_header_h
+        
+        # =================================================================
+        # TABLE DATA ROWS
+        # =================================================================
         grouped_items = {}
         for item in invoice['line_items']:
             location = item.get('location', 'Items')
@@ -919,72 +964,64 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         for location, items in grouped_items.items():
             sr_no = 1
             
+            # Check page break
             if y_pos < 150:
                 c.showPage()
-                y_pos = height - MARGIN_TOP
-                c.setFillColorRGB(0.35, 0.22, 0.15)
-                c.rect(table_left, y_pos - tbl_header_height, table_width, tbl_header_height, fill=1, stroke=0)
-                c.setFillColorRGB(1, 1, 1)
-                c.setFont("Helvetica-Bold", 8)
-                header_y = y_pos - tbl_header_height + 7
-                for i, header in enumerate(headers):
-                    col_center = (col_positions[i] + col_positions[i + 1]) / 2
-                    c.drawCentredString(col_center, header_y, header)
-                y_pos -= tbl_header_height
+                c.setFillColorRGB(*LIGHT_BEIGE)
+                c.rect(0, 0, width, height, fill=1, stroke=0)
+                y_pos = height - 50
             
-            # LOCATION HEADER ROW
-            location_row_height = 6 * 2.835
-            c.setFillColorRGB(0.93, 0.88, 0.83)
-            c.rect(table_left, y_pos - location_row_height, table_width, location_row_height, fill=1, stroke=0)
-            
-            c.setStrokeColorRGB(0.35, 0.22, 0.15)
+            # Location header row (beige background)
+            loc_row_h = 23.3
+            c.setFillColorRGB(*LIGHT_BEIGE)
+            c.rect(TABLE_LEFT, y_pos - loc_row_h, TABLE_WIDTH, loc_row_h, fill=1, stroke=0)
+            c.setStrokeColorRGB(*BROWN)
             c.setLineWidth(0.5)
-            c.rect(table_left, y_pos - location_row_height, table_width, location_row_height, stroke=1, fill=0)
+            c.rect(TABLE_LEFT, y_pos - loc_row_h, TABLE_WIDTH, loc_row_h, stroke=1, fill=0)
             
-            c.setFillColorRGB(0.35, 0.22, 0.15)
-            c.setFont("Helvetica-Bold", 9)
-            c.drawString(table_left + 5, y_pos - location_row_height + 5, location.upper())
+            c.setFillColorRGB(*BROWN)
+            c.setFont("Helvetica-Bold", 9.8)
+            c.drawCentredString((TABLE_LEFT + TABLE_RIGHT)/2, y_pos - loc_row_h + 7, location.upper())
             
-            y_pos -= location_row_height
+            y_pos -= loc_row_h
             location_subtotal = 0
             
             for item in items:
                 if y_pos < 150:
                     c.showPage()
-                    y_pos = height - MARGIN_TOP
-                    c.setFillColorRGB(0.35, 0.22, 0.15)
-                    c.rect(table_left, y_pos - tbl_header_height, table_width, tbl_header_height, fill=1, stroke=0)
-                    c.setFillColorRGB(1, 1, 1)
-                    c.setFont("Helvetica-Bold", 8)
-                    for i, header in enumerate(headers):
-                        col_center = (col_positions[i] + col_positions[i + 1]) / 2
-                        c.drawCentredString(col_center, y_pos - tbl_header_height + 7, header)
-                    y_pos -= tbl_header_height
+                    c.setFillColorRGB(*LIGHT_BEIGE)
+                    c.rect(0, 0, width, height, fill=1, stroke=0)
+                    y_pos = height - 50
                 
                 has_image = bool(item.get('tile_image'))
-                row_height = 15 * 2.835 if has_image else 6 * 2.835
+                row_h = 40 if has_image else 23.3
                 
-                if sr_no % 2 == 0:
-                    c.setFillColorRGB(0.98, 0.97, 0.97)
-                    c.rect(table_left, y_pos - row_height, table_width, row_height, fill=1, stroke=0)
+                # Row background
+                c.setFillColorRGB(*LIGHT_BEIGE)
+                c.rect(TABLE_LEFT, y_pos - row_h, TABLE_WIDTH, row_h, fill=1, stroke=0)
                 
-                c.setStrokeColorRGB(0.8, 0.8, 0.8)
-                c.setLineWidth(0.3)
-                c.line(table_left, y_pos - row_height, table_right, y_pos - row_height)
-                
+                # Row borders
                 c.setStrokeColorRGB(0.85, 0.85, 0.85)
+                c.setLineWidth(0.3)
+                c.rect(TABLE_LEFT, y_pos - row_h, TABLE_WIDTH, row_h, stroke=1, fill=0)
+                
+                # Column dividers
                 for pos in col_positions[1:-1]:
-                    c.line(pos, y_pos, pos, y_pos - row_height)
+                    c.line(pos, y_pos, pos, y_pos - row_h)
                 
+                # Row content
                 c.setFillColorRGB(0, 0, 0)
-                text_y = y_pos - row_height + 5 if not has_image else y_pos - 12
+                text_y = y_pos - row_h/2 - 3 if not has_image else y_pos - 12
                 
-                c.setFont("Helvetica", 8)
-                c.drawCentredString((col_sr + col_name) / 2, text_y, str(sr_no))
+                # SR NO.
+                c.setFont("Helvetica", 7)
+                c.drawCentredString((COL_SR + COL_NAME)/2, text_y, str(sr_no))
                 
+                # NAME
                 tile_name = item.get('tile_name') or item.get('product_name') or ''
-                c.drawString(col_name + 3, text_y, tile_name[:22])
+                c.drawCentredString((COL_NAME + COL_IMAGE)/2, text_y, tile_name[:20])
                 
+                # IMAGE
                 if has_image and item.get('tile_image'):
                     try:
                         if item['tile_image'].startswith('data:image'):
@@ -1001,15 +1038,15 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                         img = Image.open(tmp_path)
                         img_w, img_h = img.size
                         
-                        max_w, max_h = 35, 35
+                        max_w, max_h = 30, 30
                         aspect = img_w / img_h
                         if aspect > 1:
                             draw_w, draw_h = max_w, max_w / aspect
                         else:
                             draw_h, draw_w = max_h, max_h * aspect
                         
-                        img_x = col_image + ((col_size - col_image) - draw_w) / 2
-                        img_y = y_pos - row_height + 3
+                        img_x = COL_IMAGE + ((COL_SIZE - COL_IMAGE) - draw_w) / 2
+                        img_y = y_pos - row_h + 5
                         
                         c.drawImage(tmp_path, img_x, img_y, width=draw_w, height=draw_h,
                                   preserveAspectRatio=True, mask='auto')
@@ -1018,135 +1055,174 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                     except Exception as e:
                         logger.warning(f"Error drawing tile image: {e}")
                 
-                c.setFont("Helvetica", 8)
-                c.drawCentredString((col_size + col_rate_box) / 2, text_y, item.get('size', '')[:12])
+                # SIZE
+                c.setFont("Helvetica", 7)
+                c.drawCentredString((COL_SIZE + COL_RATE_BOX)/2, text_y, item.get('size', '')[:12])
                 
+                # RATE/BOX
                 rate_box = item.get('rate_per_box', 0)
-                rate_sqft = item.get('rate_per_sqft', 0)
-                
                 if use_dejavusans:
                     try:
-                        c.setFont("DejaVuSans", 8)
-                        c.drawCentredString((col_rate_box + col_rate_sqft) / 2, text_y, f"₹{rate_box:.0f}")
-                        c.drawCentredString((col_rate_sqft + col_qty) / 2, text_y, f"₹{rate_sqft:.0f}")
+                        c.setFont("DejaVuSans", 7)
+                        c.drawCentredString((COL_RATE_BOX + COL_RATE_SQFT)/2, text_y, f"₹{rate_box:.0f}")
                     except:
-                        c.setFont("Helvetica", 8)
-                        c.drawCentredString((col_rate_box + col_rate_sqft) / 2, text_y, f"Rs.{rate_box:.0f}")
-                        c.drawCentredString((col_rate_sqft + col_qty) / 2, text_y, f"Rs.{rate_sqft:.0f}")
+                        c.setFont("Helvetica", 7)
+                        c.drawCentredString((COL_RATE_BOX + COL_RATE_SQFT)/2, text_y, f"Rs.{rate_box:.0f}")
                 else:
-                    c.setFont("Helvetica", 8)
-                    c.drawCentredString((col_rate_box + col_rate_sqft) / 2, text_y, f"Rs.{rate_box:.0f}")
-                    c.drawCentredString((col_rate_sqft + col_qty) / 2, text_y, f"Rs.{rate_sqft:.0f}")
+                    c.setFont("Helvetica", 7)
+                    c.drawCentredString((COL_RATE_BOX + COL_RATE_SQFT)/2, text_y, f"Rs.{rate_box:.0f}")
                 
-                c.setFont("Helvetica", 8)
-                c.drawCentredString((col_qty + col_disc) / 2, text_y, f"{item.get('box_qty', 0)} box")
-                c.drawCentredString((col_disc + col_amount) / 2, text_y, f"{item.get('discount_percent', 0):.0f}%")
+                # RATE/SQFT
+                rate_sqft = item.get('rate_per_sqft', 0)
+                if use_dejavusans:
+                    try:
+                        c.setFont("DejaVuSans", 7)
+                        c.drawCentredString((COL_RATE_SQFT + COL_QTY)/2, text_y, f"₹{rate_sqft:.0f}")
+                    except:
+                        c.setFont("Helvetica", 7)
+                        c.drawCentredString((COL_RATE_SQFT + COL_QTY)/2, text_y, f"Rs.{rate_sqft:.0f}")
+                else:
+                    c.setFont("Helvetica", 7)
+                    c.drawCentredString((COL_RATE_SQFT + COL_QTY)/2, text_y, f"Rs.{rate_sqft:.0f}")
                 
+                # QUANTITY
+                c.setFont("Helvetica", 7)
+                c.drawCentredString((COL_QTY + COL_DISC)/2, text_y, f"{item.get('box_qty', 0)} box")
+                
+                # DISC. (%)
+                c.drawCentredString((COL_DISC + COL_AMOUNT)/2, text_y, f"{item.get('discount_percent', 0):.0f}%")
+                
+                # AMOUNT
                 final_amount = item.get('final_amount', 0)
                 if use_dejavusans:
                     try:
-                        c.setFont("DejaVuSans", 8)
-                        c.drawCentredString((col_amount + table_right) / 2, text_y, f"₹{final_amount:.2f}")
+                        c.setFont("DejaVuSans", 7)
+                        c.drawCentredString((COL_AMOUNT + TABLE_RIGHT)/2, text_y, f"₹{final_amount:.2f}")
                     except:
-                        c.setFont("Helvetica", 8)
-                        c.drawCentredString((col_amount + table_right) / 2, text_y, f"Rs.{final_amount:.2f}")
+                        c.setFont("Helvetica", 7)
+                        c.drawCentredString((COL_AMOUNT + TABLE_RIGHT)/2, text_y, f"Rs.{final_amount:.2f}")
                 else:
-                    c.setFont("Helvetica", 8)
-                    c.drawCentredString((col_amount + table_right) / 2, text_y, f"Rs.{final_amount:.2f}")
+                    c.setFont("Helvetica", 7)
+                    c.drawCentredString((COL_AMOUNT + TABLE_RIGHT)/2, text_y, f"Rs.{final_amount:.2f}")
                 
                 location_subtotal += final_amount
-                y_pos -= row_height
+                y_pos -= row_h
                 sr_no += 1
             
-            # LOCATION SUBTOTAL ROW
-            subtotal_height = 6 * 2.835
-            c.setFillColorRGB(0.95, 0.92, 0.88)
-            c.rect(table_left, y_pos - subtotal_height, table_width, subtotal_height, fill=1, stroke=0)
-            
-            c.setStrokeColorRGB(0.35, 0.22, 0.15)
+            # Location subtotal row
+            subtotal_h = 20
+            c.setFillColorRGB(*LIGHT_BEIGE)
+            c.rect(TABLE_LEFT, y_pos - subtotal_h, TABLE_WIDTH, subtotal_h, fill=1, stroke=0)
+            c.setStrokeColorRGB(*BROWN)
             c.setLineWidth(0.5)
-            c.line(table_left, y_pos - subtotal_height, table_right, y_pos - subtotal_height)
+            c.rect(TABLE_LEFT, y_pos - subtotal_h, TABLE_WIDTH, subtotal_h, stroke=1, fill=0)
             
-            c.setFillColorRGB(0.35, 0.22, 0.15)
+            c.setFillColorRGB(*BROWN)
             c.setFont("Helvetica-Bold", 8)
-            c.drawRightString(col_amount - 5, y_pos - subtotal_height + 5, f"{location}'s Total Amount:")
+            c.drawRightString(COL_AMOUNT - 5, y_pos - subtotal_h + 6, f"{location}'s Total Amount:")
             
             if use_dejavusans:
                 try:
                     c.setFont("DejaVuSans", 8)
-                    c.drawCentredString((col_amount + table_right) / 2, y_pos - subtotal_height + 5, f"₹{location_subtotal:.2f}")
+                    c.drawCentredString((COL_AMOUNT + TABLE_RIGHT)/2, y_pos - subtotal_h + 6, f"₹{location_subtotal:.2f}")
                 except:
                     c.setFont("Helvetica-Bold", 8)
-                    c.drawCentredString((col_amount + table_right) / 2, y_pos - subtotal_height + 5, f"Rs.{location_subtotal:.2f}")
+                    c.drawCentredString((COL_AMOUNT + TABLE_RIGHT)/2, y_pos - subtotal_h + 6, f"Rs.{location_subtotal:.2f}")
             else:
                 c.setFont("Helvetica-Bold", 8)
-                c.drawCentredString((col_amount + table_right) / 2, y_pos - subtotal_height + 5, f"Rs.{location_subtotal:.2f}")
+                c.drawCentredString((COL_AMOUNT + TABLE_RIGHT)/2, y_pos - subtotal_h + 6, f"Rs.{location_subtotal:.2f}")
             
-            y_pos -= subtotal_height + 3
+            y_pos -= subtotal_h + 5
         
-        # Table outer border
-        c.setStrokeColorRGB(0.35, 0.22, 0.15)
-        c.setLineWidth(1)
-        c.rect(table_left, y_pos, table_width, table_start_y - y_pos, stroke=1, fill=0)
-        
-        # ==================== FINANCIAL SUMMARY ====================
+        # =================================================================
+        # FINANCIAL SUMMARY (Right aligned)
+        # =================================================================
         y_pos -= 10
+        summary_x = 420
+        line_h = 14
         
-        summary_width = 70 * 2.835
-        summary_x = table_right - summary_width
-        line_height = 5 * 2.835
+        # Helper function for rupee formatting
+        def fmt_rupee(val):
+            if use_dejavusans:
+                return f"₹{val:.2f}"
+            return f"Rs.{val:.2f}"
         
-        def draw_summary_line(label, value, y, bold=False, highlight=False):
-            if highlight:
-                c.setFillColorRGB(0.35, 0.22, 0.15)
-                c.rect(summary_x - 20, y - 3, summary_width + 25, line_height + 2, fill=1, stroke=0)
-                c.setFillColorRGB(1, 1, 1)
-            else:
-                c.setFillColorRGB(0, 0, 0)
-            
-            font = "Helvetica-Bold" if bold else "Helvetica"
-            c.setFont(font, 9)
-            c.drawRightString(summary_x + 50, y, label)
-            
-            if highlight:
-                c.setFont("Helvetica-Bold", 10)
-            elif use_dejavusans:
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica", 9)
+        
+        # Total Amount
+        c.drawRightString(summary_x, y_pos, "Total Amount :")
+        if use_dejavusans:
+            try:
+                c.setFont("DejaVuSans", 9)
+            except:
+                pass
+        c.drawString(summary_x + 10, y_pos, fmt_rupee(invoice.get('subtotal', 0)))
+        y_pos -= line_h
+        
+        # Transport Charges
+        c.setFont("Helvetica", 9)
+        c.drawRightString(summary_x, y_pos, "Transport Charges :")
+        if use_dejavusans:
+            try:
+                c.setFont("DejaVuSans", 9)
+            except:
+                pass
+        c.drawString(summary_x + 10, y_pos, fmt_rupee(invoice.get('transport_charges', 0)))
+        y_pos -= line_h
+        
+        # Unloading Charges
+        c.setFont("Helvetica", 9)
+        c.drawRightString(summary_x, y_pos, "Unloading Charges :")
+        if use_dejavusans:
+            try:
+                c.setFont("DejaVuSans", 9)
+            except:
+                pass
+        c.drawString(summary_x + 10, y_pos, fmt_rupee(invoice.get('unloading_charges', 0)))
+        y_pos -= line_h
+        
+        # GST
+        gst_amount = invoice.get('gst_amount', 0)
+        gst_percent = invoice.get('gst_percent', 0)
+        c.setFont("Helvetica", 9)
+        if gst_percent > 0 or gst_amount > 0:
+            c.drawRightString(summary_x, y_pos, f"GST Amount ({gst_percent:.0f}%) :")
+            if use_dejavusans:
                 try:
                     c.setFont("DejaVuSans", 9)
                 except:
-                    c.setFont(font, 9)
-            
-            c.drawString(summary_x + 55, y, value)
-        
-        draw_summary_line("Total Amount :", f"₹{invoice.get('subtotal', 0):.2f}", y_pos)
-        y_pos -= line_height
-        
-        draw_summary_line("Transport Charges :", f"₹{invoice.get('transport_charges', 0):.2f}", y_pos)
-        y_pos -= line_height
-        
-        draw_summary_line("Unloading Charges :", f"₹{invoice.get('unloading_charges', 0):.2f}", y_pos)
-        y_pos -= line_height
-        
-        gst_amount = invoice.get('gst_amount', 0)
-        gst_percent = invoice.get('gst_percent', 0)
-        if gst_percent > 0 or gst_amount > 0:
-            draw_summary_line(f"GST Amount ({gst_percent:.0f}%) :", f"₹{gst_amount:.2f}", y_pos)
+                    pass
+            c.drawString(summary_x + 10, y_pos, fmt_rupee(gst_amount))
         else:
-            c.setFillColorRGB(0, 0, 0)
-            c.setFont("Helvetica", 9)
-            c.drawRightString(summary_x + 50, y_pos, "GST :")
+            c.drawRightString(summary_x, y_pos, "GST :")
             c.setFont("Helvetica-Oblique", 8)
             c.setFillColorRGB(0.5, 0.5, 0.5)
-            c.drawString(summary_x + 55, y_pos, "As applicable")
-        y_pos -= line_height + 3
+            c.drawString(summary_x + 10, y_pos, "As applicable")
+            c.setFillColorRGB(0, 0, 0)
+        y_pos -= line_h + 5
         
-        draw_summary_line("Final Amount:", f"₹{invoice.get('grand_total', 0):.2f}", y_pos, bold=True, highlight=True)
-        y_pos -= line_height + 10
+        # Final Amount (highlighted box)
+        c.setFillColorRGB(*BROWN)
+        c.rect(summary_x - 100, y_pos - 5, 220, 20, fill=1, stroke=0)
+        c.setFillColorRGB(1, 1, 1)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawRightString(summary_x, y_pos + 3, "Final Amount :")
+        if use_dejavusans:
+            try:
+                c.setFont("DejaVuSans", 10)
+            except:
+                pass
+        c.drawString(summary_x + 10, y_pos + 3, fmt_rupee(invoice.get('grand_total', 0)))
         
-        # ==================== OVERALL REMARKS ====================
+        y_pos -= 30
+        
+        # =================================================================
+        # OVERALL REMARKS (if present)
+        # =================================================================
         remarks = invoice.get('overall_remarks', '')
         if remarks:
-            c.setFillColorRGB(0.35, 0.22, 0.15)
+            c.setFillColorRGB(*BROWN)
             c.setFont("Helvetica-Bold", 9)
             c.drawString(MARGIN_LEFT, y_pos, "Overall Remarks:")
             y_pos -= 12
@@ -1165,65 +1241,73 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 c.drawString(MARGIN_LEFT + 5, y_pos, line)
             y_pos -= 15
         
-        # ==================== BANK DETAILS ====================
+        # =================================================================
+        # BANK DETAILS
+        # =================================================================
         if y_pos < 180:
             c.showPage()
-            y_pos = height - MARGIN_TOP
+            c.setFillColorRGB(*LIGHT_BEIGE)
+            c.rect(0, 0, width, height, fill=1, stroke=0)
+            y_pos = height - 50
         
-        c.setFillColorRGB(0.35, 0.22, 0.15)
-        c.setFont("Helvetica-Bold", 9)
+        c.setFillColorRGB(*BROWN)
+        c.setFont("Helvetica-Bold", 9.5)
         c.drawString(MARGIN_LEFT, y_pos, "Bank Details")
-        y_pos -= 3
+        y_pos -= 5
         
-        bank_box_width = 90 * 2.835
-        bank_box_height = 20 * 2.835
+        bank_box_w = 255
+        bank_box_h = 55
         
-        c.setStrokeColorRGB(0.35, 0.22, 0.15)
+        c.setFillColorRGB(1, 1, 1)
+        c.rect(MARGIN_LEFT, y_pos - bank_box_h, bank_box_w, bank_box_h, fill=1, stroke=0)
+        c.setStrokeColorRGB(*BROWN)
         c.setLineWidth(0.5)
-        c.rect(MARGIN_LEFT, y_pos - bank_box_height, bank_box_width, bank_box_height, stroke=1, fill=0)
+        c.rect(MARGIN_LEFT, y_pos - bank_box_h, bank_box_w, bank_box_h, stroke=1, fill=0)
         
         c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica", 8)
-        bank_y = y_pos - 11
+        c.setFont("Helvetica", 7.5)
+        bank_y = y_pos - 12
         
         c.drawString(MARGIN_LEFT + 5, bank_y, "Account Name:")
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(MARGIN_LEFT + 70, bank_y, "SHREE SONANA SHETRPAL CERAMIC")
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(MARGIN_LEFT + 75, bank_y, "SHREE SONANA SHETRPAL CERAMIC")
         
-        bank_y -= 11
-        c.setFont("Helvetica", 8)
+        bank_y -= 10
+        c.setFont("Helvetica", 7.5)
         c.drawString(MARGIN_LEFT + 5, bank_y, "Bank Name:")
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(MARGIN_LEFT + 70, bank_y, "HDFC BANK")
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(MARGIN_LEFT + 75, bank_y, "HDFC BANK")
         
-        bank_y -= 11
-        c.setFont("Helvetica", 8)
+        bank_y -= 10
+        c.setFont("Helvetica", 7.5)
         c.drawString(MARGIN_LEFT + 5, bank_y, "Account No.:")
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(MARGIN_LEFT + 70, bank_y, "50200069370271")
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(MARGIN_LEFT + 75, bank_y, "50200069370271")
         
-        bank_y -= 11
-        c.setFont("Helvetica", 8)
+        bank_y -= 10
+        c.setFont("Helvetica", 7.5)
         c.drawString(MARGIN_LEFT + 5, bank_y, "IFSC:")
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(MARGIN_LEFT + 70, bank_y, "HDFC0005291")
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(MARGIN_LEFT + 75, bank_y, "HDFC0005291")
         
-        bank_y -= 11
-        c.setFont("Helvetica", 8)
+        bank_y -= 10
+        c.setFont("Helvetica", 7.5)
         c.drawString(MARGIN_LEFT + 5, bank_y, "Branch:")
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(MARGIN_LEFT + 70, bank_y, "HYDE PARK")
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(MARGIN_LEFT + 75, bank_y, "HYDE PARK")
         
-        y_pos -= bank_box_height + 12
+        y_pos -= bank_box_h + 15
         
-        # ==================== TERMS & CONDITIONS ====================
-        c.setFillColorRGB(0.35, 0.22, 0.15)
-        c.setFont("Helvetica-Bold", 9)
+        # =================================================================
+        # TERMS & CONDITIONS
+        # =================================================================
+        c.setFillColorRGB(*BROWN)
+        c.setFont("Helvetica-Bold", 9.5)
         c.drawString(MARGIN_LEFT, y_pos, "TERMS & CONDITION")
-        y_pos -= 11
+        y_pos -= 12
         
         c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica", 8)
+        c.setFont("Helvetica", 7.5)
         
         terms = [
             "1. Payment: 100% Advance",
@@ -1238,30 +1322,34 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         ]
         
         for term in terms:
-            if y_pos < 70:
+            if y_pos < 60:
                 c.showPage()
-                y_pos = height - MARGIN_TOP
+                c.setFillColorRGB(*LIGHT_BEIGE)
+                c.rect(0, 0, width, height, fill=1, stroke=0)
+                y_pos = height - 50
             c.drawString(MARGIN_LEFT + 5, y_pos, term)
             y_pos -= 10
         
-        # ==================== FOOTER ====================
-        y_pos = 50
+        # =================================================================
+        # FOOTER
+        # =================================================================
+        footer_y = 40
         
-        c.setStrokeColorRGB(0.35, 0.22, 0.15)
+        c.setStrokeColorRGB(*BROWN)
         c.setLineWidth(0.5)
-        c.line(MARGIN_LEFT, y_pos, width - MARGIN_RIGHT, y_pos)
+        c.line(MARGIN_LEFT, footer_y, width - MARGIN_RIGHT, footer_y)
         
         c.setFillColorRGB(0.5, 0.5, 0.5)
-        c.setFont("Helvetica-Oblique", 8)
-        c.drawCentredString(width / 2, y_pos - 12, "Thank you for your business! - THE TILE SHOP")
+        c.setFont("Helvetica-Oblique", 7.5)
+        c.drawCentredString(width / 2, footer_y - 12, "Thank you for your business! - THE TILE SHOP")
         
-        c.setFont("Helvetica", 7)
-        c.drawString(MARGIN_LEFT, y_pos - 25, "Generated: " + datetime.now().strftime("%d/%m/%Y %H:%M"))
-        c.drawRightString(width - MARGIN_RIGHT, y_pos - 25, "Page 1")
+        c.setFont("Helvetica", 6)
+        c.drawString(MARGIN_LEFT, footer_y - 25, "Generated: " + datetime.now().strftime("%d/%m/%Y %H:%M"))
+        c.drawRightString(width - MARGIN_RIGHT, footer_y - 25, "Page 1")
         
         # Save PDF
         c.save()
-        logger.info(f"PDF generated successfully: {output_path}")
+        logger.info(f"PDF generated successfully (pixel-perfect): {output_path}")
         
     except Exception as e:
         logger.error(f"Error generating PDF: {e}")
