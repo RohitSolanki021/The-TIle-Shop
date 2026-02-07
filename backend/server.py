@@ -744,13 +744,13 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         PAGE_HEIGHT = tmap['page_height']
         PAGE_WIDTH = tmap['page_width']
         
-        # Pagination constants
-        TABLE_START_Y = tmap['table']['first_row_y_from_top']
-        # Footer starts at around y=705 (from top) - this is where totals box begins
-        # Brand logos end around y=815, terms end around y=700
-        # Safe content area ends before the fixed footer sections
-        FOOTER_START_Y = tmap.get('footer_start_y', 355)  # Y position where footer begins (from top)
-        MAX_CONTENT_Y = FOOTER_START_Y - 20  # Maximum Y position for item content before footer
+        # Pagination settings from config
+        pagination = tmap.get('pagination', {})
+        TABLE_START_Y = pagination.get('content_area_start_y', tmap['table']['first_row_y_from_top'])
+        # Content area ends before the footer (bank details, terms, logos are fixed in template)
+        MAX_CONTENT_Y_PAGE1 = pagination.get('content_area_end_y', 700)
+        # Continuation pages can use more space since footer only on last page
+        MAX_CONTENT_Y_CONTINUATION = pagination.get('continuation_page_end_y', 780)
         
         # Helper to convert y_from_top to y_from_bottom (ReportLab coords)
         def y_coord(y_from_top):
