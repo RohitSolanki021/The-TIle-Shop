@@ -821,11 +821,11 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         # =================================================================
         # BUYER (BILL TO) BOX - Reference: x=35.6, y_from_top=163.7
         # =================================================================
-        buyer_y = height - 163.7 + header_h  # Add header_h since rect uses bottom-left
         buyer_x = 35.6  # Exact from reference
         box_width = 260
         box_height = 50
         header_h = 15
+        buyer_y = height - 163.7 + header_h  # Add header_h since rect uses bottom-left
         
         # Header bar
         c.setFillColorRGB(*BROWN)
