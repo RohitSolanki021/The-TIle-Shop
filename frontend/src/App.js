@@ -788,13 +788,21 @@ function CustomersManagement({ customers, fetchCustomers }) {
 function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
   const [showForm, setShowForm] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
+  const [showAdvancedFields, setShowAdvancedFields] = useState(false);
   const [formData, setFormData] = useState({
     customer_id: '',
     line_items: [],
     transport_charges: 0,
     unloading_charges: 0,
     amount_paid: 0,
-    status: 'Draft'
+    status: 'Draft',
+    // New optional fields from template
+    reference_name: '',
+    consignee_name: '',
+    consignee_phone: '',
+    consignee_address: '',
+    overall_remarks: '',
+    gst_percent: 0
   });
   const [currentLineItem, setCurrentLineItem] = useState({
     location: '',
