@@ -864,7 +864,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             c.drawString(buyer_x + 5, content_y, f"GSTIN: {invoice['customer_gstin']}")
         
         # =================================================================
-        # CONSIGNEE (SHIP TO) BOX - Right side
+        # CONSIGNEE (SHIP TO) BOX - Reference: x=305.5, y_from_top=163.4
         # =================================================================
         consignee_x = 305.5  # Exact from reference
         
