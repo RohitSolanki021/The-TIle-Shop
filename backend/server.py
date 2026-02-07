@@ -719,18 +719,13 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         c.rect(0, 0, width, height, fill=1, stroke=0)
         
         # =================================================================
-        # QUOTATION BOX (Top right) - Reference shows "Quotation" text at x=261.9
-        # Need to position box so that centered text appears at x=261.9
+        # QUOTATION BOX (Top right) - Reference shows "Quotation" text left edge at x=261.9
         # =================================================================
         qbox_y = height - 10.9  # Exact from reference (converted)
         qbox_width = 130
-        # Text "Quotation" should be centered at x=261.9 + text_width/2
-        # So box left edge should be at: 261.9 - (130 - text_width)/2
-        # Approximating: text "Quotation" is ~50pt wide, so box_x = 261.9 - 40 = 222
-        # But reference shows text at 261.9, which is the LEFT edge of text bbox
-        # So box center should be at: 261.9 + 25 (half of ~50pt text) = 286.9
-        # Box left edge: 286.9 - 65 = 221.9
-        qbox_x = 261.9 - 5  # Adjust box position so "Quotation" text left aligns at 261.9
+        # Position box so that "Quotation" text (left-aligned at x+5) starts at 261.9
+        # So: qbox_x + 5 = 261.9 => qbox_x = 256.9
+        qbox_x = 256.9
         qbox_header_height = 18
         qbox_content_height = 55
         
