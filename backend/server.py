@@ -1229,59 +1229,6 @@ async def get_public_invoice_pdf(invoice_id: str):
         logger.error(f"Error generating PDF: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
-        pdf_path = pdf_dir / f"{safe_filename}.pdf"
-        
-        generate_invoice_pdf(invoice, str(pdf_path))
-        
-        return FileResponse(
-            path=str(pdf_path),
-            media_type='application/pdf',
-            filename=f"Invoice_{safe_filename}.pdf",
-            headers={
-                "Content-Disposition": f"attachment; filename=Invoice_{safe_filename}.pdf",
-                "Access-Control-Allow-Origin": "*",
-                "Cache-Control": "no-cache"
-            }
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error generating PDF: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@api_router.get("/public/invoices/{invoice_id:path}/pdf")
-async def get_public_invoice_pdf(invoice_id: str):
-    """Public endpoint for PDF download (for WhatsApp sharing)"""
-    try:
-        invoice = await db.invoices.find_one({"invoice_id": invoice_id, "deleted": False}, {"_id": 0})
-        if not invoice:
-            raise HTTPException(status_code=404, detail="Invoice not found")
-        
-        # Generate PDF with safe filename
-        pdf_dir = ROOT_DIR / "pdfs"
-        pdf_dir.mkdir(exist_ok=True)
-        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
-        pdf_path = pdf_dir / f"{safe_filename}.pdf"
-        
-        generate_invoice_pdf(invoice, str(pdf_path))
-        
-        return FileResponse(
-            path=str(pdf_path),
-            media_type='application/pdf',
-            filename=f"Invoice_{safe_filename}.pdf",
-            headers={
-                "Content-Disposition": f"inline; filename=Invoice_{safe_filename}.pdf",
-                "Access-Control-Allow-Origin": "*",
-                "Cache-Control": "public, max-age=3600"
-            }
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error generating PDF: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 # ==================== ROOT ENDPOINTS ====================
 
 @api_router.get("/")
