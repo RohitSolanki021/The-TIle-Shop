@@ -735,7 +735,8 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         c.setFillColorRGB(1, 1, 1)
         c.setFont("Helvetica-Bold", 15)
-        c.drawCentredString(qbox_x + qbox_width/2, qbox_y - qbox_header_height + 4, "Quotation")
+        # Left-align "Quotation" text to match reference position
+        c.drawString(qbox_x + 5, qbox_y - qbox_header_height + 4, "Quotation")
         
         # Quotation content box (white background with border)
         c.setFillColorRGB(1, 1, 1)
