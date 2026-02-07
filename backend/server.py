@@ -720,8 +720,9 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         # =================================================================
         # QUOTATION BOX (Top right) - FIRST to match reference layering
+        # Reference: y_from_top = 10.9, so y_from_bottom = height - 10.9 = 831
         # =================================================================
-        qbox_y = height - TOP_START  # From top
+        qbox_y = height - 10.9  # Exact from reference (converted)
         qbox_x = 261.9  # Exact from reference
         qbox_width = 130
         qbox_header_height = 18
