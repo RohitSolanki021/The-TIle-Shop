@@ -720,11 +720,11 @@ async def delete_invoice(invoice_id: str):
 def generate_invoice_pdf(invoice: dict, output_path: str):
     """
     Generate PDF using TEMPLATE OVERLAY method with PAGINATION support.
-    - Uses the fixed template PDF as background for each page
+    - Uses the fixed template PDF as background for EVERY page
+    - Header section and table column headers repeat on EVERY page (pixel-identical)
     - Only overlays dynamic text at fixed coordinates
     - Supports multiple pages for many items
-    - Header repeats on each page
-    - Footer sections (totals, bank details, terms, logos) placed on last page
+    - Footer sections (totals, bank details, terms, logos) placed on last page only
     - Prices rounded to nearest integer
     """
     try:
@@ -735,6 +735,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         import copy
         from pypdf import PdfReader, PdfWriter
         from reportlab.pdfgen import canvas as rl_canvas
+        from reportlab.lib import colors
         
         # Load template map
         template_map_path = ROOT_DIR / "assets" / "template_map.json"
@@ -747,6 +748,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         # Pagination settings from config
         pagination = tmap.get('pagination', {})
         TABLE_START_Y = pagination.get('content_area_start_y', tmap['table']['first_row_y_from_top'])
+        TABLE_HEADER_Y = tmap['table'].get('header_y_from_top', 248)
         # Content area ends before the footer (bank details, terms, logos are fixed in template)
         MAX_CONTENT_Y_PAGE1 = pagination.get('content_area_end_y', 700)
         # Continuation pages can use more space since footer only on last page
@@ -762,7 +764,6 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         # Load the template PDF
         template_path = ROOT_DIR / "assets" / "invoice-template.pdf"
-        template_reader = PdfReader(str(template_path))
         
         # Check if DejaVuSans font is available for Rupee symbol
         use_dejavusans = False
@@ -842,10 +843,6 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             pages_content = [[]]
         
         total_pages = len(pages_content)
-        
-        # Create overlay for all pages
-        overlay_buffer = io.BytesIO()
-        c = rl_canvas.Canvas(overlay_buffer, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
         
         def draw_header_content(canvas, page_num, total_pages):
             """Draw header content (quotation box, buyer, consignee) on each page"""
@@ -1077,13 +1074,16 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 if line:
                     canvas.drawString(remarks_cfg['x'], y_coord(remarks_cfg['y_from_top'] + y_offset), line)
         
-        # Generate each page
-        for page_idx, page_items in enumerate(pages_content):
-            page_num = page_idx + 1
-            is_last_page = page_num == total_pages
+        def create_page_overlay(page_num, page_items, is_last_page):
+            """
+            Create a single page overlay with header content and items.
+            Returns the overlay as a BytesIO buffer.
+            """
+            page_buffer = io.BytesIO()
+            canvas = rl_canvas.Canvas(page_buffer, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
             
-            # Draw header content on each page
-            draw_header_content(c, page_num, total_pages)
+            # Draw header content (quotation number, date, buyer, consignee)
+            draw_header_content(canvas, page_num, total_pages)
             
             # Draw items for this page
             current_y = TABLE_START_Y
@@ -1091,77 +1091,86 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             for item_info in page_items:
                 if item_info['type'] == 'location_header':
                     # Location header - centered in table
-                    c.setFont("Helvetica-Bold", 8)
-                    c.setFillColorRGB(0.35, 0.22, 0.15)  # Brown
-                    c.drawCentredString(PAGE_WIDTH / 2, y_coord(current_y - 5), item_info['location'].upper())
-                    c.setFillColorRGB(0, 0, 0)
+                    canvas.setFont("Helvetica-Bold", 8)
+                    canvas.setFillColorRGB(0.35, 0.22, 0.15)  # Brown
+                    canvas.drawCentredString(PAGE_WIDTH / 2, y_coord(current_y - 5), item_info['location'].upper())
+                    canvas.setFillColorRGB(0, 0, 0)
                     current_y += item_info['height']
                     
                 elif item_info['type'] == 'item':
-                    row_height = draw_item_row(c, item_info, current_y, item_info['sr_no'])
+                    row_height = draw_item_row(canvas, item_info, current_y, item_info['sr_no'])
                     current_y += row_height
                     
                 elif item_info['type'] == 'location_subtotal':
                     # Location subtotal - rounded
                     current_y += 3
-                    c.setFont("Helvetica-Bold", 7)
-                    c.setFillColorRGB(0.35, 0.22, 0.15)
-                    c.drawRightString(table_cfg['location_total_label_x'], y_coord(current_y), 
-                                     f"{item_info['location']}'s Total:")
+                    canvas.setFont("Helvetica-Bold", 7)
+                    canvas.setFillColorRGB(0.35, 0.22, 0.15)
+                    canvas.drawRightString(table_cfg['location_total_label_x'], y_coord(current_y), 
+                                         f"{item_info['location']}'s Total:")
                     
                     if use_dejavusans:
                         try:
-                            c.setFont("DejaVuSans", 7)
+                            canvas.setFont("DejaVuSans", 7)
                         except:
-                            c.setFont("Helvetica-Bold", 7)
+                            canvas.setFont("Helvetica-Bold", 7)
                     else:
-                        c.setFont("Helvetica-Bold", 7)
-                    c.drawRightString(table_cfg['location_total_value_x'], y_coord(current_y), 
-                                     f"₹{round(item_info['subtotal']):,}")
+                        canvas.setFont("Helvetica-Bold", 7)
+                    canvas.drawRightString(table_cfg['location_total_value_x'], y_coord(current_y), 
+                                         f"₹{round(item_info['subtotal']):,}")
                     
-                    c.setFillColorRGB(0, 0, 0)
+                    canvas.setFillColorRGB(0, 0, 0)
                     current_y += item_info['height']
             
             # Draw footer content only on the last page
             if is_last_page:
-                draw_footer_content(c)
+                draw_footer_content(canvas)
             
             # Add continuation note on non-last pages
             if not is_last_page:
-                c.setFont("Helvetica-Oblique", 8)
-                c.setFillColorRGB(0.4, 0.4, 0.4)
-                c.drawCentredString(PAGE_WIDTH / 2, y_coord(MAX_CONTENT_Y + 20), 
-                                   "Continued on next page...")
-                c.setFillColorRGB(0, 0, 0)
+                # Use the correct max Y for the current page
+                max_y_for_note = MAX_CONTENT_Y_PAGE1 if page_num == 1 else MAX_CONTENT_Y_CONTINUATION
+                canvas.setFont("Helvetica-Oblique", 8)
+                canvas.setFillColorRGB(0.4, 0.4, 0.4)
+                canvas.drawCentredString(PAGE_WIDTH / 2, y_coord(max_y_for_note + 20), 
+                                       "Continued on next page...")
+                canvas.setFillColorRGB(0, 0, 0)
             
-            # Start new page for overlay (except for last page)
-            if not is_last_page:
-                c.showPage()
+            canvas.save()
+            page_buffer.seek(0)
+            return page_buffer
         
-        # Save the overlay
-        c.save()
-        overlay_buffer.seek(0)
-        
-        # Read overlay pages
-        overlay_reader = PdfReader(overlay_buffer)
-        
-        # Create output PDF
+        # Create output PDF writer
         writer = PdfWriter()
         
-        # Merge each overlay page with a fresh copy of the template
-        for page_idx in range(total_pages):
-            # Get a fresh copy of the template page for each output page
-            template_reader_fresh = PdfReader(str(template_path))
-            template_page = template_reader_fresh.pages[0]
+        # Generate each page by:
+        # 1. Starting with a fresh copy of the template (ensures header + table column headers)
+        # 2. Merging the dynamic overlay content
+        for page_idx, page_items in enumerate(pages_content):
+            page_num = page_idx + 1
+            is_last_page = page_num == total_pages
             
-            # Get corresponding overlay page
-            if page_idx < len(overlay_reader.pages):
-                overlay_page = overlay_reader.pages[page_idx]
+            # Step 1: Load a FRESH copy of the template PDF for this page
+            # This ensures the company header, table column headers (SR NO, NAME, IMAGE, etc.)
+            # are present on EVERY page - pixel-identical to page 1
+            template_reader = PdfReader(str(template_path))
+            template_page = template_reader.pages[0]
+            
+            # Step 2: Create the overlay for this page (dynamic content only)
+            overlay_buffer = create_page_overlay(page_num, page_items, is_last_page)
+            overlay_reader = PdfReader(overlay_buffer)
+            
+            if len(overlay_reader.pages) > 0:
+                overlay_page = overlay_reader.pages[0]
+                # Step 3: Merge overlay onto template (template is base, overlay goes on top)
                 template_page.merge_page(overlay_page)
             
+            # Step 4: Add the complete page to output
             writer.add_page(template_page)
+            
+            logger.info(f"Generated page {page_num}/{total_pages} with template + overlay")
         
-        # Write output
+        # Write final output
         with open(output_path, 'wb') as output_file:
             writer.write(output_file)
         
