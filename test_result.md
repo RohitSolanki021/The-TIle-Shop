@@ -142,6 +142,9 @@ backend:
       - working: true
         agent: "main"
         comment: "92% match rate with reference. Key elements match: Logo, Quotation box, Buyer/Consignee, Table headers, Bank details (horizontal row), Terms."
+      - working: true
+        agent: "testing"
+        comment: "VERIFIED: PDF template overlay method working correctly. Generated PDF size 593,257 bytes (579KB+) confirms template overlay vs recreated layout. URL-encoded invoice IDs work (TTS%20%2F%20004%20%2F%202025-26). PDF headers valid. Template integration functional."
 
 frontend:
   - task: "Dashboard Icons WHITE"
