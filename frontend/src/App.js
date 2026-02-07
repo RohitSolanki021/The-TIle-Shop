@@ -1243,6 +1243,34 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
 
   const handleDownloadPDF = async (invoiceId) => {
     try {
+      // Find the invoice data
+      const invoice = invoices.find(inv => inv.invoice_id === invoiceId);
+      
+      // Try client-side PDF generation first
+      if (useClientPdf && invoice) {
+        const templateBytes = await loadPdfTemplate();
+        if (templateBytes) {
+          try {
+            const data = convertInvoiceToSections(invoice);
+            const pdfBytes = await generateInvoicePDF(data, templateBytes);
+            
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Invoice_${invoiceId.replace(/\//g, '-')}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            return;
+          } catch (clientError) {
+            console.warn('Client-side PDF failed, falling back to server:', clientError);
+          }
+        }
+      }
+      
+      // Fallback to server-side PDF generation
       const response = await axios.get(`${API}/invoices/${invoiceId}/pdf`, {
         responseType: 'blob'
       });
