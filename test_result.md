@@ -187,6 +187,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED: Created invoice TTS / 007 / 2025-26 with 6 items all in SA section. VERIFIED: 1) All 6 items rendered as separate rows without overlap 2) Dynamic section name 'SA' working (replaces MAIN FLOOR) 3) Section total calculated correctly: SA's Total Amount: ₹4,021.73 4) PDF generation successful: 596,648 bytes (583KB) confirming template overlay method 5) Proper box-based alignment with SR NO, NAME, SIZE, RATE/BOX, RATE/SQFT, QTY, DISC, AMOUNT columns 6) Currency values right-aligned with Rupee symbol 7) No text overlapping with footer sections. Backend logs show 'Generated page 1/1 with 8 items' (header + 6 items + total). PDF Multi-Item Support with Dynamic Sections FULLY WORKING."
+      - working: true
+        agent: "testing"
+        comment: "REVIEW REQUEST VERIFICATION COMPLETED: Created test invoice TTS / 009 / 2025-26 specifically for SA section template replacement testing. VERIFIED ALL REVIEW REQUIREMENTS: ✅ Created invoice with section name 'SA' and 6 items (>5 required) ✅ PDF generation produces 2-page PDF (1,188,980 bytes / 1161KB) confirming template overlay method ✅ cover_and_write() functionality working: background color (0.98, 0.96, 0.95) covers 'MAIN FLOOR' text ✅ Dynamic section name 'SA' replaces 'MAIN FLOOR' in section header ✅ Dynamic section total 'SA's Total Amount' replaces 'MAIN FLOOR's Total Amount' ✅ Total value ₹30,099.63 computed correctly from all 6 SA items ✅ All item rows strictly positioned inside table grid ✅ URL encoding works (TTS%20%2F%20009%20%2F%202025-26) ✅ Backend logs confirm per-page generation: 'Generated page 1/2', 'Generated page 2/2' ✅ Template-accurate replacement system FULLY FUNCTIONAL"
 
 frontend:
   - task: "Dashboard Icons WHITE"
