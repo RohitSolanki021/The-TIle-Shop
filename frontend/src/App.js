@@ -1317,13 +1317,15 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
       
       // Fallback to server if client failed
       if (!pdfBlob) {
-        const response = await axios.get(`${API}/invoices/${invoice.invoice_id}/pdf`, {
+        const encodedInvoiceId = encodeURIComponent(invoice.invoice_id);
+        const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
           responseType: 'blob'
         });
         pdfBlob = new Blob([response.data], { type: 'application/pdf' });
       }
       
-      const pdfFile = new File([pdfBlob], `Invoice_${invoice.invoice_id}.pdf`, { type: 'application/pdf' });
+      const safeFileName = invoice.invoice_id.replace(/\//g, '-');
+      const pdfFile = new File([pdfBlob], `Invoice_${safeFileName}.pdf`, { type: 'application/pdf' });
       
       // Check if Web Share API with files is supported (mainly mobile)
       if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
