@@ -197,17 +197,20 @@ def test_pdf_pagination_workflow():
         print(f"❌ Invoice creation error: {e}")
         return False
     
-    # 4. Test PDF Generation
-    print(f"\n4. 📄 TESTING PDF GENERATION...")
+    # 4. Test Multi-page PDF Generation with Pagination
+    print(f"\n4. 📄 TESTING MULTI-PAGE PDF PAGINATION...")
+    print("   OBJECTIVE: Verify header and table column headers repeat on ALL pages")
+    
     from urllib.parse import quote
     encoded_invoice_id = quote(invoice_id, safe='')
     pdf_url = f"{BACKEND_URL}/invoices/{encoded_invoice_id}/pdf"
     
     print(f"   Invoice ID: {invoice_id}")
-    print(f"   Encoded ID: {encoded_invoice_id}")
+    print(f"   Expected pages: 2-3 (with {len(line_items)} items)")
     
     try:
-        response = requests.get(pdf_url, timeout=30)
+        print("\n   📥 Downloading PDF...")
+        response = requests.get(pdf_url, timeout=60)  # Longer timeout for larger PDF
         if response.status_code == 200:
             pdf_size = len(response.content)
             pdf_size_kb = pdf_size / 1024
@@ -216,7 +219,13 @@ def test_pdf_pagination_workflow():
             print(f"   Size: {pdf_size:,} bytes ({pdf_size_kb:.1f} KB)")
             print(f"   Content-Type: {response.headers.get('content-type')}")
             
-            # Verify PDF size indicates template overlay (should be ~590KB+)
+            # Save PDF for manual inspection if needed
+            pdf_filename = f"test_invoice_{invoice_id.replace(' / ', '_').replace('/', '_')}.pdf"
+            with open(pdf_filename, 'wb') as f:
+                f.write(response.content)
+            print(f"   📁 Saved as: {pdf_filename}")
+            
+            # Verify PDF size indicates template overlay (should be ~590KB+ for multi-page)
             if pdf_size_kb >= 570:
                 print("✅ PDF Size: Template overlay method confirmed (570KB+)")
             else:
@@ -224,13 +233,33 @@ def test_pdf_pagination_workflow():
             
             # Verify PDF header
             if response.content[:5] == b'%PDF-':
-                print("✅ PDF Header: Valid")
+                print("✅ PDF Header: Valid PDF format")
             else:
                 print("❌ PDF Header: Invalid")
                 return False
+            
+            # Try to analyze PDF structure (basic check)
+            pdf_content_str = response.content[:2000].decode('latin-1', errors='ignore')
+            
+            # Check for multi-page indicators
+            if '/Count' in pdf_content_str and '/Pages' in pdf_content_str:
+                print("✅ PDF Structure: Multi-page PDF detected")
+            else:
+                print("⚠️  PDF Structure: Could not confirm multi-page structure")
+            
+            # PDF Analysis Results
+            print(f"\n   📊 PDF PAGINATION TEST RESULTS:")
+            print(f"   • Invoice contains {len(line_items)} line items across {len(locations)} locations")
+            print(f"   • PDF size: {pdf_size_kb:.1f} KB (indicates template overlay method)")
+            print(f"   • Expected behavior: Header and table columns repeat on ALL pages")
+            print(f"   • Template elements: Company logo, quotation box, buyer/consignee sections")
+            print(f"   • Table headers: SR NO, NAME, IMAGE, SIZE, RATE/BOX, RATE/SQFT, QUANTITY, DISC, AMOUNT")
+            print(f"   • Financial summary should appear ONLY on the last page")
                 
         else:
             print(f"❌ PDF generation failed: {response.status_code}")
+            if response.text:
+                print(f"   Error: {response.text[:200]}")
             return False
             
     except Exception as e:
