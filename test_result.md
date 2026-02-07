@@ -217,19 +217,14 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "PDF Multi-Item Support with Dynamic Sections"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "PAGINATION FIX IMPLEMENTED: Refactored PDF generation to ensure header and table column headers (SR NO, NAME, IMAGE, SIZE, etc.) repeat on EVERY page. Key changes: 1) New create_page_overlay() function creates single-page overlay for each page 2) Each page loads fresh template PDF copy 3) Fixed MAX_CONTENT_Y undefined variable bug 4) Row Y resets correctly on new pages. Please test with multi-page invoices."
-  - agent: "main"
-    message: "All remaining issues fixed: Emergent scripts removed, dashboard icons now white. Screenshot verified."
-  - agent: "testing"
-    message: "Backend testing completed successfully. All focus areas verified: 1) Invoice ID format TTS/XXX/YYYY-YY working with proper auto-increment and financial year logic. 2) PDF generation using template overlay method confirmed (579KB+ file size). URL-encoded invoice IDs handled correctly. All backend APIs functional. No critical issues found."
-  - agent: "testing"
-    message: "FINAL COMPREHENSIVE TEST COMPLETED: All review request requirements verified. 1) Invoice creation with TTS format working (TTS / 007 / 2025-26). 2) PDF generation confirmed at 579.3 KB indicating template overlay method. 3) Price calculations accurate (subtotal, GST, grand total). Backend APIs fully functional. No critical issues. Ready for production use."
+    message: "MAJOR PDF REWRITE: Complete refactor of generate_invoice_pdf() to fix multi-item support. Key changes: 1) Box-based positioning with draw_text_in_box(), draw_currency_in_box() 2) draw_white_mask() to cover template MAIN FLOOR text 3) Dynamic section names (location replaces MAIN FLOOR) 4) Dynamic section totals from items 5) Proper row loop for N items. Test with 5+ items in section SA."
   - agent: "testing"
     message: "PDF PAGINATION FIX FULLY TESTED AND VERIFIED: Comprehensive testing with multiple invoice sizes completed. Results: 1) Single page PDF: ~593KB, 2) 38-item invoice → 2-page PDF: ~1,205KB, 3) 66-item invoice → 3-page PDF: ~1,813KB. Backend logs confirm per-page generation working correctly. create_page_overlay() function successfully creates fresh template copy for each page. Headers and table column headers (SR NO, NAME, IMAGE, SIZE, RATE/BOX, RATE/SQFT, QUANTITY, DISC, AMOUNT) repeat identically on ALL pages. Financial summary appears only on last page. Pagination fix is WORKING PERFECTLY."
