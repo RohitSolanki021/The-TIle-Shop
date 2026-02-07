@@ -10,16 +10,7 @@ import './App.css';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Standard tile sizes
-const STANDARD_TILE_SIZES = [
-  '600x600mm',
-  '800x800mm',
-  '1000x1000mm',
-  '600x1200mm',
-  '300x600mm',
-  '400x400mm',
-  'Custom Size'
-];
+// No hardcoded tile sizes - all sizes come from DB
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
