@@ -2,6 +2,8 @@
   "page_height": 842.25,
   "page_width": 595.50,
   
+  "background_color": [0.98, 0.96, 0.95],
+  
   "quotation_box": {
     "quotation_no_value": {"x": 371, "y_from_top": 58},
     "date_value": {"x": 335, "y_from_top": 91},
@@ -24,55 +26,73 @@
   },
   
   "table": {
-    "header_y_from_top": 248,
-    "first_row_y_from_top": 268,
+    "header_y_from_top": 225,
+    "left_margin": 38,
+    "right_margin": 572,
     "row_height": 18,
     "row_height_with_image": 40,
-    "left_margin": 38,
-    "right_margin": 575,
+    
     "columns": {
-      "sr_no": {"x": 38, "width": 28, "center": 52, "right": 63},
-      "name": {"x": 66, "width": 109, "center": 120, "right": 172},
-      "image": {"x": 175, "width": 65, "img_width": 30, "img_height": 30, "center": 207, "right": 237},
-      "size": {"x": 240, "width": 82, "center": 281, "right": 319},
-      "rate_box": {"x": 322, "width": 60, "center": 352, "right": 379},
-      "rate_sqft": {"x": 382, "width": 60, "center": 412, "right": 439},
-      "quantity": {"x": 442, "width": 45, "center": 465, "right": 484},
-      "disc": {"x": 487, "width": 38, "center": 506, "right": 522},
-      "amount": {"x": 525, "width": 50, "center": 550, "right": 572}
+      "sr_no":     {"x": 36,  "width": 28,  "center": 50,  "right": 63},
+      "name":      {"x": 66,  "width": 106, "center": 119, "right": 171},
+      "image":     {"x": 173, "width": 65,  "center": 205, "right": 237, "img_width": 30, "img_height": 30},
+      "size":      {"x": 240, "width": 140, "center": 310, "right": 379},
+      "rate_box":  {"x": 382, "width": 30,  "center": 397, "right": 411},
+      "rate_sqft": {"x": 414, "width": 28,  "center": 428, "right": 441},
+      "quantity":  {"x": 444, "width": 42,  "center": 465, "right": 485},
+      "disc":      {"x": 488, "width": 32,  "center": 504, "right": 519},
+      "amount":    {"x": 522, "width": 50,  "center": 547, "right": 572}
     },
+    
     "section_header": {
-      "y_offset_from_row": -2,
-      "height": 18,
-      "mask_box": {"x": 38, "width": 537, "height": 16}
+      "text_box": {
+        "x": 260,
+        "y_from_top": 243,
+        "width": 75,
+        "height": 12
+      },
+      "full_row_y_from_top": 243
     },
+    
+    "item_rows": {
+      "start_y_from_top": 255,
+      "row_height": 18,
+      "row_height_with_image": 40,
+      "bottom_limit_y_from_top": 330
+    },
+    
     "section_total": {
-      "label_x": 38,
-      "label_width": 484,
-      "value_x": 525,
-      "value_width": 50,
-      "height": 18,
-      "mask_box": {"x": 38, "width": 537, "height": 16}
+      "label_box": {
+        "x": 410,
+        "y_from_top": 336,
+        "width": 112,
+        "height": 10
+      },
+      "value_box": {
+        "x": 522,
+        "y_from_top": 336,
+        "width": 50,
+        "height": 10
+      }
     }
   },
   
   "pagination": {
-    "content_area_start_y": 268,
-    "content_area_end_y": 700,
-    "footer_required_height": 150,
-    "continuation_page_start_y": 268,
-    "continuation_page_end_y": 780,
-    "safe_bottom_y": 720
+    "items_start_y": 255,
+    "items_end_y_page1": 330,
+    "items_end_y_continuation": 780,
+    "continuation_start_y": 255,
+    "footer_start_y": 350
   },
   
   "financial_summary": {
-    "label_x": 350,
-    "value_x": 467,
-    "total_amount": {"y_from_top": 362},
-    "transport": {"y_from_top": 375},
-    "unloading": {"y_from_top": 388},
-    "gst": {"y_from_top": 402},
-    "final_amount": {"y_from_top": 418}
+    "label_x": 275,
+    "value_x": 340,
+    "total_amount": {"y_from_top": 355},
+    "transport": {"y_from_top": 368},
+    "unloading": {"y_from_top": 381},
+    "gst": {"y_from_top": 395},
+    "final_amount": {"y_from_top": 410}
   },
   
   "overall_remarks": {
@@ -86,6 +106,7 @@
     "bold": "Helvetica-Bold",
     "size_normal": 7,
     "size_small": 6.5,
-    "size_header": 8
+    "size_header": 8,
+    "size_section": 9
   }
 }
