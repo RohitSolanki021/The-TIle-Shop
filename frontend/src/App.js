@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { 
   Package, Users, FileText, Plus, Edit2, Trash2, Save, X, 
-  Download, Share2, Search, Menu, Home, Camera, Upload, Image
+  Download, Share2, Search, Menu, Home, Camera, Upload, Image,
+  ChevronDown, ChevronRight
 } from 'lucide-react';
 import './App.css';
 
