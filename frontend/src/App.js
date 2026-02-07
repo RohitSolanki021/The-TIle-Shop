@@ -1245,7 +1245,13 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
       transport_charges: 0,
       unloading_charges: 0,
       amount_paid: 0,
-      status: 'Draft'
+      status: 'Draft',
+      reference_name: '',
+      consignee_name: '',
+      consignee_phone: '',
+      consignee_address: '',
+      overall_remarks: '',
+      gst_percent: 0
     });
     setCurrentLineItem({
       location: '',
@@ -1262,6 +1268,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     });
     setEditingInvoice(null);
     setShowForm(false);
+    setShowAdvancedFields(false);
   };
 
   const filteredInvoices = invoices.filter(invoice =>
