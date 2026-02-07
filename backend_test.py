@@ -8,7 +8,7 @@ import requests
 import re
 from datetime import datetime
 
-BACKEND_URL = "https://8fee7af5-8b36-4847-8c09-b747b3cd7bd6.preview.emergentagent.com/api"
+BACKEND_URL = "https://dynamic-page-breaks.preview.emergentagent.com/api"
 
 def test_complete_workflow():
     """Test the complete invoice workflow as per review request"""
