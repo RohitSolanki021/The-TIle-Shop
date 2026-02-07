@@ -1,0 +1,76 @@
+{
+  "page_height": 842.25,
+  "page_width": 595.50,
+  
+  "quotation_box": {
+    "quotation_no_value": {"x": 370, "y_from_top": 50.9},
+    "date_value": {"x": 340, "y_from_top": 83.8},
+    "reference_name_value": {"x": 380, "y_from_top": 114.4}
+  },
+  
+  "buyer_section": {
+    "name": {"x": 40, "y_from_top": 180},
+    "phone": {"x": 40, "y_from_top": 192},
+    "address_line1": {"x": 40, "y_from_top": 204},
+    "address_line2": {"x": 40, "y_from_top": 214},
+    "gstin": {"x": 40, "y_from_top": 224}
+  },
+  
+  "consignee_section": {
+    "name": {"x": 310, "y_from_top": 180},
+    "phone": {"x": 310, "y_from_top": 192},
+    "address_line1": {"x": 310, "y_from_top": 204},
+    "address_line2": {"x": 310, "y_from_top": 214}
+  },
+  
+  "table": {
+    "header_y_from_top": 248,
+    "first_row_y_from_top": 270,
+    "row_height": 22,
+    "row_height_with_image": 45,
+    "columns": {
+      "sr_no": {"x": 42, "width": 20},
+      "name": {"x": 68, "width": 100},
+      "image": {"x": 175, "width": 60, "img_width": 35, "img_height": 35},
+      "size": {"x": 285, "width": 70},
+      "rate_box": {"x": 360, "width": 40},
+      "rate_sqft": {"x": 400, "width": 40},
+      "quantity": {"x": 445, "width": 40},
+      "disc": {"x": 492, "width": 30},
+      "amount": {"x": 532, "width": 50}
+    },
+    "location_header_y_offset": -8,
+    "location_total_label_x": 415,
+    "location_total_value_x": 532
+  },
+  
+  "financial_summary": {
+    "total_amount_value": {"x": 370, "y_from_top": 355.6},
+    "transport_value": {"x": 370, "y_from_top": 368.5},
+    "unloading_value": {"x": 370, "y_from_top": 383.2},
+    "gst_value": {"x": 370, "y_from_top": 398.8},
+    "final_amount_value": {"x": 370, "y_from_top": 412.0}
+  },
+  
+  "bank_details": {
+    "account_name_value": {"x": 37.7, "y_from_top": 449},
+    "bank_name_value": {"x": 144.3, "y_from_top": 449},
+    "account_no_value": {"x": 251.1, "y_from_top": 449},
+    "ifsc_value": {"x": 360.9, "y_from_top": 449},
+    "branch_value": {"x": 468.2, "y_from_top": 449}
+  },
+  
+  "overall_remarks": {
+    "x": 35,
+    "y_from_top": 475,
+    "max_width": 520
+  },
+  
+  "fonts": {
+    "default": "Helvetica",
+    "bold": "Helvetica-Bold",
+    "size_normal": 7.5,
+    "size_small": 7.0,
+    "size_header": 9.0
+  }
+}
