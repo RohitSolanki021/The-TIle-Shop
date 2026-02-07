@@ -825,8 +825,10 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         box_width = 260
         box_height = 50
         header_h = 15
-        # Reference y=163.7 is where text TOP is, need to position header bar
-        buyer_y = height - 163.7  # This is where header TOP should be
+        # For text to appear at y=163.7 from top, we need:
+        # text_baseline = height - 163.7 - font_height = 841.89 - 163.7 - 8 = 670.2
+        # header bar bottom (buyer_y) should be text_baseline - 4 = 666.2
+        buyer_y = height - 163.7 - header_h + 4  # Adjusted for text position
         
         # Header bar
         c.setFillColorRGB(*BROWN)
