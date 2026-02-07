@@ -249,7 +249,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
                 <span className={`text-xs px-2 py-1 rounded-full ${
                   invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
                   invoice.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-blue-100 text-blue-800'
+                  'bg-blue-100 text-[#5a3825]'
                 }`}>
                   {invoice.status}
                 </span>
@@ -514,7 +514,7 @@ function TilesManagement({ tiles, fetchTiles }) {
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => startEdit(tile)}
-                        className="p-2 text-[#5a3825] hover:bg-blue-50 rounded-lg transition"
+                        className="p-2 text-[#5a3825] hover:bg-[#fef7f7] rounded-lg transition"
                         data-testid={`edit-tile-${tile.tile_id}`}
                       >
                         <Edit2 className="h-5 w-5" />
@@ -739,7 +739,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
               <div className="flex space-x-2">
                 <button
                   onClick={() => startEdit(customer)}
-                  className="p-2 text-[#5a3825] hover:bg-blue-50 rounded-lg transition"
+                  className="p-2 text-[#5a3825] hover:bg-[#fef7f7] rounded-lg transition"
                   data-testid={`edit-customer-${customer.customer_id}`}
                 >
                   <Edit2 className="h-4 w-4" />
@@ -1431,13 +1431,13 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
 
               {/* Auto-populated tile info display */}
               {currentLineItem.coverage > 0 && (
-                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200 mt-3">
+                <div className="bg-[#fef7f7] rounded-lg p-3 border border-[#d4c4b0] mt-3">
                   <div className="flex gap-6">
-                    <p className="text-sm text-blue-800">
+                    <p className="text-sm text-[#5a3825]">
                       <span className="font-medium">Coverage:</span> {currentLineItem.coverage} sqft/box
                     </p>
                     {currentLineItem.box_packing > 0 && (
-                      <p className="text-sm text-blue-800">
+                      <p className="text-sm text-[#5a3825]">
                         <span className="font-medium">Box Packing:</span> {currentLineItem.box_packing} tiles/box
                       </p>
                     )}
@@ -1452,7 +1452,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
                     <div>
                       <span className="text-gray-600">Coverage:</span>
-                      <span className="ml-1 font-bold text-blue-700">{lineItemPreview.coverage} sqft/box</span>
+                      <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.coverage} sqft/box</span>
                     </div>
                     <div>
                       <span className="text-gray-600">Total Sqft:</span>
@@ -1610,7 +1610,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
 
             {/* Total Calculation Display */}
             {formData.line_items.length > 0 && (
-              <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+              <div className="bg-[#fef7f7] rounded-lg p-4 border-2 border-[#d4c4b0]">
                 <h4 className="text-md font-bold text-gray-800 mb-3">Invoice Summary</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -1625,7 +1625,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     <span className="text-gray-700">Unloading Charges:</span>
                     <span className="font-semibold">₹{calculateTotals.unloading.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between border-t-2 border-blue-300 pt-2">
+                  <div className="flex justify-between border-t-2 border-[#d4c4b0] pt-2">
                     <span className="text-gray-800 font-bold">Grand Total:</span>
                     <span className="font-bold text-lg text-[#5a3825]">₹{calculateTotals.grandTotal.toFixed(2)}</span>
                   </div>
@@ -1633,7 +1633,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     <span className="text-gray-700">Amount Paid:</span>
                     <span className="font-semibold text-green-600">₹{calculateTotals.paid.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between border-t-2 border-blue-300 pt-2">
+                  <div className="flex justify-between border-t-2 border-[#d4c4b0] pt-2">
                     <span className="text-gray-800 font-bold">Pending Balance:</span>
                     <span className="font-bold text-lg text-red-600">₹{calculateTotals.pending.toFixed(2)}</span>
                   </div>
@@ -1742,7 +1742,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
                     invoice.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
-                    invoice.status === 'Sent' ? 'bg-blue-100 text-blue-800' :
+                    invoice.status === 'Sent' ? 'bg-blue-100 text-[#5a3825]' :
                     'bg-gray-100 text-gray-800'
                   }`}>
                     {invoice.status}
