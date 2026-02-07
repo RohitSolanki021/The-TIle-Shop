@@ -902,10 +902,12 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 grouped_items[location] = []
             grouped_items[location].append(item)
         
-        sr_no = 1
         table_start_y = y_pos
         
         for location, items in grouped_items.items():
+            # RESET SR. NO. for each location group
+            sr_no = 1
+            
             # Location header row
             c.setFillColorRGB(0.9, 0.85, 0.8)  # Light brown/beige
             c.rect(table_left, y_pos - 16, table_width, 16, fill=1, stroke=0)
