@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class TileShopAPITester:
-    def __init__(self, base_url="https://tile-boutique.preview.emergentagent.com"):
+    def __init__(self, base_url="https://8fee7af5-8b36-4847-8c09-b747b3cd7bd6.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
