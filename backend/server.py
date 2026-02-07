@@ -770,14 +770,18 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         c.rect(0, 0, width, height, fill=1, stroke=0)
         
         # =================================================================
-        # QUOTATION BOX (Top right) - Reference shows "Quotation" text left edge at x=261.9
+        # QUOTATION BOX (Top right) - EXACT positions from reference analysis
+        # Reference: "Quotation" header at x=261.9, y=10.9
+        # Content: "Quotation No.:" at x=310.5, y=50.9
         # =================================================================
-        qbox_y = height - 10.9  # Exact from reference (converted)
-        qbox_width = 130
-        # Position box so that "Quotation" text (left-aligned at x+5) starts at 261.9
-        # So: qbox_x + 5 = 261.9 => qbox_x = 256.9
-        qbox_x = 256.9
-        qbox_header_height = 18
+        # The quotation header "Quotation" appears at x=261.9
+        # The content area starts at around x=307
+        # So the box must be wider than expected
+        
+        qbox_y = height - 10.9  # Top of box (from reference)
+        qbox_width = 140  # Wider to accommodate content
+        qbox_x = 254.9  # Position so "Quotation" text at x=261.9 (with 7pt padding)
+        qbox_header_height = 28  # Header height to reach content area at y=50.9
         qbox_content_height = 55
         
         # Quotation header (brown background)
