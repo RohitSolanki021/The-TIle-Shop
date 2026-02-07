@@ -1,0 +1,89 @@
+{
+  "_comment": "PRO Invoice Engine - Page 1 Template Map (ReportLab coordinates: y=0 at bottom)",
+  
+  "page": {
+    "width": 595.5,
+    "height": 842.25,
+    "safeBottomY": 80,
+    "safeTopY": 800
+  },
+  
+  "background": {
+    "color": [0.98, 0.96, 0.95]
+  },
+  
+  "header": {
+    "quotationNo": { "x": 371, "y": 784, "w": 150, "h": 14, "align": "left" },
+    "date":        { "x": 335, "y": 751, "w": 100, "h": 14, "align": "left" },
+    "reference":   { "x": 378, "y": 720, "w": 140, "h": 14, "align": "left" }
+  },
+  
+  "buyer": {
+    "name":     { "x": 40,  "y": 662, "w": 200, "h": 12, "align": "left" },
+    "phone":    { "x": 40,  "y": 651, "w": 200, "h": 10, "align": "left" },
+    "address1": { "x": 40,  "y": 640, "w": 200, "h": 10, "align": "left" },
+    "address2": { "x": 40,  "y": 631, "w": 200, "h": 10, "align": "left" },
+    "gstin":    { "x": 40,  "y": 622, "w": 200, "h": 10, "align": "left" }
+  },
+  
+  "consignee": {
+    "name":     { "x": 310, "y": 662, "w": 200, "h": 12, "align": "left" },
+    "phone":    { "x": 310, "y": 651, "w": 200, "h": 10, "align": "left" },
+    "address1": { "x": 310, "y": 640, "w": 200, "h": 10, "align": "left" },
+    "address2": { "x": 310, "y": 631, "w": 200, "h": 10, "align": "left" }
+  },
+  
+  "section": {
+    "titleBox": { 
+      "x": 250, 
+      "y": 586, 
+      "w": 95, 
+      "h": 14, 
+      "align": "center",
+      "_note": "Covers 'MAIN FLOOR' text at y_rl=588.9"
+    },
+    "totalLabel": { 
+      "x": 400, 
+      "y": 498, 
+      "w": 125, 
+      "h": 12, 
+      "align": "right",
+      "_note": "Covers 'MAIN FLOOR's Total Amount' label"
+    },
+    "totalValue": { 
+      "x": 527, 
+      "y": 498, 
+      "w": 45, 
+      "h": 12, 
+      "align": "right" 
+    }
+  },
+  
+  "table": {
+    "startY": 570,
+    "rowH": 18,
+    "rowHWithImage": 40,
+    "endY": 510,
+    
+    "cols": {
+      "sr":       { "x": 28,  "w": 24, "align": "center" },
+      "name":     { "x": 52,  "w": 47, "align": "left" },
+      "image":    { "x": 99,  "w": 70, "align": "center", "imgW": 30, "imgH": 30 },
+      "size":     { "x": 169, "w": 210, "align": "center" },
+      "rateBox":  { "x": 382, "w": 32, "align": "right" },
+      "rateSqft": { "x": 414, "w": 28, "align": "right" },
+      "qty":      { "x": 442, "w": 45, "align": "center" },
+      "disc":     { "x": 487, "w": 40, "align": "center" },
+      "amount":   { "x": 527, "w": 39, "align": "right" }
+    }
+  },
+  
+  "footer": {
+    "totalAmount":  { "x": 340, "y": 483, "w": 80, "h": 12, "align": "right" },
+    "transport":    { "x": 340, "y": 470, "w": 80, "h": 12, "align": "right" },
+    "unloading":    { "x": 340, "y": 456, "w": 80, "h": 12, "align": "right" },
+    "gst":          { "x": 340, "y": 440, "w": 80, "h": 12, "align": "right" },
+    "finalAmount":  { "x": 340, "y": 427, "w": 80, "h": 12, "align": "right" },
+    "remarks":      { "x": 40,  "y": 362, "w": 500, "h": 60, "align": "left" }
+  }
+}
