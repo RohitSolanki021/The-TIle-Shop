@@ -470,6 +470,53 @@ async def delete_customer(customer_id: str):
 
 # ==================== INVOICES ENDPOINTS ====================
 
+async def generate_invoice_id():
+    """Generate invoice ID in format: TTS / XXX / YYYY-YY
+    Financial year: April to March
+    - April 2025 to March 2026 = 2025-26
+    - April 2026 to March 2027 = 2026-27
+    """
+    now = datetime.now()
+    current_month = now.month
+    current_year = now.year
+    
+    # Determine financial year
+    # If month is April (4) or later, FY starts in current year
+    # If month is Jan-March, FY started in previous year
+    if current_month >= 4:
+        fy_start = current_year
+        fy_end = current_year + 1
+    else:
+        fy_start = current_year - 1
+        fy_end = current_year
+    
+    fy_string = f"{fy_start}-{str(fy_end)[-2:]}"  # e.g., "2025-26"
+    
+    # Get the last invoice number for this financial year
+    # Pattern: TTS / XXX / 2025-26
+    pattern = f"TTS / .* / {fy_string}"
+    
+    # Find the highest invoice number for this FY
+    last_invoice = await db.invoices.find_one(
+        {"invoice_id": {"$regex": f"^TTS / .* / {fy_string}$"}},
+        sort=[("invoice_id", -1)]
+    )
+    
+    if last_invoice:
+        # Extract the sequence number from the last invoice
+        try:
+            parts = last_invoice['invoice_id'].split(' / ')
+            last_seq = int(parts[1])
+            new_seq = last_seq + 1
+        except (ValueError, IndexError):
+            new_seq = 1
+    else:
+        new_seq = 1
+    
+    # Format: TTS / 001 / 2025-26
+    invoice_id = f"TTS / {new_seq:03d} / {fy_string}"
+    return invoice_id
+
 @api_router.post("/invoices", response_model=Invoice)
 async def create_invoice(invoice_input: InvoiceCreate):
     """Create a new invoice with calculations"""
