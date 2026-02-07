@@ -337,12 +337,8 @@ class TileShopBackendTester:
             return False
         
         self.log(f"✅ Invoice found in list")
-        invoice = target_invoice
         
-        if True:
-            invoice = target_invoice
-            invoice = response.json()
-            line_items = invoice.get('line_items', [])
+        line_items = target_invoice.get('line_items', [])
             
             # Group items by location
             grouped_items = {}
