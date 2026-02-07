@@ -63,20 +63,23 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen" style={{backgroundColor: '#fef7f7'}}>
       {/* Header */}
       <header className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg">
-                <Package className="h-6 w-6 text-white" />
-              </div>
+              <img 
+                src="https://customer-assets.emergentagent.com/job_1f30f2ce-4c5c-40ac-bd4f-cb3289954aea/artifacts/p5rto5md_Untitled%20%281080%20x%201080%20px%29.png" 
+                alt="The Tile Shop" 
+                className="brand-logo"
+                data-testid="brand-logo"
+              />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" data-testid="app-title">
-                  Tile Shop Invoicing
+                <h1 className="text-2xl font-bold" style={{color: '#5a3825'}} data-testid="app-title">
+                  The Tile Shop
                 </h1>
-                <p className="text-xs text-gray-500">Professional Invoice Management</p>
+                <p className="text-xs" style={{color: '#8b6b4a'}}>Your Tile Experts - Invoicing</p>
               </div>
             </div>
             <button
