@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide Emergent badge for client branding */
+#emergent-badge {
+    display: none !important;
+}
+
 body {
     margin: 0;
     font-family:
