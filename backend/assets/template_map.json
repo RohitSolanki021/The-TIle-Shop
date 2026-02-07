@@ -9,62 +9,62 @@
   },
   
   "buyer_section": {
-    "name": {"x": 42, "y_from_top": 185},
-    "phone": {"x": 42, "y_from_top": 197},
-    "address_line1": {"x": 42, "y_from_top": 209},
-    "address_line2": {"x": 42, "y_from_top": 219},
-    "gstin": {"x": 42, "y_from_top": 229}
+    "name": {"x": 40, "y_from_top": 180},
+    "phone": {"x": 40, "y_from_top": 191},
+    "address_line1": {"x": 40, "y_from_top": 202},
+    "address_line2": {"x": 40, "y_from_top": 211},
+    "gstin": {"x": 40, "y_from_top": 220}
   },
   
   "consignee_section": {
-    "name": {"x": 312, "y_from_top": 185},
-    "phone": {"x": 312, "y_from_top": 197},
-    "address_line1": {"x": 312, "y_from_top": 209},
-    "address_line2": {"x": 312, "y_from_top": 219}
+    "name": {"x": 310, "y_from_top": 180},
+    "phone": {"x": 310, "y_from_top": 191},
+    "address_line1": {"x": 310, "y_from_top": 202},
+    "address_line2": {"x": 310, "y_from_top": 211}
   },
   
   "table": {
     "header_y_from_top": 248,
-    "first_row_y_from_top": 275,
-    "row_height": 20,
-    "row_height_with_image": 42,
+    "first_row_y_from_top": 268,
+    "row_height": 18,
+    "row_height_with_image": 40,
     "columns": {
-      "sr_no": {"x": 38, "width": 25, "center": 50},
-      "name": {"x": 65, "width": 105, "center": 117},
-      "image": {"x": 170, "width": 65, "img_width": 32, "img_height": 32, "center": 202},
-      "size": {"x": 280, "width": 75, "center": 317},
-      "rate_box": {"x": 358, "width": 45, "center": 380},
-      "rate_sqft": {"x": 403, "width": 40, "center": 423},
-      "quantity": {"x": 443, "width": 45, "center": 465},
-      "disc": {"x": 488, "width": 35, "center": 505},
-      "amount": {"x": 523, "width": 55, "right": 575}
+      "sr_no": {"x": 38, "width": 25, "center": 48},
+      "name": {"x": 66, "width": 100, "center": 116},
+      "image": {"x": 175, "width": 65, "img_width": 30, "img_height": 30, "center": 207},
+      "size": {"x": 282, "width": 75, "center": 320},
+      "rate_box": {"x": 362, "width": 42, "center": 383},
+      "rate_sqft": {"x": 404, "width": 38, "center": 423},
+      "quantity": {"x": 442, "width": 45, "center": 465},
+      "disc": {"x": 487, "width": 38, "center": 506},
+      "amount": {"x": 525, "width": 50, "right": 572}
     },
-    "location_header_y_offset": 12,
-    "location_total_label_x": 460,
-    "location_total_value_x": 575
+    "location_header_y_offset": 10,
+    "location_total_label_x": 455,
+    "location_total_value_x": 572
   },
   
   "financial_summary": {
     "label_x": 350,
-    "value_x": 470,
-    "total_amount": {"y_from_top": 363},
-    "transport": {"y_from_top": 376},
-    "unloading": {"y_from_top": 390},
-    "gst": {"y_from_top": 404},
-    "final_amount": {"y_from_top": 420}
+    "value_x": 467,
+    "total_amount": {"y_from_top": 362},
+    "transport": {"y_from_top": 375},
+    "unloading": {"y_from_top": 388},
+    "gst": {"y_from_top": 402},
+    "final_amount": {"y_from_top": 418}
   },
   
   "overall_remarks": {
-    "x": 42,
-    "y_from_top": 485,
+    "x": 40,
+    "y_from_top": 480,
     "max_width": 500
   },
   
   "fonts": {
     "default": "Helvetica",
     "bold": "Helvetica-Bold",
-    "size_normal": 7.5,
-    "size_small": 7.0,
-    "size_header": 9.0
+    "size_normal": 7,
+    "size_small": 6.5,
+    "size_header": 8
   }
 }
