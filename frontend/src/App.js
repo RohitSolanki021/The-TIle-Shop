@@ -186,7 +186,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
-            icon={<Package className="text-[#5a3825]" />}
+            icon={<Package />}
             title="Active Tiles"
             value={activeTiles}
             total={tiles.length}
@@ -195,7 +195,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
             onClick={() => onNavigate('tiles')}
           />
           <StatCard
-            icon={<Users className="text-green-600" />}
+            icon={<Users />}
             title="Total Customers"
             value={customers.length}
             color="green"
@@ -203,7 +203,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
             onClick={() => onNavigate('customers')}
           />
           <StatCard
-            icon={<FileText className="text-[#5a3825]" />}
+            icon={<FileText />}
             title="Total Invoices"
             value={invoices.length}
             subtitle={`${paidInvoices} Paid, ${draftInvoices} Draft`}
@@ -212,7 +212,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
             onClick={() => onNavigate('invoices')}
           />
           <StatCard
-            icon={<FileText className="text-red-600" />}
+            icon={<FileText />}
             title="Pending Amount"
             value={`₹${totalPending.toFixed(2)}`}
             color="red"
