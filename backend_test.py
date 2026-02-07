@@ -13,9 +13,9 @@ from urllib.parse import quote
 BACKEND_URL = "https://bbb96806-750e-42b3-a6a9-080d8cd65a98.preview.emergentagent.com/api"
 
 def test_pdf_pagination_workflow():
-    """Test the complete invoice workflow as per review request"""
-    print("🔍 TESTING TILE SHOP INVOICING API - KEY REQUIREMENTS")
-    print("=" * 60)
+    """Test PDF pagination with multi-page invoice (30+ items)"""
+    print("🔍 TESTING PDF PAGINATION - HEADER REPEAT ON ALL PAGES")
+    print("=" * 70)
     
     # 1. Test API Health
     print("\n1. API Health Check...")
