@@ -820,9 +820,8 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         # =================================================================
         # BUYER (BILL TO) BOX - Reference: x=35.6, y_from_top=163.7
-        # Need to adjust for how header bar is drawn (from top edge)
         # =================================================================
-        buyer_y = height - 163.7 - 15  # Adjusted (header_h offset)
+        buyer_y = height - 163.7  # Direct conversion
         buyer_x = 35.6  # Exact from reference
         box_width = 260
         box_height = 50
