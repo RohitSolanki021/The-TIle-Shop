@@ -162,6 +162,13 @@ class InvoiceCreate(BaseModel):
     unloading_charges: float = 0.0
     amount_paid: float = 0.0
     status: str = "Draft"
+    # New optional fields
+    reference_name: Optional[str] = None
+    consignee_name: Optional[str] = None
+    consignee_phone: Optional[str] = None
+    consignee_address: Optional[str] = None
+    overall_remarks: Optional[str] = None
+    gst_percent: float = 0.0
 
 class InvoiceUpdate(BaseModel):
     line_items: Optional[List[InvoiceLineItem]] = None
@@ -169,6 +176,13 @@ class InvoiceUpdate(BaseModel):
     unloading_charges: Optional[float] = None
     amount_paid: Optional[float] = None
     status: Optional[str] = None
+    # New optional fields
+    reference_name: Optional[str] = None
+    consignee_name: Optional[str] = None
+    consignee_phone: Optional[str] = None
+    consignee_address: Optional[str] = None
+    overall_remarks: Optional[str] = None
+    gst_percent: Optional[float] = None
 
 # ==================== HELPER FUNCTIONS ====================
 
