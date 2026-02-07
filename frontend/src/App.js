@@ -934,12 +934,14 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     
     const transport = parseFloat(formData.transport_charges) || 0;
     const unloading = parseFloat(formData.unloading_charges) || 0;
-    const grandTotal = subtotal + transport + unloading;
+    const gstPercent = parseFloat(formData.gst_percent) || 0;
+    const gstAmount = subtotal * (gstPercent / 100);
+    const grandTotal = subtotal + transport + unloading + gstAmount;
     const paid = parseFloat(formData.amount_paid) || 0;
     const pending = grandTotal - paid;
 
-    return { subtotal, transport, unloading, grandTotal, paid, pending };
-  }, [formData.line_items, formData.transport_charges, formData.unloading_charges, formData.amount_paid]);
+    return { subtotal, transport, unloading, gstPercent, gstAmount, grandTotal, paid, pending };
+  }, [formData.line_items, formData.transport_charges, formData.unloading_charges, formData.amount_paid, formData.gst_percent]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
