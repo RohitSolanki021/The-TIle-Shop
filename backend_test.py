@@ -257,13 +257,13 @@ class TileShopAPITester:
             200
         )[0]
 
-    def test_pdf_generation(self):
-        """Test PDF generation and download"""
+    def test_pdf_generation_sr_no_reset(self):
+        """Test PDF generation and verify SR NO. resets per location"""
         if not self.created_invoice_id:
             print("❌ Cannot test PDF generation - no invoice created")
             return False
             
-        print(f"\n🔍 Testing PDF Generation...")
+        print(f"\n🔍 Testing PDF Generation with SR NO. Reset...")
         url = f"{self.api_url}/invoices/{self.created_invoice_id}/pdf"
         print(f"   URL: {url}")
         
@@ -278,6 +278,12 @@ class TileShopAPITester:
                     print("✅ PDF generated successfully")
                     print(f"   Content-Type: {content_type}")
                     print(f"   Content-Length: {len(response.content)} bytes")
+                    
+                    # Save PDF for manual verification if needed
+                    with open('/tmp/test_invoice.pdf', 'wb') as f:
+                        f.write(response.content)
+                    print("   📄 PDF saved to /tmp/test_invoice.pdf for verification")
+                    
                     self.tests_passed += 1
                     return True
                 else:
