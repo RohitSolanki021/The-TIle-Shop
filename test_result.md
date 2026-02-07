@@ -127,6 +127,9 @@ backend:
       - working: true
         agent: "main"
         comment: "New format TTS / 001 / 2025-26 implemented. Sequence auto-increments. Financial year changes in April."
+      - working: true
+        agent: "testing"
+        comment: "VERIFIED: Invoice ID format TTS / XXX / YYYY-YY working correctly. Created invoices TTS / 003 / 2025-26 and TTS / 004 / 2025-26. Auto-increment working (3→4). Financial year 2025-26 correct for Feb 2026. Regex pattern validation passed."
 
   - task: "PDF Generation - Pixel Perfect Template"
     implemented: true
