@@ -347,41 +347,41 @@ class TileShopBackendTester:
             if location not in grouped_items:
                 grouped_items[location] = []
             grouped_items[location].append(item)
+        
+        self.log(f"✅ Invoice data retrieved successfully")
+        self.log(f"   Total line items: {len(line_items)}")
+        self.log(f"   Sections found: {list(grouped_items.keys())}")
+        
+        # Verify SA section
+        if 'SA' in grouped_items:
+            sa_items = grouped_items['SA']
+            self.log(f"✅ SA section found with {len(sa_items)} items:")
             
-            self.log(f"✅ Invoice data retrieved successfully")
-            self.log(f"   Total line items: {len(line_items)}")
-            self.log(f"   Sections found: {list(grouped_items.keys())}")
+            # Calculate SA section total
+            sa_total = sum(item.get('final_amount', 0) for item in sa_items)
+            self.log(f"   SA section total: ₹{sa_total:,.2f}")
             
-            # Verify SA section
-            if 'SA' in grouped_items:
-                sa_items = grouped_items['SA']
-                self.log(f"✅ SA section found with {len(sa_items)} items:")
+            # List SA items with details
+            for idx, item in enumerate(sa_items, 1):
+                tile_name = item.get('tile_name', 'Unknown')
+                size = item.get('size', 'Unknown')
+                qty = item.get('box_qty', 0)
+                rate_sqft = item.get('rate_per_sqft', 0)
+                discount = item.get('discount_percent', 0)
+                amount = item.get('final_amount', 0)
                 
-                # Calculate SA section total
-                sa_total = sum(item.get('final_amount', 0) for item in sa_items)
-                self.log(f"   SA section total: ₹{sa_total:,.2f}")
-                
-                # List SA items with details
-                for idx, item in enumerate(sa_items, 1):
-                    tile_name = item.get('tile_name', 'Unknown')
-                    size = item.get('size', 'Unknown')
-                    qty = item.get('box_qty', 0)
-                    rate_sqft = item.get('rate_per_sqft', 0)
-                    discount = item.get('discount_percent', 0)
-                    amount = item.get('final_amount', 0)
-                    
-                    self.log(f"     {idx}. {tile_name} ({size}) - {qty} box, ₹{rate_sqft}/sqft, {discount}% disc, ₹{amount:,.2f}")
-                
-                if len(sa_items) >= 5:
-                    self.log("✅ SA section has 5+ items as required")
-                else:
-                    self.log(f"❌ SA section has only {len(sa_items)} items (need 5+)")
-                    return False
+                self.log(f"     {idx}. {tile_name} ({size}) - {qty} box, ₹{rate_sqft}/sqft, {discount}% disc, ₹{amount:,.2f}")
+            
+            if len(sa_items) >= 5:
+                self.log("✅ SA section has 5+ items as required")
             else:
-                self.log("❌ SA section not found in invoice")
+                self.log(f"❌ SA section has only {len(sa_items)} items (need 5+)")
                 return False
-            
-            return True
+        else:
+            self.log("❌ SA section not found in invoice")
+            return False
+        
+        return True
         
         self.log("❌ Invoice data verification failed")
         return False
