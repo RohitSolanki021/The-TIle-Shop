@@ -35,7 +35,11 @@ ROOT_DIR = Path(__file__).parent.parent
 def load_template_map(page_type: Literal["page1", "cont"]) -> dict:
     """Load template map for page type"""
     filename = f"template_map.{page_type}.json"
-    path = ROOT_DIR / "assets" / "pdf" / filename
+    # Since __file__ is /app/backend/assets/pdf/pdfEngine.py
+    # parent.parent is /app/backend
+    # We need to go to /app/backend/assets/pdf/
+    path = Path(__file__).parent / filename  # Direct path to same directory
+    logger.info(f"Loading template map from: {path}")
     with open(path, 'r') as f:
         return json.load(f)
 
