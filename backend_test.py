@@ -141,7 +141,7 @@ def create_test_invoice_with_sa_section(customer, tiles):
         line_items.append(line_item)
     
     invoice_data = {
-        "customer_id": customer['id'],
+        "customer_id": customer.get('customer_id') or customer.get('id'),
         "customer_name": customer['name'],
         "customer_phone": customer['phone'],
         "customer_address": customer['address'],
