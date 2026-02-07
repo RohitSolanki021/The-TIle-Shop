@@ -904,7 +904,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             c.drawString(consignee_x + 5, content_y, consignee_address)
         
         # =================================================================
-        # ITEMS TABLE
+        # ITEMS TABLE - Reference: y_from_top=223.8
         # =================================================================
         table_y = height - 223.8  # Exact from reference
         table_header_h = 23.3  # Exact from reference
