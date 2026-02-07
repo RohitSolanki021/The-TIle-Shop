@@ -1296,11 +1296,30 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
         `⏳ Pending: ₹${invoice.pending_balance.toFixed(2)}\n` +
         `📊 Status: ${invoice.status}`;
       
-      // Fetch PDF as blob
-      const response = await axios.get(`${API}/invoices/${invoice.invoice_id}/pdf`, {
-        responseType: 'blob'
-      });
-      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+      let pdfBlob;
+      
+      // Try client-side PDF generation first
+      if (useClientPdf) {
+        const templateBytes = await loadPdfTemplate();
+        if (templateBytes) {
+          try {
+            const data = convertInvoiceToSections(invoice);
+            const pdfBytes = await generateInvoicePDF(data, templateBytes);
+            pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+          } catch (clientError) {
+            console.warn('Client-side PDF failed for share:', clientError);
+          }
+        }
+      }
+      
+      // Fallback to server if client failed
+      if (!pdfBlob) {
+        const response = await axios.get(`${API}/invoices/${invoice.invoice_id}/pdf`, {
+          responseType: 'blob'
+        });
+        pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+      }
+      
       const pdfFile = new File([pdfBlob], `Invoice_${invoice.invoice_id}.pdf`, { type: 'application/pdf' });
       
       // Check if Web Share API with files is supported (mainly mobile)
