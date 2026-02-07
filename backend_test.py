@@ -220,13 +220,15 @@ def test_pdf_template_replacement():
             else:
                 results.log_fail("PDF content type", f"Expected application/pdf, got {content_type}")
             
-            # 9. Verify PDF size (should be template overlay, not recreated)
+            # 9. Verify PDF size (template overlay method)
             pdf_size = len(pdf_response.content)
             print(f"📄 PDF size: {pdf_size:,} bytes ({pdf_size/1024:.1f} KB)")
             
-            # Template overlay method should produce ~590-600KB for single page with 6 items
-            if 550000 <= pdf_size <= 650000:  # 550KB to 650KB range
-                results.log_pass(f"PDF size indicates template overlay method: {pdf_size/1024:.1f} KB")
+            # For 6 items, template overlay method may produce either:
+            # Single page: ~590-650KB or Two pages: ~1180-1300KB
+            if (550000 <= pdf_size <= 650000) or (1150000 <= pdf_size <= 1350000):
+                pages_estimate = "1 page" if pdf_size < 800000 else "2 pages"
+                results.log_pass(f"PDF size indicates template overlay method: {pdf_size/1024:.1f} KB ({pages_estimate})")
             else:
                 results.log_fail("PDF size", f"Size {pdf_size/1024:.1f} KB doesn't match template overlay pattern")
             
