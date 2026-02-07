@@ -298,10 +298,8 @@ function TilesManagement({ tiles, fetchTiles }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const finalSize = formData.size === 'Custom Size' ? formData.customSize : formData.size;
-      
       const dataToSend = {
-        size: finalSize,
+        size: formData.size.trim(),
         coverage: parseFloat(formData.coverage),
         box_packing: parseInt(formData.box_packing)
       };
