@@ -786,10 +786,10 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         # =================================================================
         # COMPANY HEADER - Reference: x=112.6, y_from_top=44.9
-        # For ReportLab: Y = height - y_from_top
+        # ReportLab draws at baseline, need to subtract font height
         # =================================================================
         header_x = 112.6  # Exact from reference
-        header_y = height - 44.9  # Direct conversion
+        header_y = height - 44.9 - 12  # Subtract 12pt for 12pt font
         
         # Company Name - 12pt Bold (exact from reference)
         c.setFont("Helvetica-Bold", 12)
