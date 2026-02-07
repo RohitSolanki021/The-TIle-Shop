@@ -1,34 +1,94 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* The Tile Shop - Brand Colors */
+:root {
+    --tile-shop-bg: #fef7f7;
+    --tile-shop-dark-brown: #5a3825;
+    --tile-shop-medium-brown: #6b4a35;
+    --tile-shop-light-brown: #8b6b4a;
+    --tile-shop-tan: #a58b6a;
+    --tile-shop-cream: #d4c4b0;
+    --tile-shop-text: #3d2817;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.App {
+    background-color: var(--tile-shop-bg);
+    min-height: 100vh;
+}
+
+.App-logo {
+    height: 120px;
+    pointer-events: none;
+    object-fit: contain;
 }
 
 .App-header {
-    background-color: #0f0f10;
+    background-color: var(--tile-shop-bg);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     font-size: calc(10px + 2vmin);
-    color: white;
+    color: var(--tile-shop-dark-brown);
 }
 
 .App-link {
-    color: #61dafb;
+    color: var(--tile-shop-dark-brown);
+    text-decoration: none;
+    transition: color 0.3s ease;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.App-link:hover {
+    color: var(--tile-shop-medium-brown);
+}
+
+/* Brand text styles */
+.brand-text {
+    color: var(--tile-shop-dark-brown);
+}
+
+.brand-text-light {
+    color: var(--tile-shop-tan);
+}
+
+/* Button styles matching brand */
+.btn-primary {
+    background-color: var(--tile-shop-dark-brown);
+    color: var(--tile-shop-bg);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--tile-shop-medium-brown);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--tile-shop-dark-brown);
+    border: 2px solid var(--tile-shop-dark-brown);
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--tile-shop-dark-brown);
+    color: var(--tile-shop-bg);
+}
+
+/* Card styles */
+.tile-card {
+    background-color: white;
+    border: 1px solid var(--tile-shop-cream);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(90, 56, 37, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.tile-card:hover {
+    box-shadow: 0 4px 16px rgba(90, 56, 37, 0.15);
 }

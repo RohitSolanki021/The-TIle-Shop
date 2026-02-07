@@ -6,6 +6,9 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Logo URL
+const LOGO_URL = "https://customer-assets.emergentagent.com/job_1f30f2ce-4c5c-40ac-bd4f-cb3289954aea/artifacts/p5rto5md_Untitled%20%281080%20x%201080%20px%29.png";
+
 const Home = () => {
   const helloWorldApi = async () => {
     try {
@@ -22,16 +25,28 @@ const Home = () => {
 
   return (
     <div>
-      <header className="App-header">
+      <header className="App-header" data-testid="home-header">
         <a
           className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/"
+          data-testid="logo-link"
         >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
+          <img 
+            src={LOGO_URL} 
+            alt="The Tile Shop - Your Tile Experts" 
+            className="App-logo"
+            data-testid="brand-logo"
+          />
         </a>
-        <p className="mt-5">Building something incredible ~!</p>
+        <p className="mt-5 brand-text" data-testid="tagline">Your Tile Experts</p>
+        <div className="mt-8 flex gap-4">
+          <button className="btn-primary" data-testid="explore-btn">
+            Explore Tiles
+          </button>
+          <button className="btn-secondary" data-testid="contact-btn">
+            Contact Us
+          </button>
+        </div>
       </header>
     </div>
   );
