@@ -127,7 +127,7 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "PDF matches reference: Logo, Company header, Quotation box, Buyer/Consignee sections, Table with correct columns, Bank Details (SHREE SONANA SHETRPAL CERAMIC, HDFC BANK), 9 Terms & Conditions"
+        comment: "REWRITTEN to exact template match: 15mm margins, 35mm logo, 18pt company name, correct column proportions, 8mm table headers, 1pt borders, center-aligned columns"
 
 frontend:
   - task: "Dashboard Icons WHITE"
