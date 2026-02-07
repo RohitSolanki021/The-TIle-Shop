@@ -33,10 +33,10 @@ def test_pdf_pagination_workflow():
     # 2. Create test customer
     print("\n2. Creating test customer...")
     customer_data = {
-        "name": "Golden Builders Construction",
-        "phone": "9123456789", 
-        "address": "Plot 15, Industrial Estate, Gurgaon - 122001",
-        "gstin": "06AABCU9603R1ZK"
+        "name": "Heritage Builders & Developers", 
+        "phone": "9876543210",
+        "address": "Block A, Commercial Complex, Sector 18, Noida - 201301, Uttar Pradesh",
+        "gstin": "09AABCH5241M1ZX"
     }
     
     try:
