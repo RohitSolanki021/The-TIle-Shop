@@ -1271,17 +1271,20 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
       }
       
       // Fallback to server-side PDF generation
-      const response = await axios.get(`${API}/invoices/${invoiceId}/pdf`, {
+      const encodedInvoiceId = encodeURIComponent(invoiceId);
+      const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
         responseType: 'blob'
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Invoice_${invoiceId}.pdf`);
+      link.setAttribute('download', `Invoice_${invoiceId.replace(/\//g, '-')}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
+      console.error('PDF download error:', error);
       alert('Error downloading PDF: ' + error.message);
     }
   };
