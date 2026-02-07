@@ -807,19 +807,26 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             # Add location subtotal marker
             all_items.append({'type': 'location_subtotal', 'location': location, 'subtotal': location_subtotal, 'height': 20})
         
-        # Split items across pages
+        # Split items across pages using smart pagination
         pages_content = []
         current_page_items = []
         current_y = TABLE_START_Y
+        page_num = 1
         
         for item_info in all_items:
             item_height = item_info['height']
             
+            # Determine max Y for current page
+            # First page has less space (fixed footer elements at bottom)
+            # Continuation pages can use more vertical space
+            max_y = MAX_CONTENT_Y_PAGE1 if page_num == 1 else MAX_CONTENT_Y_CONTINUATION
+            
             # Check if this item fits on current page
-            if current_y + item_height > MAX_CONTENT_Y:
+            if current_y + item_height > max_y:
                 # Start new page
                 if current_page_items:
                     pages_content.append(current_page_items)
+                    page_num += 1
                 current_page_items = [item_info]
                 current_y = TABLE_START_Y + item_height
             else:
