@@ -84,26 +84,25 @@ def create_test_tiles():
     """Create test tiles for invoice line items"""
     tiles_data = [
         {
-            "id": str(uuid.uuid4()),
-            "name": f"SA Test Tile {i+1}",
             "size": f"600x600mm-{i+1}",
             "coverage": 1.44,
-            "box_packing": 4,
-            "rate_per_box": 800.0 + (i * 100),
-            "rate_per_sqft": 555.56 + (i * 69.44),
-            "tile_image": ""
+            "box_packing": 4
         }
         for i in range(6)  # Create 6 tiles for 5+ item test
     ]
     
     created_tiles = []
-    for tile_data in tiles_data:
+    for i, tile_data in enumerate(tiles_data):
         response = requests.post(f"{BASE_URL}/tiles", json=tile_data, timeout=10)
         if response.status_code in [200, 201]:
-            # Return the response data which may have a different tile_id  
-            created_tiles.append(response.json())
+            # Add the missing fields that will be used in invoice creation
+            tile = response.json()
+            tile['name'] = f"SA Test Tile {i+1}"
+            tile['rate_per_box'] = 800.0 + (i * 100)
+            tile['rate_per_sqft'] = 555.56 + (i * 69.44)
+            created_tiles.append(tile)
         else:
-            raise Exception(f"Failed to create tile {tile_data['name']}: {response.status_code}")
+            raise Exception(f"Failed to create tile {i+1}: {response.status_code}")
     
     return created_tiles
 
