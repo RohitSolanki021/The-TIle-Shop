@@ -838,7 +838,8 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         c.rect(buyer_x, buyer_y, box_width, header_h, fill=1, stroke=0)
         c.setFillColorRGB(1, 1, 1)
         c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(buyer_x + 5, buyer_y + 4, "Buyer (Bill To):")
+        # Reference shows text at x=35.6, so no padding adjustment needed
+        c.drawString(buyer_x, buyer_y + 4, "Buyer (Bill To):")
         
         # Content box
         c.setFillColorRGB(1, 1, 1)
