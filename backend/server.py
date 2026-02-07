@@ -1307,7 +1307,8 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             y_pos -= 15
         
         # =================================================================
-        # BANK DETAILS
+        # BANK DETAILS - Horizontal single-row format (matching reference)
+        # Reference shows all bank details in one horizontal row
         # =================================================================
         if y_pos < 180:
             c.showPage()
@@ -1315,53 +1316,58 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             c.rect(0, 0, width, height, fill=1, stroke=0)
             y_pos = height - 50
         
-        c.setFillColorRGB(*BROWN)
-        c.setFont("Helvetica-Bold", 9.5)
-        c.drawString(MARGIN_LEFT, y_pos, "Bank Details")
-        y_pos -= 5
+        y_pos -= 10
         
-        bank_box_w = 255
-        bank_box_h = 55
-        
+        # Bank details header row background
+        bank_row_h = 32
         c.setFillColorRGB(1, 1, 1)
-        c.rect(MARGIN_LEFT, y_pos - bank_box_h, bank_box_w, bank_box_h, fill=1, stroke=0)
+        c.rect(MARGIN_LEFT, y_pos - bank_row_h, TABLE_WIDTH, bank_row_h, fill=1, stroke=0)
         c.setStrokeColorRGB(*BROWN)
         c.setLineWidth(0.5)
-        c.rect(MARGIN_LEFT, y_pos - bank_box_h, bank_box_w, bank_box_h, stroke=1, fill=0)
+        c.rect(MARGIN_LEFT, y_pos - bank_row_h, TABLE_WIDTH, bank_row_h, stroke=1, fill=0)
         
+        # Draw vertical dividers between columns (5 columns)
+        col_w = TABLE_WIDTH / 5
+        for i in range(1, 5):
+            c.line(MARGIN_LEFT + i * col_w, y_pos, MARGIN_LEFT + i * col_w, y_pos - bank_row_h)
+        
+        # Column 1: Account Name
         c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica", 7.5)
-        bank_y = y_pos - 12
+        c.setFont("Helvetica", 7)
+        c.drawString(MARGIN_LEFT + 5, y_pos - 10, "Account Name:")
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(MARGIN_LEFT + 5, y_pos - 22, "SHREE SONANA")
+        c.drawString(MARGIN_LEFT + 5, y_pos - 30, "SHETRPAL CERAMIC")
         
-        c.drawString(MARGIN_LEFT + 5, bank_y, "Account Name:")
-        c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(MARGIN_LEFT + 75, bank_y, "SHREE SONANA SHETRPAL CERAMIC")
+        # Column 2: Bank Name
+        col2_x = MARGIN_LEFT + col_w
+        c.setFont("Helvetica", 7)
+        c.drawString(col2_x + 5, y_pos - 10, "Bank Name:")
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(col2_x + 5, y_pos - 22, "HDFC BANK")
         
-        bank_y -= 10
-        c.setFont("Helvetica", 7.5)
-        c.drawString(MARGIN_LEFT + 5, bank_y, "Bank Name:")
-        c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(MARGIN_LEFT + 75, bank_y, "HDFC BANK")
+        # Column 3: Account No.
+        col3_x = MARGIN_LEFT + 2 * col_w
+        c.setFont("Helvetica", 7)
+        c.drawString(col3_x + 5, y_pos - 10, "Account No.:")
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(col3_x + 5, y_pos - 22, "50200069370271")
         
-        bank_y -= 10
-        c.setFont("Helvetica", 7.5)
-        c.drawString(MARGIN_LEFT + 5, bank_y, "Account No.:")
-        c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(MARGIN_LEFT + 75, bank_y, "50200069370271")
+        # Column 4: IFSC
+        col4_x = MARGIN_LEFT + 3 * col_w
+        c.setFont("Helvetica", 7)
+        c.drawString(col4_x + 5, y_pos - 10, "IFSC:")
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(col4_x + 5, y_pos - 22, "HDFC0005291")
         
-        bank_y -= 10
-        c.setFont("Helvetica", 7.5)
-        c.drawString(MARGIN_LEFT + 5, bank_y, "IFSC:")
-        c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(MARGIN_LEFT + 75, bank_y, "HDFC0005291")
+        # Column 5: Branch
+        col5_x = MARGIN_LEFT + 4 * col_w
+        c.setFont("Helvetica", 7)
+        c.drawString(col5_x + 5, y_pos - 10, "Branch:")
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(col5_x + 5, y_pos - 22, "HYDE PARK")
         
-        bank_y -= 10
-        c.setFont("Helvetica", 7.5)
-        c.drawString(MARGIN_LEFT + 5, bank_y, "Branch:")
-        c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(MARGIN_LEFT + 75, bank_y, "HYDE PARK")
-        
-        y_pos -= bank_box_h + 15
+        y_pos -= bank_row_h + 15
         
         # =================================================================
         # TERMS & CONDITIONS
