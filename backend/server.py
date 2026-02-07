@@ -223,9 +223,14 @@ def calculate_line_item(item: InvoiceLineItem) -> InvoiceLineItem:
     return item
 
 def calculate_invoice_totals(invoice: Invoice) -> Invoice:
-    """Calculate all invoice totals"""
+    """Calculate all invoice totals including GST"""
     invoice.subtotal = sum(item.final_amount for item in invoice.line_items)
-    invoice.grand_total = invoice.subtotal + invoice.transport_charges + invoice.unloading_charges
+    # Calculate GST if percentage is provided
+    if invoice.gst_percent > 0:
+        invoice.gst_amount = invoice.subtotal * (invoice.gst_percent / 100)
+    else:
+        invoice.gst_amount = 0
+    invoice.grand_total = invoice.subtotal + invoice.transport_charges + invoice.unloading_charges + invoice.gst_amount
     invoice.pending_balance = invoice.grand_total - invoice.amount_paid
     invoice.updated_at = datetime.now(timezone.utc)
     return invoice
