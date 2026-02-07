@@ -1,0 +1,52 @@
+{
+  "_comment": "Continuation Page Template Map - NO header, just table grid",
+  
+  "page": {
+    "width": 595.5,
+    "height": 842.25
+  },
+  
+  "background": {
+    "color": [0.98, 0.96, 0.95]
+  },
+  
+  "section": {
+    "titleBox": { 
+      "x": 250, 
+      "y": 780, 
+      "w": 95, 
+      "h": 14
+    },
+    "totalLabelBox": { 
+      "x": 400, 
+      "y": 100, 
+      "w": 125, 
+      "h": 12
+    },
+    "totalValueBox": { 
+      "x": 527, 
+      "y": 100, 
+      "w": 45, 
+      "h": 12 
+    }
+  },
+  
+  "table": {
+    "startY": 760,
+    "rowH": 18,
+    "rowHWithImage": 40,
+    "safeBottomY": 80,
+    
+    "cols": {
+      "sr":       { "x": 28,  "w": 24,  "align": "center" },
+      "name":     { "x": 52,  "w": 47,  "align": "left" },
+      "image":    { "x": 99,  "w": 70,  "align": "center", "imgW": 30, "imgH": 30 },
+      "size":     { "x": 169, "w": 210, "align": "center" },
+      "rateBox":  { "x": 382, "w": 32,  "align": "right" },
+      "rateSqft": { "x": 414, "w": 28,  "align": "right" },
+      "qty":      { "x": 442, "w": 45,  "align": "center" },
+      "disc":     { "x": 487, "w": 40,  "align": "center" },
+      "amount":   { "x": 527, "w": 39,  "align": "right" }
+    }
+  }
+}
