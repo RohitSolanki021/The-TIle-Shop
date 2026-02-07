@@ -168,9 +168,10 @@ function NavItem({ icon, label, active, onClick, testId }) {
       data-testid={testId}
       className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
         active
-          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105'
+          ? 'text-white shadow-lg scale-105'
           : 'text-gray-700 hover:bg-gray-100'
       }`}
+      style={active ? {background: 'linear-gradient(to right, #5a3825, #6b4a35)'} : {}}
     >
       <div className="h-5 w-5">{icon}</div>
       <span className="font-medium">{label}</span>
