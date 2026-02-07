@@ -186,3 +186,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "All remaining issues fixed: Emergent scripts removed, dashboard icons now white. Screenshot verified."
+  - agent: "testing"
+    message: "Backend testing completed successfully. All focus areas verified: 1) Invoice ID format TTS/XXX/YYYY-YY working with proper auto-increment and financial year logic. 2) PDF generation using template overlay method confirmed (579KB+ file size). URL-encoded invoice IDs handled correctly. All backend APIs functional. No critical issues found."
