@@ -715,20 +715,17 @@ async def delete_invoice(invoice_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
-# ==================== PDF GENERATION (TEMPLATE OVERLAY WITH PROPER MULTI-ITEM SUPPORT) ====================
+# ==================== PDF GENERATION WITH TEMPLATE-ACCURATE REPLACEMENT ====================
 
 def generate_invoice_pdf(invoice: dict, output_path: str):
     """
-    Generate PDF using TEMPLATE OVERLAY method with proper multi-item support.
+    Generate PDF using TEMPLATE OVERLAY method with template-accurate text replacement.
     
-    Features:
-    - Multiple items per section rendered as proper rows
-    - Dynamic section names (e.g., "SA" replaces "MAIN FLOOR")
-    - Dynamic section totals computed from items
-    - Pixel-perfect alignment using box-based positioning
-    - White rectangle masking for template text replacement
-    - Pagination support with headers on every page
+    Key features:
+    - Covers template text (MAIN FLOOR) with background-colored rectangles
+    - Draws dynamic section names in exact same positions
+    - Multi-item row rendering with strict Y positioning
+    - Grouped data model: sections = [{name, items}, ...]
     """
     try:
         import io
@@ -747,23 +744,29 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         PAGE_HEIGHT = tmap['page_height']
         PAGE_WIDTH = tmap['page_width']
         
-        # Pagination settings
-        pagination = tmap.get('pagination', {})
-        TABLE_START_Y = pagination.get('content_area_start_y', tmap['table']['first_row_y_from_top'])
-        MAX_CONTENT_Y_PAGE1 = pagination.get('content_area_end_y', 700)
-        MAX_CONTENT_Y_CONTINUATION = pagination.get('continuation_page_end_y', 780)
-        SAFE_BOTTOM_Y = pagination.get('safe_bottom_y', 720)
+        # Background color from template (light beige/cream)
+        BG_COLOR = tuple(tmap.get('background_color', [0.98, 0.96, 0.95]))
         
-        # Table config
+        # Table and row config
         table_cfg = tmap['table']
         cols = table_cfg['columns']
         ROW_HEIGHT = table_cfg['row_height']
         ROW_HEIGHT_WITH_IMAGE = table_cfg['row_height_with_image']
         
+        # Item row boundaries
+        item_rows_cfg = table_cfg['item_rows']
+        ITEMS_START_Y = item_rows_cfg['start_y_from_top']
+        ITEMS_END_Y_PAGE1 = item_rows_cfg['bottom_limit_y_from_top']
+        ITEMS_END_Y_CONTINUATION = tmap['pagination']['items_end_y_continuation']
+        
+        # Section header and total boxes (from template analysis)
+        section_header_cfg = table_cfg['section_header']
+        section_total_cfg = table_cfg['section_total']
+        
         # Load template PDF path
         template_path = ROOT_DIR / "assets" / "invoice-template.pdf"
         
-        # Check if DejaVuSans font is available for Rupee symbol
+        # Check for Rupee font
         use_dejavusans = False
         try:
             from reportlab.pdfbase import pdfmetrics
@@ -775,95 +778,106 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         # ==================== HELPER FUNCTIONS ====================
         
         def y_coord(y_from_top):
-            """Convert y_from_top to ReportLab's y_from_bottom coordinates"""
+            """Convert y_from_top to ReportLab's y_from_bottom"""
             return PAGE_HEIGHT - y_from_top
         
-        def set_rupee_font(canvas, size=7, bold=False):
-            """Set font that supports Rupee symbol"""
-            if use_dejavusans:
-                try:
-                    canvas.setFont("DejaVuSans", size)
-                    return
-                except:
-                    pass
-            canvas.setFont("Helvetica-Bold" if bold else "Helvetica", size)
-        
-        def draw_text_in_box(canvas, text, box, align="left", font="Helvetica", size=7, color=(0, 0, 0)):
+        def cover_and_write(canvas, text, box, align="center", size=9, font="Helvetica-Bold", color=(0.35, 0.22, 0.15)):
             """
-            Draw text within a bounding box with alignment support.
+            Cover template text with background color, then write new text.
+            This is the key function for template-accurate replacement.
             
             Args:
                 canvas: ReportLab canvas
-                text: Text to draw
+                text: New text to write
                 box: dict with x, y_from_top, width, height
                 align: "left", "center", or "right"
-                font: Font name
                 size: Font size
+                font: Font name
                 color: RGB tuple (0-1 scale)
+            """
+            x = box['x']
+            y_from_top = box['y_from_top']
+            w = box['width']
+            h = box['height']
+            
+            # 1) Cover old template text with background-colored rectangle
+            canvas.setFillColorRGB(*BG_COLOR)
+            canvas.rect(x, y_coord(y_from_top + h), w, h, fill=True, stroke=False)
+            
+            # 2) Write new text
+            canvas.setFont(font, size)
+            canvas.setFillColorRGB(*color)
+            
+            # Calculate text position
+            text_y = y_coord(y_from_top + h / 2 + size / 3)
+            
+            if align == "center":
+                text_x = x + w / 2
+                canvas.drawCentredString(text_x, text_y, text)
+            elif align == "right":
+                text_x = x + w - 2
+                canvas.drawRightString(text_x, text_y, text)
+            else:  # left
+                text_x = x + 2
+                canvas.drawString(text_x, text_y, text)
+        
+        def draw_text_in_box(canvas, text, box, align="left", size=7, font="Helvetica", color=(0, 0, 0)):
+            """
+            Draw text within a bounding box with alignment.
+            Does NOT cover - used for overlay text on clear areas.
             """
             canvas.setFont(font, size)
             canvas.setFillColorRGB(*color)
             
             x = box['x']
-            width = box['width']
+            w = box['width']
             y_from_top = box['y_from_top']
-            height = box.get('height', ROW_HEIGHT)
+            h = box.get('height', ROW_HEIGHT)
             
-            # Calculate text baseline (vertically centered in box)
-            text_y = y_coord(y_from_top + height / 2 + size / 3)
+            text_y = y_coord(y_from_top + h / 2 + size / 3)
+            text_str = str(text)
             
-            # Truncate text if too long
-            max_chars = int(width / (size * 0.5))
-            if len(str(text)) > max_chars:
-                text = str(text)[:max_chars-2] + ".."
+            # Truncate if too long
+            max_chars = int(w / (size * 0.55))
+            if len(text_str) > max_chars:
+                text_str = text_str[:max_chars-2] + ".."
             
             if align == "center":
-                text_x = x + width / 2
-                canvas.drawCentredString(text_x, text_y, str(text))
+                canvas.drawCentredString(x + w / 2, text_y, text_str)
             elif align == "right":
-                text_x = x + width - 2
-                canvas.drawRightString(text_x, text_y, str(text))
-            else:  # left
-                text_x = x + 2
-                canvas.drawString(text_x, text_y, str(text))
+                canvas.drawRightString(x + w - 2, text_y, text_str)
+            else:
+                canvas.drawString(x + 2, text_y, text_str)
         
-        def draw_currency_in_box(canvas, value, box, align="right", size=7, bold=False):
-            """Draw currency value with Rupee symbol in a box"""
-            set_rupee_font(canvas, size, bold)
+        def draw_currency(canvas, value, box, align="right", size=7, bold=False):
+            """Draw currency value with Rupee symbol"""
+            if use_dejavusans:
+                try:
+                    canvas.setFont("DejaVuSans", size)
+                except:
+                    canvas.setFont("Helvetica-Bold" if bold else "Helvetica", size)
+            else:
+                canvas.setFont("Helvetica-Bold" if bold else "Helvetica", size)
+            
             canvas.setFillColorRGB(0, 0, 0)
             
             x = box['x']
-            width = box['width']
+            w = box['width']
             y_from_top = box['y_from_top']
-            height = box.get('height', ROW_HEIGHT)
+            h = box.get('height', ROW_HEIGHT)
             
-            text_y = y_coord(y_from_top + height / 2 + size / 3)
-            formatted_value = f"₹{round(value):,}"
+            text_y = y_coord(y_from_top + h / 2 + size / 3)
+            formatted = f"₹{round(value):,}"
             
             if align == "right":
-                text_x = x + width - 2
-                canvas.drawRightString(text_x, text_y, formatted_value)
+                canvas.drawRightString(x + w - 2, text_y, formatted)
             elif align == "center":
-                text_x = x + width / 2
-                canvas.drawCentredString(text_x, text_y, formatted_value)
+                canvas.drawCentredString(x + w / 2, text_y, formatted)
             else:
-                text_x = x + 2
-                canvas.drawString(text_x, text_y, formatted_value)
-        
-        def draw_white_mask(canvas, box):
-            """Draw a white rectangle to mask template text"""
-            canvas.setFillColorRGB(1, 1, 1)  # White
-            canvas.rect(
-                box['x'],
-                y_coord(box['y_from_top'] + box['height']),
-                box['width'],
-                box['height'],
-                fill=True,
-                stroke=False
-            )
+                canvas.drawString(x + 2, text_y, formatted)
         
         def draw_image_in_box(canvas, image_data, box, padding=2):
-            """Draw an image within a bounding box"""
+            """Draw image within bounding box"""
             try:
                 if image_data.startswith('data:image'):
                     image_data = image_data.split(',')[1]
@@ -887,76 +901,80 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             except Exception as e:
                 logger.warning(f"Error drawing image: {e}")
         
-        # ==================== GROUP ITEMS BY LOCATION/SECTION ====================
+        # ==================== GROUP ITEMS INTO SECTIONS ====================
         
-        grouped_items = {}
+        # Build grouped data model: sections = [{name, items}, ...]
+        sections_dict = {}
         for item in invoice.get('line_items', []):
-            location = item.get('location', 'Items')
-            if location not in grouped_items:
-                grouped_items[location] = []
-            grouped_items[location].append(item)
+            section_name = item.get('location', 'Items')
+            if section_name not in sections_dict:
+                sections_dict[section_name] = []
+            sections_dict[section_name].append(item)
+        
+        sections = [{'name': name, 'items': items} for name, items in sections_dict.items()]
         
         # ==================== CALCULATE PAGINATION ====================
         
         def get_item_height(item):
-            """Calculate height needed for an item row"""
             has_image = bool(item.get('tile_image'))
             return ROW_HEIGHT_WITH_IMAGE if has_image else ROW_HEIGHT
         
-        # Build render list with all elements
-        render_items = []
-        for section_name, items in grouped_items.items():
-            # Section header
-            render_items.append({
+        # Build render list with section structure
+        render_elements = []
+        for section in sections:
+            section_name = section['name']
+            items = section['items']
+            
+            # a) Section header row
+            render_elements.append({
                 'type': 'section_header',
                 'section_name': section_name,
-                'height': table_cfg.get('section_header', {}).get('height', 18)
+                'height': 12  # Section header row height
             })
             
-            # Calculate section total while adding items
+            # b) Item rows
             section_total = 0
             for idx, item in enumerate(items):
                 item_height = get_item_height(item)
-                render_items.append({
+                render_elements.append({
                     'type': 'item',
                     'item': item,
                     'sr_no': idx + 1,
-                    'section_name': section_name,
                     'height': item_height
                 })
                 section_total += item.get('final_amount', 0)
             
-            # Section total row
-            render_items.append({
+            # c) Section total row
+            render_elements.append({
                 'type': 'section_total',
                 'section_name': section_name,
                 'total': section_total,
-                'height': table_cfg.get('section_total', {}).get('height', 18)
+                'height': 12
             })
         
         # Split into pages
         pages_content = []
-        current_page_items = []
-        current_y = TABLE_START_Y
+        current_page = []
+        current_y = ITEMS_START_Y
         page_num = 1
         
-        for render_item in render_items:
-            item_height = render_item['height']
-            max_y = MAX_CONTENT_Y_PAGE1 if page_num == 1 else MAX_CONTENT_Y_CONTINUATION
+        for elem in render_elements:
+            h = elem['height']
+            limit_y = ITEMS_END_Y_PAGE1 if page_num == 1 else ITEMS_END_Y_CONTINUATION
             
-            if current_y + item_height > max_y:
+            if current_y + h > limit_y:
                 # Start new page
-                if current_page_items:
-                    pages_content.append(current_page_items)
+                if current_page:
+                    pages_content.append(current_page)
                     page_num += 1
-                current_page_items = [render_item]
-                current_y = TABLE_START_Y + item_height
+                current_page = [elem]
+                current_y = ITEMS_START_Y + h
             else:
-                current_page_items.append(render_item)
-                current_y += item_height
+                current_page.append(elem)
+                current_y += h
         
-        if current_page_items:
-            pages_content.append(current_page_items)
+        if current_page:
+            pages_content.append(current_page)
         
         if not pages_content:
             pages_content = [[]]
@@ -966,112 +984,88 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         # ==================== DRAWING FUNCTIONS ====================
         
         def draw_header_content(canvas, page_num, total_pages):
-            """Draw header content (quotation box, buyer, consignee) on each page"""
+            """Draw header content (quotation box, buyer, consignee)"""
             qbox = tmap['quotation_box']
             
             canvas.setFont("Helvetica-Bold", 7.5)
             canvas.setFillColorRGB(0, 0, 0)
             
-            # Invoice ID (with page number on continuation pages)
-            invoice_id_text = invoice['invoice_id']
+            # Invoice ID
+            invoice_id = invoice['invoice_id']
             if total_pages > 1:
-                invoice_id_text = f"{invoice['invoice_id']} (Page {page_num}/{total_pages})"
-            
-            canvas.drawString(qbox['quotation_no_value']['x'], y_coord(qbox['quotation_no_value']['y_from_top']), 
-                        invoice_id_text)
+                invoice_id = f"{invoice['invoice_id']} (Page {page_num}/{total_pages})"
+            canvas.drawString(qbox['quotation_no_value']['x'], y_coord(qbox['quotation_no_value']['y_from_top']), invoice_id)
             
             # Date
-            invoice_date = invoice.get('invoice_date')
-            if invoice_date:
-                if isinstance(invoice_date, str):
-                    invoice_date = datetime.fromisoformat(invoice_date)
-                canvas.drawString(qbox['date_value']['x'], y_coord(qbox['date_value']['y_from_top']), 
-                            invoice_date.strftime("%d/%m/%Y"))
+            inv_date = invoice.get('invoice_date')
+            if inv_date:
+                if isinstance(inv_date, str):
+                    inv_date = datetime.fromisoformat(inv_date)
+                canvas.drawString(qbox['date_value']['x'], y_coord(qbox['date_value']['y_from_top']), inv_date.strftime("%d/%m/%Y"))
             
             # Reference name
-            ref_name = invoice.get('reference_name', '') or ''
-            if ref_name:
+            ref = invoice.get('reference_name', '') or ''
+            if ref:
                 canvas.setFont("Helvetica", 7.5)
-                canvas.drawString(qbox['reference_name_value']['x'], y_coord(qbox['reference_name_value']['y_from_top']), 
-                            ref_name[:18])
+                canvas.drawString(qbox['reference_name_value']['x'], y_coord(qbox['reference_name_value']['y_from_top']), ref[:18])
             
-            # Buyer section
+            # Buyer
             buyer = tmap['buyer_section']
             canvas.setFont("Helvetica-Bold", 7.5)
-            canvas.drawString(buyer['name']['x'], y_coord(buyer['name']['y_from_top']), 
-                        invoice.get('customer_name', '')[:35])
+            canvas.drawString(buyer['name']['x'], y_coord(buyer['name']['y_from_top']), invoice.get('customer_name', '')[:35])
             
             canvas.setFont("Helvetica", 7)
-            canvas.drawString(buyer['phone']['x'], y_coord(buyer['phone']['y_from_top']), 
-                        f"Ph: {invoice.get('customer_phone', '')}")
+            canvas.drawString(buyer['phone']['x'], y_coord(buyer['phone']['y_from_top']), f"Ph: {invoice.get('customer_phone', '')}")
             
-            address = invoice.get('customer_address', '')
-            if len(address) > 40:
-                canvas.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), 
-                            address[:40])
-                canvas.drawString(buyer['address_line2']['x'], y_coord(buyer['address_line2']['y_from_top']), 
-                            address[40:80])
+            addr = invoice.get('customer_address', '')
+            if len(addr) > 40:
+                canvas.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), addr[:40])
+                canvas.drawString(buyer['address_line2']['x'], y_coord(buyer['address_line2']['y_from_top']), addr[40:80])
             else:
-                canvas.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), 
-                            address)
+                canvas.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), addr)
             
             if invoice.get('customer_gstin'):
-                canvas.drawString(buyer['gstin']['x'], y_coord(buyer['gstin']['y_from_top']), 
-                            f"GSTIN: {invoice['customer_gstin']}")
+                canvas.drawString(buyer['gstin']['x'], y_coord(buyer['gstin']['y_from_top']), f"GSTIN: {invoice['customer_gstin']}")
             
-            # Consignee section
+            # Consignee
             consignee = tmap['consignee_section']
-            consignee_name = invoice.get('consignee_name') or invoice.get('customer_name', '')
-            consignee_phone = invoice.get('consignee_phone') or invoice.get('customer_phone', '')
-            consignee_address = invoice.get('consignee_address') or invoice.get('customer_address', '')
+            c_name = invoice.get('consignee_name') or invoice.get('customer_name', '')
+            c_phone = invoice.get('consignee_phone') or invoice.get('customer_phone', '')
+            c_addr = invoice.get('consignee_address') or invoice.get('customer_address', '')
             
             canvas.setFont("Helvetica-Bold", 7.5)
-            canvas.drawString(consignee['name']['x'], y_coord(consignee['name']['y_from_top']), 
-                        consignee_name[:35])
+            canvas.drawString(consignee['name']['x'], y_coord(consignee['name']['y_from_top']), c_name[:35])
             
             canvas.setFont("Helvetica", 7)
-            canvas.drawString(consignee['phone']['x'], y_coord(consignee['phone']['y_from_top']), 
-                        f"Ph: {consignee_phone}")
+            canvas.drawString(consignee['phone']['x'], y_coord(consignee['phone']['y_from_top']), f"Ph: {c_phone}")
             
-            if len(consignee_address) > 40:
-                canvas.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), 
-                            consignee_address[:40])
-                canvas.drawString(consignee['address_line2']['x'], y_coord(consignee['address_line2']['y_from_top']), 
-                            consignee_address[40:80])
+            if len(c_addr) > 40:
+                canvas.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), c_addr[:40])
+                canvas.drawString(consignee['address_line2']['x'], y_coord(consignee['address_line2']['y_from_top']), c_addr[40:80])
             else:
-                canvas.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), 
-                            consignee_address)
+                canvas.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), c_addr)
         
         def draw_section_header(canvas, section_name, current_y):
             """
-            Draw section header (e.g., "SA" replacing "MAIN FLOOR").
-            Masks the template text with white and draws the section name.
+            Replace "MAIN FLOOR" with section name using cover_and_write.
+            Uses exact template position from section_header_cfg.
             """
-            section_cfg = table_cfg.get('section_header', {})
-            height = section_cfg.get('height', 18)
-            
-            # Mask the template "MAIN FLOOR" text with white rectangle
-            mask_cfg = section_cfg.get('mask_box', {})
-            if mask_cfg:
-                draw_white_mask(canvas, {
-                    'x': mask_cfg.get('x', 38),
-                    'y_from_top': current_y - 2,
-                    'width': mask_cfg.get('width', 537),
-                    'height': mask_cfg.get('height', 16)
-                })
-            
-            # Draw the section name centered
-            canvas.setFont("Helvetica-Bold", 9)
-            canvas.setFillColorRGB(0.35, 0.22, 0.15)  # Brown color
-            text_y = y_coord(current_y + height / 2 - 3)
-            canvas.drawCentredString(PAGE_WIDTH / 2, text_y, section_name.upper())
-            canvas.setFillColorRGB(0, 0, 0)
-            
-            return height
+            text_box = section_header_cfg['text_box']
+            # Update y position to current row
+            box = {
+                'x': text_box['x'],
+                'y_from_top': current_y,
+                'width': text_box['width'],
+                'height': text_box['height']
+            }
+            cover_and_write(canvas, section_name.upper(), box, align="center", size=9, 
+                          font="Helvetica-Bold", color=(0.35, 0.22, 0.15))
+            return text_box['height']
         
         def draw_item_row(canvas, item, current_y, sr_no):
             """
-            Draw a single item row with proper alignment in each column box.
+            Draw a single item row with strict Y positioning.
+            All columns drawn inside their bounding boxes.
             """
             has_image = bool(item.get('tile_image'))
             row_height = ROW_HEIGHT_WITH_IMAGE if has_image else ROW_HEIGHT
@@ -1098,7 +1092,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 draw_image_in_box(canvas, item['tile_image'], {
                     'x': cols['image']['x'],
                     'width': cols['image'].get('img_width', 30),
-                    'y_from_top': current_y,
+                    'y_from_top': current_y + 5,
                     'height': cols['image'].get('img_height', 30)
                 })
             
@@ -1110,16 +1104,16 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 'height': row_height
             }, align="center", size=7)
             
-            # RATE/BOX - right aligned with Rupee
-            draw_currency_in_box(canvas, item.get('rate_per_box', 0), {
+            # RATE/BOX - right aligned
+            draw_currency(canvas, item.get('rate_per_box', 0), {
                 'x': cols['rate_box']['x'],
                 'width': cols['rate_box']['width'],
                 'y_from_top': current_y,
                 'height': row_height
             }, align="right", size=7)
             
-            # RATE/SQFT - right aligned with Rupee
-            draw_currency_in_box(canvas, item.get('rate_per_sqft', 0), {
+            # RATE/SQFT - right aligned
+            draw_currency(canvas, item.get('rate_per_sqft', 0), {
                 'x': cols['rate_sqft']['x'],
                 'width': cols['rate_sqft']['width'],
                 'y_from_top': current_y,
@@ -1144,8 +1138,8 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 'height': row_height
             }, align="center", size=7)
             
-            # AMOUNT - right aligned with Rupee
-            draw_currency_in_box(canvas, item.get('final_amount', 0), {
+            # AMOUNT - right aligned
+            draw_currency(canvas, item.get('final_amount', 0), {
                 'x': cols['amount']['x'],
                 'width': cols['amount']['width'],
                 'y_from_top': current_y,
@@ -1156,166 +1150,160 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         def draw_section_total(canvas, section_name, total, current_y):
             """
-            Draw section total row (e.g., "SA's Total Amount: ₹X,XXX").
-            Masks the template "MAIN FLOOR's Total Amount" text.
+            Replace "MAIN FLOOR's Total Amount" with section name using cover_and_write.
+            Draw total value in the amount box.
             """
-            section_cfg = table_cfg.get('section_total', {})
-            height = section_cfg.get('height', 18)
-            
-            # Mask the template text with white rectangle
-            mask_cfg = section_cfg.get('mask_box', {})
-            if mask_cfg:
-                draw_white_mask(canvas, {
-                    'x': mask_cfg.get('x', 38),
-                    'y_from_top': current_y,
-                    'width': mask_cfg.get('width', 537),
-                    'height': mask_cfg.get('height', 16)
-                })
-            
-            # Draw section total label - right aligned before amount column
-            canvas.setFont("Helvetica-Bold", 7)
-            canvas.setFillColorRGB(0.35, 0.22, 0.15)  # Brown color
-            label_text = f"{section_name}'s Total Amount:"
-            label_x = cols['amount']['x'] - 5
-            text_y = y_coord(current_y + height / 2 - 2)
-            canvas.drawRightString(label_x, text_y, label_text)
-            
-            # Draw total value - right aligned in amount column
-            draw_currency_in_box(canvas, total, {
-                'x': cols['amount']['x'],
-                'width': cols['amount']['width'],
+            # Cover and replace label ("MAIN FLOOR's Total Amount" -> "SA's Total Amount")
+            label_box = section_total_cfg['label_box']
+            label_box_positioned = {
+                'x': label_box['x'],
                 'y_from_top': current_y,
-                'height': height
-            }, align="right", size=7, bold=True)
+                'width': label_box['width'],
+                'height': label_box['height']
+            }
+            label_text = f"{section_name}'s Total Amount"
+            cover_and_write(canvas, label_text, label_box_positioned, align="right", size=8,
+                          font="Helvetica-Bold", color=(0.35, 0.22, 0.15))
             
-            canvas.setFillColorRGB(0, 0, 0)
-            return height
+            # Draw total value
+            value_box = section_total_cfg['value_box']
+            draw_currency(canvas, total, {
+                'x': value_box['x'],
+                'y_from_top': current_y,
+                'width': value_box['width'],
+                'height': value_box['height']
+            }, align="right", size=8, bold=True)
+            
+            return label_box['height']
         
         def draw_footer_content(canvas):
-            """Draw footer content (financial summary, remarks) on the last page"""
+            """Draw financial summary on last page"""
             fin = tmap['financial_summary']
             
-            def draw_fin_amount(y_from_top, value):
-                set_rupee_font(canvas, 7.5)
+            def draw_amount(y_from_top, value):
+                if use_dejavusans:
+                    try:
+                        canvas.setFont("DejaVuSans", 7.5)
+                    except:
+                        canvas.setFont("Helvetica", 7.5)
+                else:
+                    canvas.setFont("Helvetica", 7.5)
+                canvas.setFillColorRGB(0, 0, 0)
                 canvas.drawRightString(fin['value_x'], y_coord(y_from_top), f"₹{round(value):,}")
             
-            canvas.setFillColorRGB(0, 0, 0)
-            
             # Total Amount
-            draw_fin_amount(fin['total_amount']['y_from_top'], invoice.get('subtotal', 0))
+            draw_amount(fin['total_amount']['y_from_top'], invoice.get('subtotal', 0))
             
-            # Transport Charges
-            draw_fin_amount(fin['transport']['y_from_top'], invoice.get('transport_charges', 0))
+            # Transport
+            draw_amount(fin['transport']['y_from_top'], invoice.get('transport_charges', 0))
             
-            # Unloading Charges
-            draw_fin_amount(fin['unloading']['y_from_top'], invoice.get('unloading_charges', 0))
+            # Unloading
+            draw_amount(fin['unloading']['y_from_top'], invoice.get('unloading_charges', 0))
             
             # GST
-            gst_amount = invoice.get('gst_amount', 0)
-            gst_percent = invoice.get('gst_percent', 0)
-            if gst_amount > 0 or gst_percent > 0:
-                draw_fin_amount(fin['gst']['y_from_top'], gst_amount)
+            gst = invoice.get('gst_amount', 0)
+            if gst > 0:
+                draw_amount(fin['gst']['y_from_top'], gst)
             else:
                 canvas.setFont("Helvetica-Oblique", 7)
                 canvas.setFillColorRGB(0.4, 0.4, 0.4)
                 canvas.drawRightString(fin['value_x'], y_coord(fin['gst']['y_from_top']), "As applicable")
-                canvas.setFillColorRGB(0, 0, 0)
             
             # Final Amount
-            canvas.setFillColorRGB(1, 1, 1)  # White on brown background
-            set_rupee_font(canvas, 8, bold=True)
+            canvas.setFillColorRGB(1, 1, 1)  # White on brown
+            if use_dejavusans:
+                try:
+                    canvas.setFont("DejaVuSans", 8)
+                except:
+                    canvas.setFont("Helvetica-Bold", 8)
+            else:
+                canvas.setFont("Helvetica-Bold", 8)
             canvas.drawRightString(fin['value_x'], y_coord(fin['final_amount']['y_from_top']), 
                              f"₹{round(invoice.get('grand_total', 0)):,}")
-            canvas.setFillColorRGB(0, 0, 0)
             
-            # Overall Remarks
+            # Remarks
             remarks = invoice.get('overall_remarks', '')
             if remarks:
-                remarks_cfg = tmap['overall_remarks']
+                rcfg = tmap['overall_remarks']
                 canvas.setFont("Helvetica", 7)
                 canvas.setFillColorRGB(0, 0, 0)
-                
                 words = remarks.split()
                 line = ""
-                y_offset = 0
+                y_off = 0
                 for word in words:
-                    test_line = line + " " + word if line else word
-                    if canvas.stringWidth(test_line, "Helvetica", 7) < remarks_cfg['max_width']:
-                        line = test_line
+                    test = line + " " + word if line else word
+                    if canvas.stringWidth(test, "Helvetica", 7) < rcfg['max_width']:
+                        line = test
                     else:
-                        canvas.drawString(remarks_cfg['x'], y_coord(remarks_cfg['y_from_top'] + y_offset), line)
-                        y_offset += 10
+                        canvas.drawString(rcfg['x'], y_coord(rcfg['y_from_top'] + y_off), line)
+                        y_off += 10
                         line = word
                 if line:
-                    canvas.drawString(remarks_cfg['x'], y_coord(remarks_cfg['y_from_top'] + y_offset), line)
+                    canvas.drawString(rcfg['x'], y_coord(rcfg['y_from_top'] + y_off), line)
         
-        def create_page_overlay(page_num, page_items, is_last_page):
-            """Create overlay for a single page with all dynamic content"""
-            page_buffer = io.BytesIO()
-            canvas = rl_canvas.Canvas(page_buffer, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
+        def create_page_overlay(page_num, page_elements, is_last_page):
+            """Create overlay for one page"""
+            buffer = io.BytesIO()
+            canvas = rl_canvas.Canvas(buffer, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
             
-            # Draw header content
+            # Draw header
             draw_header_content(canvas, page_num, total_pages)
             
-            # Draw items for this page
-            current_y = TABLE_START_Y
+            # Draw elements
+            current_y = ITEMS_START_Y
             
-            for render_item in page_items:
-                if render_item['type'] == 'section_header':
-                    height = draw_section_header(canvas, render_item['section_name'], current_y)
-                    current_y += height
+            for elem in page_elements:
+                if elem['type'] == 'section_header':
+                    h = draw_section_header(canvas, elem['section_name'], current_y)
+                    current_y += h
                     
-                elif render_item['type'] == 'item':
-                    height = draw_item_row(canvas, render_item['item'], current_y, render_item['sr_no'])
-                    current_y += height
+                elif elem['type'] == 'item':
+                    h = draw_item_row(canvas, elem['item'], current_y, elem['sr_no'])
+                    current_y += h
                     
-                elif render_item['type'] == 'section_total':
-                    height = draw_section_total(canvas, render_item['section_name'], render_item['total'], current_y)
-                    current_y += height
+                elif elem['type'] == 'section_total':
+                    h = draw_section_total(canvas, elem['section_name'], elem['total'], current_y)
+                    current_y += h
             
-            # Draw footer only on last page
+            # Footer only on last page
             if is_last_page:
                 draw_footer_content(canvas)
             
-            # Add continuation note on non-last pages
+            # Continuation note
             if not is_last_page:
-                max_y_for_note = MAX_CONTENT_Y_PAGE1 if page_num == 1 else MAX_CONTENT_Y_CONTINUATION
                 canvas.setFont("Helvetica-Oblique", 8)
                 canvas.setFillColorRGB(0.4, 0.4, 0.4)
-                canvas.drawCentredString(PAGE_WIDTH / 2, y_coord(max_y_for_note + 20), 
-                                       "Continued on next page...")
-                canvas.setFillColorRGB(0, 0, 0)
+                canvas.drawCentredString(PAGE_WIDTH / 2, y_coord(ITEMS_END_Y_PAGE1 + 15), "Continued on next page...")
             
             canvas.save()
-            page_buffer.seek(0)
-            return page_buffer
+            buffer.seek(0)
+            return buffer
         
         # ==================== GENERATE PDF ====================
         
         writer = PdfWriter()
         
-        for page_idx, page_items in enumerate(pages_content):
-            page_num = page_idx + 1
-            is_last_page = page_num == total_pages
+        for idx, page_elements in enumerate(pages_content):
+            page_num = idx + 1
+            is_last = page_num == total_pages
             
-            # Load fresh template for each page
+            # Fresh template for each page
             template_reader = PdfReader(str(template_path))
             template_page = template_reader.pages[0]
             
-            # Create overlay for this page
-            overlay_buffer = create_page_overlay(page_num, page_items, is_last_page)
+            # Create and merge overlay
+            overlay_buffer = create_page_overlay(page_num, page_elements, is_last)
             overlay_reader = PdfReader(overlay_buffer)
             
             if len(overlay_reader.pages) > 0:
-                overlay_page = overlay_reader.pages[0]
-                template_page.merge_page(overlay_page)
+                template_page.merge_page(overlay_reader.pages[0])
             
             writer.add_page(template_page)
-            logger.info(f"Generated page {page_num}/{total_pages} with {len(page_items)} items")
+            logger.info(f"Generated page {page_num}/{total_pages}")
         
         # Write output
-        with open(output_path, 'wb') as output_file:
-            writer.write(output_file)
+        with open(output_path, 'wb') as f:
+            writer.write(f)
         
         logger.info(f"PDF generated: {output_path} ({total_pages} pages)")
         
