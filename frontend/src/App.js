@@ -455,16 +455,42 @@ function TilesManagement({ tiles, fetchTiles }) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Size *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.size}
-                  onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                  placeholder="e.g., 600x600mm, 800x1200mm"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                  data-testid="tile-size-input"
-                />
-                <p className="text-xs text-gray-500 mt-1">Enter any custom tile size</p>
+                {!useCustomSize ? (
+                  <select
+                    value={formData.size}
+                    onChange={handleSizeChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                    data-testid="tile-size-select"
+                  >
+                    <option value="">-- Select Size --</option>
+                    {allSizes.map(size => (
+                      <option key={size} value={size}>{size}</option>
+                    ))}
+                    <option value="custom">+ Enter Custom Size</option>
+                  </select>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      required
+                      value={formData.customSize}
+                      onChange={(e) => setFormData({ ...formData, customSize: e.target.value })}
+                      placeholder="e.g., 900x450mm"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="tile-custom-size-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUseCustomSize(false);
+                        setFormData({ ...formData, customSize: '' });
+                      }}
+                      className="text-sm text-[#5a3825] hover:underline"
+                    >
+                      ← Back to dropdown
+                    </button>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Coverage (Sqft per Box) *</label>
