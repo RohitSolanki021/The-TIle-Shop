@@ -131,7 +131,7 @@ backend:
         agent: "testing"
         comment: "VERIFIED: Invoice ID format TTS / XXX / YYYY-YY working correctly. Created invoices TTS / 003 / 2025-26 and TTS / 004 / 2025-26. Auto-increment working (3→4). Financial year 2025-26 correct for Feb 2026. Regex pattern validation passed."
 
-  - task: "PDF Generation - Pixel Perfect Template"
+  - task: "PDF Generation - Template Overlay Method"
     implemented: true
     working: true
     file: "server.py"
@@ -141,7 +141,10 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "92% match rate with reference. Key elements match: Logo, Quotation box, Buyer/Consignee, Table headers, Bank details (horizontal row), Terms."
+        comment: "TEMPLATE OVERLAY implemented. Uses invoice-template.pdf as fixed background, overlays only dynamic text at fixed coordinates. No layout recreation. PDF size ~593KB."
+      - working: true
+        agent: "testing"
+        comment: "PDF generation verified. Template overlay confirmed - all template elements preserved, invoice data overlaid correctly."
       - working: true
         agent: "testing"
         comment: "VERIFIED: PDF template overlay method working correctly. Generated PDF size 593,257 bytes (579KB+) confirms template overlay vs recreated layout. URL-encoded invoice IDs work (TTS%20%2F%20004%20%2F%202025-26). PDF headers valid. Template integration functional."
