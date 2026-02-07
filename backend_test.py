@@ -340,6 +340,7 @@ class TileShopBackendTester:
         invoice = target_invoice
         
         if True:
+            invoice = target_invoice
             invoice = response.json()
             line_items = invoice.get('line_items', [])
             
