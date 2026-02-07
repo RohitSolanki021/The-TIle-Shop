@@ -1,0 +1,43 @@
+{
+  "_comment": "PRO Invoice Engine - Continuation Page Template Map (no header needed, just table)",
+  
+  "page": {
+    "width": 595.5,
+    "height": 842.25,
+    "safeBottomY": 80,
+    "safeTopY": 800
+  },
+  
+  "background": {
+    "color": [0.98, 0.96, 0.95]
+  },
+  
+  "header": {
+    "pageInfo": { "x": 400, "y": 784, "w": 150, "h": 14, "align": "right" }
+  },
+  
+  "section": {
+    "titleBox": { "x": 250, "y": 750, "w": 95, "h": 14, "align": "center" },
+    "totalLabel": { "x": 400, "y": 100, "w": 125, "h": 12, "align": "right" },
+    "totalValue": { "x": 527, "y": 100, "w": 45, "h": 12, "align": "right" }
+  },
+  
+  "table": {
+    "startY": 730,
+    "rowH": 18,
+    "rowHWithImage": 40,
+    "endY": 100,
+    
+    "cols": {
+      "sr":       { "x": 28,  "w": 24, "align": "center" },
+      "name":     { "x": 52,  "w": 47, "align": "left" },
+      "image":    { "x": 99,  "w": 70, "align": "center", "imgW": 30, "imgH": 30 },
+      "size":     { "x": 169, "w": 210, "align": "center" },
+      "rateBox":  { "x": 382, "w": 32, "align": "right" },
+      "rateSqft": { "x": 414, "w": 28, "align": "right" },
+      "qty":      { "x": 442, "w": 45, "align": "center" },
+      "disc":     { "x": 487, "w": 40, "align": "center" },
+      "amount":   { "x": 527, "w": 39, "align": "right" }
+    }
+  }
+}
