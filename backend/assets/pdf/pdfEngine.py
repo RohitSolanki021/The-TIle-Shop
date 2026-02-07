@@ -192,7 +192,9 @@ class ProInvoiceEngine:
     """
     
     def __init__(self, template_path: Path = None):
-        self.template_path = template_path or (ROOT_DIR / "assets" / "invoice-template.pdf")
+        # Default to invoice-template.pdf in the backend/assets directory
+        default_template = Path(__file__).parent.parent.parent / "backend" / "assets" / "invoice-template.pdf"
+        self.template_path = template_path or default_template
         self.map_p1, self.map_cont = get_maps()
         self.bg_color = tuple(self.map_p1['background']['color'])
         
