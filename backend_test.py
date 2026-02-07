@@ -339,14 +339,14 @@ class TileShopBackendTester:
         self.log(f"✅ Invoice found in list")
         
         line_items = target_invoice.get('line_items', [])
-            
-            # Group items by location
-            grouped_items = {}
-            for item in line_items:
-                location = item.get('location', 'Unknown')
-                if location not in grouped_items:
-                    grouped_items[location] = []
-                grouped_items[location].append(item)
+        
+        # Group items by location
+        grouped_items = {}
+        for item in line_items:
+            location = item.get('location', 'Unknown')
+            if location not in grouped_items:
+                grouped_items[location] = []
+            grouped_items[location].append(item)
             
             self.log(f"✅ Invoice data retrieved successfully")
             self.log(f"   Total line items: {len(line_items)}")
