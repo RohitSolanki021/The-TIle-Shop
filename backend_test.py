@@ -106,6 +106,46 @@ class TileShopAPITester:
             return True
         return False
 
+    def test_create_custom_tile_size(self):
+        """Test creating custom tile size that should persist"""
+        custom_tile_data = {
+            "size": "750x1500mm",  # Custom size not in predefined list
+            "coverage": 28.5,
+            "box_packing": 3
+        }
+        
+        success, response = self.run_test(
+            "Create Custom Tile Size",
+            "POST",
+            "tiles",
+            200,
+            data=custom_tile_data
+        )
+        
+        if success and 'tile_id' in response:
+            custom_tile_id = response['tile_id']
+            print(f"   Created custom tile ID: {custom_tile_id}")
+            
+            # Verify it appears in GET /api/tiles
+            success2, tiles_response = self.run_test(
+                "Verify Custom Tile in List",
+                "GET",
+                "tiles",
+                200
+            )
+            
+            if success2:
+                custom_tile_found = any(
+                    tile.get('size') == '750x1500mm' for tile in tiles_response
+                )
+                if custom_tile_found:
+                    print("   ✅ Custom tile size persists in database")
+                    return True
+                else:
+                    print("   ❌ Custom tile size not found in tiles list")
+            return False
+        return False
+
     def test_create_invoice_with_optional_fields(self):
         """Test invoice creation with new optional fields"""
         if not self.created_customer_id:
