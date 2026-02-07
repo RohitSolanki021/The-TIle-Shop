@@ -137,7 +137,7 @@ backend:
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: true
         agent: "main"
@@ -151,6 +151,21 @@ backend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED: Created invoice TTS / 007 / 2025-26 with full workflow verification. PDF generation produces 593,244 bytes (579.3 KB) confirming template overlay method. Price calculations verified: subtotal ₹10,164.00, GST ₹1,829.52, grand total ₹14,993.52. URL encoding works correctly. All review request requirements satisfied."
+      - working: "NA"
+        agent: "main"
+        comment: "PAGINATION FIX: Refactored PDF generation to ensure template (header + table column headers) repeats on EVERY page. Changed from single multi-page overlay to per-page overlay creation. Each page now: 1) Loads fresh template PDF copy 2) Creates single-page overlay with dynamic content 3) Merges overlay onto template. This ensures SR NO, NAME, IMAGE, SIZE columns appear pixel-identical on all pages."
+
+  - task: "PDF Pagination - Header Repeat on All Pages"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW TASK: Fixed pagination so template background (company header + table column headers) repeats on every page. Implemented create_page_overlay() function for per-page overlay generation. Fixed MAX_CONTENT_Y bug. Row Y now resets correctly on each page. Totals only on last page."
 
 frontend:
   - task: "Dashboard Icons WHITE"
