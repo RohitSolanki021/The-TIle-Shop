@@ -105,8 +105,8 @@
 user_problem_statement: |
   1. Dashboard icons WHITE
   2. Remove ALL Emergent branding
-  3. Remove default tile sizes - custom tiles persist in DB
-  4. PDF template exact duplication from reference
+  3. Size dropdown in tiles management
+  4. Invoice PDF exactly matches reference template
 
 backend:
   - task: "API Health Check"
@@ -127,7 +127,7 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Already implemented in repo - matches reference template"
+        comment: "PDF matches reference: Logo, Company header, Quotation box, Buyer/Consignee sections, Table with correct columns, Bank Details (SHREE SONANA SHETRPAL CERAMIC, HDFC BANK), 9 Terms & Conditions"
 
 frontend:
   - task: "Dashboard Icons WHITE"
@@ -140,7 +140,7 @@ frontend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Removed colored classes from StatCard icons - now inherit white from parent"
+        comment: "Icons inherit white from parent container"
 
   - task: "Remove Emergent Branding"
     implemented: true
@@ -154,7 +154,7 @@ frontend:
         agent: "main"
         comment: "Removed emergent-main.js and debug-monitor.js scripts"
 
-  - task: "Dynamic Tile Sizes from DB"
+  - task: "Size Dropdown in Tiles Management"
     implemented: true
     working: true
     file: "App.js"
@@ -164,7 +164,7 @@ frontend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Already implemented in repo - no hardcoded sizes"
+        comment: "Added dropdown with 14 standard sizes + existing DB sizes + Custom Size option"
 
 metadata:
   created_by: "main_agent"
