@@ -819,12 +819,12 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         c.setFont("Helvetica", 7.5)
         c.drawString(332.6, height - 83.8 - 8, invoice_date.strftime("%d/%m/%Y"))
         
-        detail_y -= 14
+        # Reference Name - Reference: x=307.8, y_from_top=114.4
         c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(qbox_x + 5, detail_y, "Reference Name :")
+        c.drawString(307.8, height - 114.4 - 8, "Reference Name :")
         ref_name = invoice.get('reference_name', '') or ''
         c.setFont("Helvetica", 7.5)
-        c.drawString(qbox_x + 70, detail_y, ref_name[:15] if ref_name else '')
+        c.drawString(371.5, height - 114.4 - 8, ref_name[:15] if ref_name else '')
         
         # =================================================================
         # LOGO (Top left) - Reference: y_from_top = 44.9
