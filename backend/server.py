@@ -1124,7 +1124,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 c.setFont("Helvetica-Oblique", 8)
                 c.setFillColorRGB(0.4, 0.4, 0.4)
                 c.drawCentredString(PAGE_WIDTH / 2, y_coord(MAX_CONTENT_Y + 20), 
-                                   f"Continued on next page...")
+                                   "Continued on next page...")
                 c.setFillColorRGB(0, 0, 0)
             
             # Start new page for overlay (except for last page)
