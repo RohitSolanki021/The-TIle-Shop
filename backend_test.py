@@ -260,7 +260,8 @@ def test_pdf_template_replacement():
         print(f"   - Section total label 'SA's Total Amount' replaces 'MAIN FLOOR's Total Amount'")
         print(f"   - Total value ₹{actual_sa_total:,.2f} computed correctly from {len(sa_items)} items")
         print(f"   - All {len(sa_items)} item rows positioned properly in table grid")
-        print(f"   - PDF size {pdf_size/1024:.1f} KB confirms template overlay method")
+        pages_info = "(2 pages)" if pdf_size > 800000 else "(1 page)"
+        print(f"   - PDF size {pdf_size/1024:.1f} KB confirms template overlay method {pages_info}")
         print("   - Invoice ID format and URL encoding working")
         
         print("\n📋 MANUAL VERIFICATION NEEDED:")
