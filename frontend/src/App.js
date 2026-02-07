@@ -1342,6 +1342,102 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
               </select>
             </div>
 
+            {/* Advanced/Optional Fields Toggle */}
+            <div className="border-t pt-4">
+              <button
+                type="button"
+                onClick={() => setShowAdvancedFields(!showAdvancedFields)}
+                className="flex items-center text-sm font-medium text-[#5a3825] hover:text-[#6b4a35] transition-colors"
+                data-testid="toggle-advanced-fields"
+              >
+                {showAdvancedFields ? <ChevronDown className="h-4 w-4 mr-2" /> : <ChevronRight className="h-4 w-4 mr-2" />}
+                {showAdvancedFields ? 'Hide' : 'Show'} Advanced Fields (Optional)
+              </button>
+              
+              {showAdvancedFields && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Reference Name</label>
+                      <input
+                        type="text"
+                        value={formData.reference_name}
+                        onChange={(e) => setFormData({ ...formData, reference_name: e.target.value })}
+                        placeholder="e.g., Mr. John"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                        data-testid="invoice-reference-name-input"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">GST %</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="28"
+                        value={formData.gst_percent}
+                        onChange={(e) => setFormData({ ...formData, gst_percent: parseFloat(e.target.value) || 0 })}
+                        placeholder="e.g., 18"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                        data-testid="invoice-gst-percent-input"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <h5 className="text-sm font-bold text-gray-700 mb-3">Consignee / Ship To (if different from Buyer)</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Consignee Name</label>
+                        <input
+                          type="text"
+                          value={formData.consignee_name}
+                          onChange={(e) => setFormData({ ...formData, consignee_name: e.target.value })}
+                          placeholder="Ship to name"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                          data-testid="invoice-consignee-name-input"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Consignee Phone</label>
+                        <input
+                          type="text"
+                          value={formData.consignee_phone}
+                          onChange={(e) => setFormData({ ...formData, consignee_phone: e.target.value })}
+                          placeholder="Ship to phone"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                          data-testid="invoice-consignee-phone-input"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Consignee Address</label>
+                      <textarea
+                        value={formData.consignee_address}
+                        onChange={(e) => setFormData({ ...formData, consignee_address: e.target.value })}
+                        placeholder="Ship to address"
+                        rows={2}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                        data-testid="invoice-consignee-address-input"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Overall Remarks</label>
+                    <textarea
+                      value={formData.overall_remarks}
+                      onChange={(e) => setFormData({ ...formData, overall_remarks: e.target.value })}
+                      placeholder="Any additional notes or remarks for this quotation..."
+                      rows={2}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="invoice-overall-remarks-input"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Line Items Section */}
             <div className="border-t pt-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Add Line Items</h4>
