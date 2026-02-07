@@ -44,6 +44,14 @@
     "location_total_value_x": 572
   },
   
+  "pagination": {
+    "content_area_start_y": 268,
+    "content_area_end_y": 700,
+    "footer_required_height": 150,
+    "continuation_page_start_y": 268,
+    "continuation_page_end_y": 780
+  },
+  
   "financial_summary": {
     "label_x": 350,
     "value_x": 467,
