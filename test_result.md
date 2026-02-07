@@ -173,6 +173,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE PAGINATION TESTING COMPLETED: Created multiple test invoices with 38+ and 66+ line items to force multi-page PDFs. Verified: 1) 38 items → 2-page PDF (1,205KB), 2) 66 items → 3-page PDF (1,813KB). Backend logs confirm per-page overlay generation working: 'Generated page 1/3', 'Generated page 2/3', 'Generated page 3/3'. Template overlay method confirmed. create_page_overlay() function successfully creates fresh template copy for each page ensuring headers and table column headers (SR NO, NAME, IMAGE, SIZE, RATE/BOX, etc.) repeat identically on ALL pages. Pagination fix VERIFIED and WORKING."
 
+  - task: "PDF Multi-Item Support with Dynamic Sections"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "MAJOR REWRITE: Complete refactor of PDF generation to support: 1) Multiple items per section with proper row rendering loop 2) Dynamic section names (SA replaces MAIN FLOOR) 3) Dynamic section totals computed from items 4) Helper functions: draw_text_in_box(), draw_currency_in_box(), draw_white_mask() for pixel-perfect alignment 5) White rectangle masking to cover template MAIN FLOOR text 6) Box-based positioning for all elements 7) Right-aligned currency values"
+
 frontend:
   - task: "Dashboard Icons WHITE"
     implemented: true
