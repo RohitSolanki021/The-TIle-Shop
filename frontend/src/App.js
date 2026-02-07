@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { 
   Package, Users, FileText, Plus, Edit2, Trash2, Save, X, 
@@ -6,6 +6,9 @@ import {
   ChevronDown, ChevronRight
 } from 'lucide-react';
 import './App.css';
+
+// PRO Invoice PDF Engine (pdf-lib based client-side generation)
+import { generateInvoicePDF, convertInvoiceToSections } from './pdf/pdfEngine';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
