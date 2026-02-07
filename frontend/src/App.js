@@ -264,10 +264,10 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
 
 function StatCard({ icon, title, value, total, subtitle, color, testId, onClick }) {
   const colorClasses = {
-    blue: 'from-blue-500 to-blue-600',
-    green: 'from-green-500 to-green-600',
-    purple: 'from-purple-500 to-purple-600',
-    red: 'from-red-500 to-red-600'
+    blue: 'from-[#5a3825] to-[#6b4a35]',
+    green: 'from-[#6b4a35] to-[#8b6b4a]',
+    purple: 'from-[#8b6b4a] to-[#a58b6a]',
+    red: 'from-[#5a3825] to-[#6b4a35]'
   };
 
   return (
