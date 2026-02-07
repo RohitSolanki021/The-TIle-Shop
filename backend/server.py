@@ -769,11 +769,11 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         c.drawString(qbox_x + 70, detail_y, ref_name[:15] if ref_name else '')
         
         # =================================================================
-        # LOGO (Top left)
+        # LOGO (Top left) - Reference: y_from_top = 44.9
         # =================================================================
         logo_path = ROOT_DIR / "assets" / "logo.png"
         logo_x = MARGIN_LEFT
-        logo_y_top = height - 44.9  # Exact from reference
+        logo_y = height - 44.9  # Exact from reference (this is where logo TOP edge is)
         logo_size = 85  # ~30mm
         
         if logo_path.exists():
