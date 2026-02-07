@@ -1447,7 +1447,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
 
               {/* Line Item Cost Preview */}
               {lineItemPreview && currentLineItem.tile_name && (currentLineItem.rate_per_sqft > 0 || currentLineItem.rate_per_box > 0) && (
-                <div className="bg-purple-50 rounded-lg p-3 border-2 border-purple-200 mt-3">
+                <div className="bg-[#fef7f7] rounded-lg p-3 border-2 border-[#d4c4b0] mt-3">
                   <h5 className="text-sm font-bold text-gray-800 mb-2">Current Item Cost Preview</h5>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
                     <div>
@@ -1456,11 +1456,11 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     </div>
                     <div>
                       <span className="text-gray-600">Total Sqft:</span>
-                      <span className="ml-1 font-bold text-purple-700">{lineItemPreview.totalSqft}</span>
+                      <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.totalSqft}</span>
                     </div>
                     <div>
                       <span className="text-gray-600">Before Disc:</span>
-                      <span className="ml-1 font-bold text-purple-700">₹{lineItemPreview.beforeDiscount}</span>
+                      <span className="ml-1 font-bold text-[#5a3825]">₹{lineItemPreview.beforeDiscount}</span>
                     </div>
                     <div>
                       <span className="text-gray-600">Discount:</span>
