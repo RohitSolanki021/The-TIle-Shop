@@ -146,8 +146,8 @@ class TileShopAPITester:
             return False
         return False
 
-    def test_create_invoice_with_optional_fields(self):
-        """Test invoice creation with new optional fields"""
+    def test_create_invoice_multiple_locations(self):
+        """Test invoice creation with multiple locations for SR NO. reset testing"""
         if not self.created_customer_id:
             print("❌ Cannot test invoice creation - no customer created")
             return False
@@ -156,33 +156,75 @@ class TileShopAPITester:
             "customer_id": self.created_customer_id,
             "line_items": [
                 {
-                    "location": "Main Floor",
-                    "tile_name": "Premium Vitrified Tiles",
+                    "location": "Kitchen",
+                    "tile_name": "Kitchen Floor Tiles",
                     "size": "600x600mm",
-                    "box_qty": 5,
-                    "extra_sqft": 10.5,
-                    "rate_per_sqft": 45.0,
+                    "box_qty": 3,
+                    "extra_sqft": 5.0,
+                    "rate_per_sqft": 50.0,
                     "rate_per_box": 0,
-                    "discount_percent": 5.0,
+                    "discount_percent": 0.0,
                     "coverage": 23.68,
                     "box_packing": 4
+                },
+                {
+                    "location": "Kitchen",
+                    "tile_name": "Kitchen Wall Tiles",
+                    "size": "300x600mm",
+                    "box_qty": 2,
+                    "extra_sqft": 0.0,
+                    "rate_per_sqft": 40.0,
+                    "rate_per_box": 0,
+                    "discount_percent": 0.0,
+                    "coverage": 15.0,
+                    "box_packing": 6
+                },
+                {
+                    "location": "Kitchen",
+                    "tile_name": "Kitchen Border Tiles",
+                    "size": "100x600mm",
+                    "box_qty": 1,
+                    "extra_sqft": 0.0,
+                    "rate_per_sqft": 60.0,
+                    "rate_per_box": 0,
+                    "discount_percent": 0.0,
+                    "coverage": 8.0,
+                    "box_packing": 10
+                },
+                {
+                    "location": "Bathroom",
+                    "tile_name": "Bathroom Floor Tiles",
+                    "size": "300x300mm",
+                    "box_qty": 2,
+                    "extra_sqft": 0.0,
+                    "rate_per_sqft": 45.0,
+                    "rate_per_box": 0,
+                    "discount_percent": 0.0,
+                    "coverage": 12.0,
+                    "box_packing": 8
+                },
+                {
+                    "location": "Bathroom",
+                    "tile_name": "Bathroom Wall Tiles",
+                    "size": "200x300mm",
+                    "box_qty": 3,
+                    "extra_sqft": 0.0,
+                    "rate_per_sqft": 35.0,
+                    "rate_per_box": 0,
+                    "discount_percent": 0.0,
+                    "coverage": 10.0,
+                    "box_packing": 12
                 }
             ],
-            "transport_charges": 500.0,
-            "unloading_charges": 200.0,
-            "amount_paid": 1000.0,
+            "transport_charges": 300.0,
+            "unloading_charges": 150.0,
+            "amount_paid": 500.0,
             "status": "Draft",
-            # New optional fields
-            "reference_name": "Mr. John Doe",
-            "consignee_name": "ABC Construction Ltd",
-            "consignee_phone": "+91 9876543211",
-            "consignee_address": "456 Construction Site, Building City - 654321",
-            "overall_remarks": "Please handle with care. Delivery required by end of week.",
-            "gst_percent": 18.0
+            "gst_percent": 0  # Empty GST for testing placeholder text
         }
         
         success, response = self.run_test(
-            "Create Invoice with Optional Fields",
+            "Create Invoice with Multiple Locations",
             "POST",
             "invoices",
             200,
@@ -193,23 +235,11 @@ class TileShopAPITester:
             self.created_invoice_id = response['invoice_id']
             print(f"   Created invoice ID: {self.created_invoice_id}")
             
-            # Verify optional fields are saved
-            if response.get('reference_name') == "Mr. John Doe":
-                print("   ✅ Reference name saved correctly")
-            if response.get('gst_percent') == 18.0:
-                print("   ✅ GST percentage saved correctly")
-            if response.get('consignee_name') == "ABC Construction Ltd":
-                print("   ✅ Consignee details saved correctly")
-            if response.get('overall_remarks'):
-                print("   ✅ Overall remarks saved correctly")
-                
-            # Check GST calculation
-            expected_gst = response.get('subtotal', 0) * 0.18
-            actual_gst = response.get('gst_amount', 0)
-            if abs(expected_gst - actual_gst) < 0.01:
-                print(f"   ✅ GST calculation correct: ₹{actual_gst:.2f}")
+            # Verify GST is 0 for empty state testing
+            if response.get('gst_percent') == 0 and response.get('gst_amount') == 0:
+                print("   ✅ GST empty state configured correctly")
             else:
-                print(f"   ❌ GST calculation incorrect: expected ₹{expected_gst:.2f}, got ₹{actual_gst:.2f}")
+                print(f"   ❌ GST not empty: percent={response.get('gst_percent')}, amount={response.get('gst_amount')}")
             
             return True
         return False
