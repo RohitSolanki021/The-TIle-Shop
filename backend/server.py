@@ -128,13 +128,21 @@ class InvoiceLineItem(BaseModel):
 class Invoice(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
-    invoice_id: str = Field(default_factory=lambda: f"INV-{str(uuid.uuid4())[:8].upper()}")
+    invoice_id: str = Field(default_factory=lambda: f"QT-{str(uuid.uuid4())[:8].upper()}")
     invoice_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     customer_id: str
     customer_name: str = ""
     customer_phone: str = ""
     customer_address: str = ""
     customer_gstin: Optional[str] = None
+    # New fields from template
+    reference_name: Optional[str] = None  # Reference Name field
+    consignee_name: Optional[str] = None  # Ship To name
+    consignee_phone: Optional[str] = None  # Ship To phone
+    consignee_address: Optional[str] = None  # Ship To address
+    overall_remarks: Optional[str] = None  # Overall Remarks field
+    gst_percent: float = 0.0  # GST percentage (0 if not applicable)
+    gst_amount: float = 0.0  # Calculated GST amount
     status: str = "Draft"  # Draft, Sent, Paid, Cancelled
     line_items: List[InvoiceLineItem]
     transport_charges: float = 0.0
