@@ -25,68 +25,46 @@
     "address_line2": {"x": 310, "y_from_top": 211}
   },
   
-  "table": {
-    "header_y_from_top": 225,
-    "left_margin": 38,
-    "right_margin": 572,
-    "row_height": 18,
-    "row_height_with_image": 40,
+  "grid": {
+    "table_left": 28.3,
+    "table_right": 566.1,
+    "table_width": 537.8,
     
-    "columns": {
-      "sr_no":     {"x": 36,  "width": 28,  "center": 50,  "right": 63},
-      "name":      {"x": 66,  "width": 106, "center": 119, "right": 171},
-      "image":     {"x": 173, "width": 65,  "center": 205, "right": 237, "img_width": 30, "img_height": 30},
-      "size":      {"x": 240, "width": 140, "center": 310, "right": 379},
-      "rate_box":  {"x": 382, "width": 30,  "center": 397, "right": 411},
-      "rate_sqft": {"x": 414, "width": 28,  "center": 428, "right": 441},
-      "quantity":  {"x": 444, "width": 42,  "center": 465, "right": 485},
-      "disc":      {"x": 488, "width": 32,  "center": 504, "right": 519},
-      "amount":    {"x": 522, "width": 50,  "center": 547, "right": 572}
+    "column_boundaries": {
+      "sr_no":     {"x0": 28.3,  "x1": 51.6,  "width": 23.3},
+      "name":      {"x0": 51.6,  "x1": 98.3,  "width": 46.6},
+      "image":     {"x0": 98.3,  "x1": 274.3, "width": 176.0},
+      "size":      {"x0": 274.3, "x1": 382.0, "width": 107.7},
+      "rate_box":  {"x0": 382.0, "x1": 414.0, "width": 32.0},
+      "rate_sqft": {"x0": 414.0, "x1": 442.0, "width": 28.0},
+      "quantity":  {"x0": 442.0, "x1": 487.0, "width": 45.0},
+      "disc":      {"x0": 487.0, "x1": 527.0, "width": 40.0},
+      "amount":    {"x0": 527.0, "x1": 566.1, "width": 39.1}
     },
     
-    "section_header": {
-      "text_box": {
-        "x": 260,
-        "y_from_top": 243,
-        "width": 75,
-        "height": 12
-      },
-      "full_row_y_from_top": 243
+    "section_header_row": {
+      "y_top": 239,
+      "height": 16,
+      "text_box": {"x": 260, "y_top": 243, "width": 75, "height": 12}
     },
     
     "item_rows": {
-      "start_y_from_top": 255,
+      "start_y": 255,
       "row_height": 18,
       "row_height_with_image": 40,
-      "bottom_limit_y_from_top": 330
+      "end_y_page1": 333,
+      "end_y_continuation": 780
     },
     
-    "section_total": {
-      "label_box": {
-        "x": 410,
-        "y_from_top": 336,
-        "width": 112,
-        "height": 10
-      },
-      "value_box": {
-        "x": 522,
-        "y_from_top": 336,
-        "width": 50,
-        "height": 10
-      }
+    "section_total_row": {
+      "y_top": 333,
+      "height": 13,
+      "label_box": {"x": 414, "y_top": 336, "width": 112, "height": 10},
+      "value_box": {"x": 527, "y_top": 336, "width": 39, "height": 10}
     }
   },
   
-  "pagination": {
-    "items_start_y": 255,
-    "items_end_y_page1": 330,
-    "items_end_y_continuation": 780,
-    "continuation_start_y": 255,
-    "footer_start_y": 350
-  },
-  
   "financial_summary": {
-    "label_x": 275,
     "value_x": 340,
     "total_amount": {"y_from_top": 355},
     "transport": {"y_from_top": 368},
@@ -99,14 +77,5 @@
     "x": 40,
     "y_from_top": 480,
     "max_width": 500
-  },
-  
-  "fonts": {
-    "default": "Helvetica",
-    "bold": "Helvetica-Bold",
-    "size_normal": 7,
-    "size_small": 6.5,
-    "size_header": 8,
-    "size_section": 9
   }
 }
