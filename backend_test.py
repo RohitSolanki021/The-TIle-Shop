@@ -129,16 +129,16 @@ def create_test_invoice_with_sa_section(customer, tiles):
         
         line_item = {
             "tile_id": tile.get('tile_id') or tile.get('id'),
-            "tile_name": tile['name'],
-            "size": tile['size'],
+            "tile_name": tile.get('name', f"SA Test Tile {i+1}"),
+            "size": tile.get('size', f"600x600mm-{i+1}"),
             "location": "SA",  # This is the key - all items in SA section
             "box_qty": box_qty,
             "rate_per_box": rate_per_box,
-            "rate_per_sqft": tile['rate_per_sqft'],
+            "rate_per_sqft": tile.get('rate_per_sqft', 555.56 + (i * 69.44)),
             "discount_percent": discount_percent,
             "final_amount": final_amount,
-            "coverage": tile['coverage'],
-            "box_packing": tile['box_packing']
+            "coverage": tile.get('coverage', 1.44),
+            "box_packing": tile.get('box_packing', 4)
         }
         line_items.append(line_item)
     
