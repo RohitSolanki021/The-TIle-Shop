@@ -715,14 +715,16 @@ async def delete_invoice(invoice_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ==================== PDF GENERATION (TEMPLATE OVERLAY METHOD) ====================
+# ==================== PDF GENERATION (TEMPLATE OVERLAY METHOD WITH PAGINATION) ====================
 
 def generate_invoice_pdf(invoice: dict, output_path: str):
     """
-    Generate PDF using TEMPLATE OVERLAY method.
-    - Uses the fixed template PDF as background
+    Generate PDF using TEMPLATE OVERLAY method with PAGINATION support.
+    - Uses the fixed template PDF as background for each page
     - Only overlays dynamic text at fixed coordinates
-    - Never redraws borders, sections, or layout
+    - Supports multiple pages for many items
+    - Header repeats on each page
+    - Footer sections (totals, bank details, terms, logos) placed on last page
     - Prices rounded to nearest integer
     """
     try:
@@ -730,6 +732,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         import json
         import tempfile
         import os as os_module
+        import copy
         from pypdf import PdfReader, PdfWriter
         from reportlab.pdfgen import canvas as rl_canvas
         
@@ -741,103 +744,36 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         PAGE_HEIGHT = tmap['page_height']
         PAGE_WIDTH = tmap['page_width']
         
+        # Pagination constants
+        TABLE_START_Y = tmap['table']['first_row_y_from_top']
+        # Footer starts at around y=705 (from top) - this is where totals box begins
+        # Brand logos end around y=815, terms end around y=700
+        # Safe content area ends before the fixed footer sections
+        FOOTER_START_Y = tmap.get('footer_start_y', 355)  # Y position where footer begins (from top)
+        MAX_CONTENT_Y = FOOTER_START_Y - 20  # Maximum Y position for item content before footer
+        
         # Helper to convert y_from_top to y_from_bottom (ReportLab coords)
         def y_coord(y_from_top):
             return PAGE_HEIGHT - y_from_top
         
         # Helper to format price (rounded to nearest integer)
         def fmt_price(value, with_decimal=False):
-            if with_decimal:
-                return f"₹{round(value):,}"
             return f"₹{round(value):,}"
         
         # Load the template PDF
         template_path = ROOT_DIR / "assets" / "invoice-template.pdf"
         template_reader = PdfReader(str(template_path))
-        template_page = template_reader.pages[0]
         
-        # Create overlay PDF with dynamic content
-        overlay_buffer = io.BytesIO()
-        c = rl_canvas.Canvas(overlay_buffer, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
-        
-        # Register DejaVuSans font for Rupee symbol
+        # Check if DejaVuSans font is available for Rupee symbol
         use_dejavusans = False
         try:
-            c.setFont("DejaVuSans", 10)
+            from reportlab.pdfbase import pdfmetrics
+            pdfmetrics.getFont("DejaVuSans")
             use_dejavusans = True
         except:
             pass
         
-        # ==================== OVERLAY QUOTATION BOX ====================
-        qbox = tmap['quotation_box']
-        
-        c.setFont("Helvetica-Bold", 7.5)
-        c.setFillColorRGB(0, 0, 0)
-        c.drawString(qbox['quotation_no_value']['x'], y_coord(qbox['quotation_no_value']['y_from_top']), 
-                    invoice['invoice_id'])
-        
-        invoice_date = invoice['invoice_date']
-        if isinstance(invoice_date, str):
-            invoice_date = datetime.fromisoformat(invoice_date)
-        c.drawString(qbox['date_value']['x'], y_coord(qbox['date_value']['y_from_top']), 
-                    invoice_date.strftime("%d/%m/%Y"))
-        
-        ref_name = invoice.get('reference_name', '') or ''
-        if ref_name:
-            c.setFont("Helvetica", 7.5)
-            c.drawString(qbox['reference_name_value']['x'], y_coord(qbox['reference_name_value']['y_from_top']), 
-                        ref_name[:18])
-        
-        # ==================== OVERLAY BUYER SECTION ====================
-        buyer = tmap['buyer_section']
-        
-        c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(buyer['name']['x'], y_coord(buyer['name']['y_from_top']), 
-                    invoice.get('customer_name', '')[:35])
-        
-        c.setFont("Helvetica", 7)
-        c.drawString(buyer['phone']['x'], y_coord(buyer['phone']['y_from_top']), 
-                    f"Ph: {invoice.get('customer_phone', '')}")
-        
-        address = invoice.get('customer_address', '')
-        if len(address) > 40:
-            c.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), 
-                        address[:40])
-            c.drawString(buyer['address_line2']['x'], y_coord(buyer['address_line2']['y_from_top']), 
-                        address[40:80])
-        else:
-            c.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), 
-                        address)
-        
-        if invoice.get('customer_gstin'):
-            c.drawString(buyer['gstin']['x'], y_coord(buyer['gstin']['y_from_top']), 
-                        f"GSTIN: {invoice['customer_gstin']}")
-        
-        # ==================== OVERLAY CONSIGNEE SECTION ====================
-        consignee = tmap['consignee_section']
-        
-        consignee_name = invoice.get('consignee_name') or invoice.get('customer_name', '')
-        consignee_phone = invoice.get('consignee_phone') or invoice.get('customer_phone', '')
-        consignee_address = invoice.get('consignee_address') or invoice.get('customer_address', '')
-        
-        c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(consignee['name']['x'], y_coord(consignee['name']['y_from_top']), 
-                    consignee_name[:35])
-        
-        c.setFont("Helvetica", 7)
-        c.drawString(consignee['phone']['x'], y_coord(consignee['phone']['y_from_top']), 
-                    f"Ph: {consignee_phone}")
-        
-        if len(consignee_address) > 40:
-            c.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), 
-                        consignee_address[:40])
-            c.drawString(consignee['address_line2']['x'], y_coord(consignee['address_line2']['y_from_top']), 
-                        consignee_address[40:80])
-        else:
-            c.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), 
-                        consignee_address)
-        
-        # ==================== OVERLAY TABLE ROWS ====================
+        # Calculate total pages needed
         table_cfg = tmap['table']
         cols = table_cfg['columns']
         
@@ -849,210 +785,380 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 grouped_items[location] = []
             grouped_items[location].append(item)
         
-        current_y = table_cfg['first_row_y_from_top']
+        # Calculate content height to determine pages needed
+        def calculate_item_height(item):
+            has_image = bool(item.get('tile_image'))
+            return table_cfg['row_height_with_image'] if has_image else table_cfg['row_height']
         
+        # Flatten items with their rendering info
+        all_items = []
         for location, items in grouped_items.items():
-            # Location header - centered in table
-            c.setFont("Helvetica-Bold", 8)
-            c.setFillColorRGB(0.35, 0.22, 0.15)  # Brown
-            c.drawCentredString(PAGE_WIDTH / 2, y_coord(current_y - 5), location.upper())
-            c.setFillColorRGB(0, 0, 0)
-            
-            current_y += table_cfg['location_header_y_offset']
+            # Add location header marker
+            all_items.append({'type': 'location_header', 'location': location, 'height': 15})
             location_subtotal = 0
-            
             for idx, item in enumerate(items):
-                sr_no = idx + 1
-                has_image = bool(item.get('tile_image'))
-                row_height = table_cfg['row_height_with_image'] if has_image else table_cfg['row_height']
-                
-                # Text baseline Y position
-                text_y = current_y + (row_height / 2) - 3
-                
-                # SR NO. - centered
-                c.setFont("Helvetica", 7)
-                c.drawCentredString(cols['sr_no']['center'], y_coord(text_y), str(sr_no))
-                
-                # NAME - left aligned
-                tile_name = item.get('tile_name') or item.get('product_name') or ''
-                c.drawString(cols['name']['x'], y_coord(text_y), tile_name[:18])
-                
-                # IMAGE
-                if has_image and item.get('tile_image'):
-                    try:
-                        if item['tile_image'].startswith('data:image'):
-                            image_data = item['tile_image'].split(',')[1]
-                        else:
-                            image_data = item['tile_image']
-                        
-                        image_bytes = base64.b64decode(image_data)
-                        
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
-                            tmp_file.write(image_bytes)
-                            tmp_path = tmp_file.name
-                        
-                        img_w = cols['image']['img_width']
-                        img_h = cols['image']['img_height']
-                        img_x = cols['image']['center'] - img_w / 2
-                        img_y = y_coord(current_y + row_height - 5)
-                        
-                        c.drawImage(tmp_path, img_x, img_y, 
-                                   width=img_w, height=img_h,
-                                   preserveAspectRatio=True, mask='auto')
-                        
-                        os_module.unlink(tmp_path)
-                    except Exception as e:
-                        logger.warning(f"Error overlaying image: {e}")
-                
-                # SIZE - centered
-                c.setFont("Helvetica", 7)
-                c.drawCentredString(cols['size']['center'], y_coord(text_y), item.get('size', '')[:12])
-                
-                # RATE/BOX - centered, rounded
-                rate_box = round(item.get('rate_per_box', 0))
-                if use_dejavusans:
-                    try:
-                        c.setFont("DejaVuSans", 7)
-                    except:
-                        c.setFont("Helvetica", 7)
-                else:
-                    c.setFont("Helvetica", 7)
-                c.drawCentredString(cols['rate_box']['center'], y_coord(text_y), f"₹{rate_box}")
-                
-                # RATE/SQFT - centered, rounded
-                rate_sqft = round(item.get('rate_per_sqft', 0))
-                c.drawCentredString(cols['rate_sqft']['center'], y_coord(text_y), f"₹{rate_sqft}")
-                
-                # QUANTITY - centered
-                c.setFont("Helvetica", 7)
-                c.drawCentredString(cols['quantity']['center'], y_coord(text_y), f"{item.get('box_qty', 0)} box")
-                
-                # DISC. - centered
-                c.drawCentredString(cols['disc']['center'], y_coord(text_y), f"{round(item.get('discount_percent', 0))}%")
-                
-                # AMOUNT - right aligned, rounded
-                final_amount = round(item.get('final_amount', 0))
-                if use_dejavusans:
-                    try:
-                        c.setFont("DejaVuSans", 7)
-                    except:
-                        c.setFont("Helvetica", 7)
-                else:
-                    c.setFont("Helvetica", 7)
-                c.drawRightString(cols['amount']['right'], y_coord(text_y), f"₹{final_amount:,}")
-                
+                item_copy = dict(item)
+                item_copy['type'] = 'item'
+                item_copy['sr_no'] = idx + 1
+                item_copy['location'] = location
+                item_copy['height'] = calculate_item_height(item)
+                all_items.append(item_copy)
                 location_subtotal += item.get('final_amount', 0)
-                current_y += row_height
+            # Add location subtotal marker
+            all_items.append({'type': 'location_subtotal', 'location': location, 'subtotal': location_subtotal, 'height': 20})
+        
+        # Split items across pages
+        pages_content = []
+        current_page_items = []
+        current_y = TABLE_START_Y
+        
+        for item_info in all_items:
+            item_height = item_info['height']
             
-            # Location subtotal - rounded
-            current_y += 3
-            c.setFont("Helvetica-Bold", 7)
-            c.setFillColorRGB(0.35, 0.22, 0.15)
-            c.drawRightString(table_cfg['location_total_label_x'], y_coord(current_y), 
-                             f"{location}'s Total:")
+            # Check if this item fits on current page
+            if current_y + item_height > MAX_CONTENT_Y:
+                # Start new page
+                if current_page_items:
+                    pages_content.append(current_page_items)
+                current_page_items = [item_info]
+                current_y = TABLE_START_Y + item_height
+            else:
+                current_page_items.append(item_info)
+                current_y += item_height
+        
+        # Add remaining items to last page
+        if current_page_items:
+            pages_content.append(current_page_items)
+        
+        # If no items, still create one page
+        if not pages_content:
+            pages_content = [[]]
+        
+        total_pages = len(pages_content)
+        
+        # Create overlay for all pages
+        overlay_buffer = io.BytesIO()
+        c = rl_canvas.Canvas(overlay_buffer, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
+        
+        def draw_header_content(canvas, page_num, total_pages):
+            """Draw header content (quotation box, buyer, consignee) on each page"""
+            # ==================== OVERLAY QUOTATION BOX ====================
+            qbox = tmap['quotation_box']
             
+            canvas.setFont("Helvetica-Bold", 7.5)
+            canvas.setFillColorRGB(0, 0, 0)
+            
+            # Add page number to invoice ID on continuation pages
+            invoice_id_text = invoice['invoice_id']
+            if page_num > 1:
+                invoice_id_text = f"{invoice['invoice_id']} (Page {page_num}/{total_pages})"
+            
+            canvas.drawString(qbox['quotation_no_value']['x'], y_coord(qbox['quotation_no_value']['y_from_top']), 
+                        invoice_id_text)
+            
+            invoice_date = invoice['invoice_date']
+            if isinstance(invoice_date, str):
+                invoice_date = datetime.fromisoformat(invoice_date)
+            canvas.drawString(qbox['date_value']['x'], y_coord(qbox['date_value']['y_from_top']), 
+                        invoice_date.strftime("%d/%m/%Y"))
+            
+            ref_name = invoice.get('reference_name', '') or ''
+            if ref_name:
+                canvas.setFont("Helvetica", 7.5)
+                canvas.drawString(qbox['reference_name_value']['x'], y_coord(qbox['reference_name_value']['y_from_top']), 
+                            ref_name[:18])
+            
+            # ==================== OVERLAY BUYER SECTION ====================
+            buyer = tmap['buyer_section']
+            
+            canvas.setFont("Helvetica-Bold", 7.5)
+            canvas.drawString(buyer['name']['x'], y_coord(buyer['name']['y_from_top']), 
+                        invoice.get('customer_name', '')[:35])
+            
+            canvas.setFont("Helvetica", 7)
+            canvas.drawString(buyer['phone']['x'], y_coord(buyer['phone']['y_from_top']), 
+                        f"Ph: {invoice.get('customer_phone', '')}")
+            
+            address = invoice.get('customer_address', '')
+            if len(address) > 40:
+                canvas.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), 
+                            address[:40])
+                canvas.drawString(buyer['address_line2']['x'], y_coord(buyer['address_line2']['y_from_top']), 
+                            address[40:80])
+            else:
+                canvas.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), 
+                            address)
+            
+            if invoice.get('customer_gstin'):
+                canvas.drawString(buyer['gstin']['x'], y_coord(buyer['gstin']['y_from_top']), 
+                            f"GSTIN: {invoice['customer_gstin']}")
+            
+            # ==================== OVERLAY CONSIGNEE SECTION ====================
+            consignee = tmap['consignee_section']
+            
+            consignee_name = invoice.get('consignee_name') or invoice.get('customer_name', '')
+            consignee_phone = invoice.get('consignee_phone') or invoice.get('customer_phone', '')
+            consignee_address = invoice.get('consignee_address') or invoice.get('customer_address', '')
+            
+            canvas.setFont("Helvetica-Bold", 7.5)
+            canvas.drawString(consignee['name']['x'], y_coord(consignee['name']['y_from_top']), 
+                        consignee_name[:35])
+            
+            canvas.setFont("Helvetica", 7)
+            canvas.drawString(consignee['phone']['x'], y_coord(consignee['phone']['y_from_top']), 
+                        f"Ph: {consignee_phone}")
+            
+            if len(consignee_address) > 40:
+                canvas.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), 
+                            consignee_address[:40])
+                canvas.drawString(consignee['address_line2']['x'], y_coord(consignee['address_line2']['y_from_top']), 
+                            consignee_address[40:80])
+            else:
+                canvas.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), 
+                            consignee_address)
+        
+        def draw_item_row(canvas, item, current_y, sr_no):
+            """Draw a single item row"""
+            has_image = bool(item.get('tile_image'))
+            row_height = table_cfg['row_height_with_image'] if has_image else table_cfg['row_height']
+            
+            # Text baseline Y position
+            text_y = current_y + (row_height / 2) - 3
+            
+            # SR NO. - centered
+            canvas.setFont("Helvetica", 7)
+            canvas.drawCentredString(cols['sr_no']['center'], y_coord(text_y), str(sr_no))
+            
+            # NAME - left aligned
+            tile_name = item.get('tile_name') or item.get('product_name') or ''
+            canvas.drawString(cols['name']['x'], y_coord(text_y), tile_name[:18])
+            
+            # IMAGE
+            if has_image and item.get('tile_image'):
+                try:
+                    if item['tile_image'].startswith('data:image'):
+                        image_data = item['tile_image'].split(',')[1]
+                    else:
+                        image_data = item['tile_image']
+                    
+                    image_bytes = base64.b64decode(image_data)
+                    
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+                        tmp_file.write(image_bytes)
+                        tmp_path = tmp_file.name
+                    
+                    img_w = cols['image']['img_width']
+                    img_h = cols['image']['img_height']
+                    img_x = cols['image']['center'] - img_w / 2
+                    img_y = y_coord(current_y + row_height - 5)
+                    
+                    canvas.drawImage(tmp_path, img_x, img_y, 
+                               width=img_w, height=img_h,
+                               preserveAspectRatio=True, mask='auto')
+                    
+                    os_module.unlink(tmp_path)
+                except Exception as e:
+                    logger.warning(f"Error overlaying image: {e}")
+            
+            # SIZE - centered
+            canvas.setFont("Helvetica", 7)
+            canvas.drawCentredString(cols['size']['center'], y_coord(text_y), item.get('size', '')[:12])
+            
+            # RATE/BOX - centered, rounded
+            rate_box = round(item.get('rate_per_box', 0))
             if use_dejavusans:
                 try:
-                    c.setFont("DejaVuSans", 7)
+                    canvas.setFont("DejaVuSans", 7)
                 except:
-                    c.setFont("Helvetica-Bold", 7)
+                    canvas.setFont("Helvetica", 7)
             else:
-                c.setFont("Helvetica-Bold", 7)
-            c.drawRightString(table_cfg['location_total_value_x'], y_coord(current_y), 
-                             f"₹{round(location_subtotal):,}")
+                canvas.setFont("Helvetica", 7)
+            canvas.drawCentredString(cols['rate_box']['center'], y_coord(text_y), f"₹{rate_box}")
             
-            c.setFillColorRGB(0, 0, 0)
-            current_y += 18
-        
-        # ==================== OVERLAY FINANCIAL SUMMARY ====================
-        fin = tmap['financial_summary']
-        
-        def draw_fin_amount(y_from_top, value):
+            # RATE/SQFT - centered, rounded
+            rate_sqft = round(item.get('rate_per_sqft', 0))
+            canvas.drawCentredString(cols['rate_sqft']['center'], y_coord(text_y), f"₹{rate_sqft}")
+            
+            # QUANTITY - centered
+            canvas.setFont("Helvetica", 7)
+            canvas.drawCentredString(cols['quantity']['center'], y_coord(text_y), f"{item.get('box_qty', 0)} box")
+            
+            # DISC. - centered
+            canvas.drawCentredString(cols['disc']['center'], y_coord(text_y), f"{round(item.get('discount_percent', 0))}%")
+            
+            # AMOUNT - right aligned, rounded
+            final_amount = round(item.get('final_amount', 0))
             if use_dejavusans:
                 try:
-                    c.setFont("DejaVuSans", 7.5)
+                    canvas.setFont("DejaVuSans", 7)
                 except:
-                    c.setFont("Helvetica", 7.5)
+                    canvas.setFont("Helvetica", 7)
             else:
-                c.setFont("Helvetica", 7.5)
-            c.drawRightString(fin['value_x'], y_coord(y_from_top), f"₹{round(value):,}")
-        
-        c.setFillColorRGB(0, 0, 0)
-        
-        # Total Amount
-        draw_fin_amount(fin['total_amount']['y_from_top'], invoice.get('subtotal', 0))
-        
-        # Transport Charges
-        draw_fin_amount(fin['transport']['y_from_top'], invoice.get('transport_charges', 0))
-        
-        # Unloading Charges
-        draw_fin_amount(fin['unloading']['y_from_top'], invoice.get('unloading_charges', 0))
-        
-        # GST
-        gst_amount = invoice.get('gst_amount', 0)
-        gst_percent = invoice.get('gst_percent', 0)
-        if gst_amount > 0 or gst_percent > 0:
-            draw_fin_amount(fin['gst']['y_from_top'], gst_amount)
-        else:
-            c.setFont("Helvetica-Oblique", 7)
-            c.setFillColorRGB(0.4, 0.4, 0.4)
-            c.drawRightString(fin['value_x'], y_coord(fin['gst']['y_from_top']), "As applicable")
-            c.setFillColorRGB(0, 0, 0)
-        
-        # Final Amount - rounded
-        c.setFont("Helvetica-Bold", 8)
-        c.setFillColorRGB(1, 1, 1)  # White on brown background
-        if use_dejavusans:
-            try:
-                c.setFont("DejaVuSans", 8)
-            except:
-                pass
-        c.drawRightString(fin['value_x'], y_coord(fin['final_amount']['y_from_top']), 
-                         f"₹{round(invoice.get('grand_total', 0)):,}")
-        c.setFillColorRGB(0, 0, 0)
-        
-        # ==================== OVERLAY OVERALL REMARKS ====================
-        remarks = invoice.get('overall_remarks', '')
-        if remarks:
-            remarks_cfg = tmap['overall_remarks']
-            c.setFont("Helvetica", 7)
-            c.setFillColorRGB(0, 0, 0)
+                canvas.setFont("Helvetica", 7)
+            canvas.drawRightString(cols['amount']['right'], y_coord(text_y), f"₹{final_amount:,}")
             
-            # Word wrap remarks
-            words = remarks.split()
-            line = ""
-            y_offset = 0
-            for word in words:
-                test_line = line + " " + word if line else word
-                if c.stringWidth(test_line, "Helvetica", 7) < remarks_cfg['max_width']:
-                    line = test_line
+            return row_height
+        
+        def draw_footer_content(canvas):
+            """Draw footer content (financial summary, remarks) on the last page"""
+            # ==================== OVERLAY FINANCIAL SUMMARY ====================
+            fin = tmap['financial_summary']
+            
+            def draw_fin_amount(y_from_top, value):
+                if use_dejavusans:
+                    try:
+                        canvas.setFont("DejaVuSans", 7.5)
+                    except:
+                        canvas.setFont("Helvetica", 7.5)
                 else:
-                    c.drawString(remarks_cfg['x'], y_coord(remarks_cfg['y_from_top'] + y_offset), line)
-                    y_offset += 10
-                    line = word
-            if line:
-                c.drawString(remarks_cfg['x'], y_coord(remarks_cfg['y_from_top'] + y_offset), line)
+                    canvas.setFont("Helvetica", 7.5)
+                canvas.drawRightString(fin['value_x'], y_coord(y_from_top), f"₹{round(value):,}")
+            
+            canvas.setFillColorRGB(0, 0, 0)
+            
+            # Total Amount
+            draw_fin_amount(fin['total_amount']['y_from_top'], invoice.get('subtotal', 0))
+            
+            # Transport Charges
+            draw_fin_amount(fin['transport']['y_from_top'], invoice.get('transport_charges', 0))
+            
+            # Unloading Charges
+            draw_fin_amount(fin['unloading']['y_from_top'], invoice.get('unloading_charges', 0))
+            
+            # GST
+            gst_amount = invoice.get('gst_amount', 0)
+            gst_percent = invoice.get('gst_percent', 0)
+            if gst_amount > 0 or gst_percent > 0:
+                draw_fin_amount(fin['gst']['y_from_top'], gst_amount)
+            else:
+                canvas.setFont("Helvetica-Oblique", 7)
+                canvas.setFillColorRGB(0.4, 0.4, 0.4)
+                canvas.drawRightString(fin['value_x'], y_coord(fin['gst']['y_from_top']), "As applicable")
+                canvas.setFillColorRGB(0, 0, 0)
+            
+            # Final Amount - rounded
+            canvas.setFont("Helvetica-Bold", 8)
+            canvas.setFillColorRGB(1, 1, 1)  # White on brown background
+            if use_dejavusans:
+                try:
+                    canvas.setFont("DejaVuSans", 8)
+                except:
+                    pass
+            canvas.drawRightString(fin['value_x'], y_coord(fin['final_amount']['y_from_top']), 
+                             f"₹{round(invoice.get('grand_total', 0)):,}")
+            canvas.setFillColorRGB(0, 0, 0)
+            
+            # ==================== OVERLAY OVERALL REMARKS ====================
+            remarks = invoice.get('overall_remarks', '')
+            if remarks:
+                remarks_cfg = tmap['overall_remarks']
+                canvas.setFont("Helvetica", 7)
+                canvas.setFillColorRGB(0, 0, 0)
+                
+                # Word wrap remarks
+                words = remarks.split()
+                line = ""
+                y_offset = 0
+                for word in words:
+                    test_line = line + " " + word if line else word
+                    if canvas.stringWidth(test_line, "Helvetica", 7) < remarks_cfg['max_width']:
+                        line = test_line
+                    else:
+                        canvas.drawString(remarks_cfg['x'], y_coord(remarks_cfg['y_from_top'] + y_offset), line)
+                        y_offset += 10
+                        line = word
+                if line:
+                    canvas.drawString(remarks_cfg['x'], y_coord(remarks_cfg['y_from_top'] + y_offset), line)
+        
+        # Generate each page
+        for page_idx, page_items in enumerate(pages_content):
+            page_num = page_idx + 1
+            is_last_page = page_num == total_pages
+            
+            # Draw header content on each page
+            draw_header_content(c, page_num, total_pages)
+            
+            # Draw items for this page
+            current_y = TABLE_START_Y
+            
+            for item_info in page_items:
+                if item_info['type'] == 'location_header':
+                    # Location header - centered in table
+                    c.setFont("Helvetica-Bold", 8)
+                    c.setFillColorRGB(0.35, 0.22, 0.15)  # Brown
+                    c.drawCentredString(PAGE_WIDTH / 2, y_coord(current_y - 5), item_info['location'].upper())
+                    c.setFillColorRGB(0, 0, 0)
+                    current_y += item_info['height']
+                    
+                elif item_info['type'] == 'item':
+                    row_height = draw_item_row(c, item_info, current_y, item_info['sr_no'])
+                    current_y += row_height
+                    
+                elif item_info['type'] == 'location_subtotal':
+                    # Location subtotal - rounded
+                    current_y += 3
+                    c.setFont("Helvetica-Bold", 7)
+                    c.setFillColorRGB(0.35, 0.22, 0.15)
+                    c.drawRightString(table_cfg['location_total_label_x'], y_coord(current_y), 
+                                     f"{item_info['location']}'s Total:")
+                    
+                    if use_dejavusans:
+                        try:
+                            c.setFont("DejaVuSans", 7)
+                        except:
+                            c.setFont("Helvetica-Bold", 7)
+                    else:
+                        c.setFont("Helvetica-Bold", 7)
+                    c.drawRightString(table_cfg['location_total_value_x'], y_coord(current_y), 
+                                     f"₹{round(item_info['subtotal']):,}")
+                    
+                    c.setFillColorRGB(0, 0, 0)
+                    current_y += item_info['height']
+            
+            # Draw footer content only on the last page
+            if is_last_page:
+                draw_footer_content(c)
+            
+            # Add continuation note on non-last pages
+            if not is_last_page:
+                c.setFont("Helvetica-Oblique", 8)
+                c.setFillColorRGB(0.4, 0.4, 0.4)
+                c.drawCentredString(PAGE_WIDTH / 2, y_coord(MAX_CONTENT_Y + 20), 
+                                   f"Continued on next page...")
+                c.setFillColorRGB(0, 0, 0)
+            
+            # Start new page for overlay (except for last page)
+            if not is_last_page:
+                c.showPage()
         
         # Save the overlay
         c.save()
         overlay_buffer.seek(0)
         
-        # Merge overlay with template
+        # Read overlay pages
         overlay_reader = PdfReader(overlay_buffer)
-        overlay_page = overlay_reader.pages[0]
         
         # Create output PDF
         writer = PdfWriter()
         
-        # Merge template with overlay
-        template_page.merge_page(overlay_page)
-        writer.add_page(template_page)
+        # Merge each overlay page with a fresh copy of the template
+        for page_idx in range(total_pages):
+            # Get a fresh copy of the template page for each output page
+            template_reader_fresh = PdfReader(str(template_path))
+            template_page = template_reader_fresh.pages[0]
+            
+            # Get corresponding overlay page
+            if page_idx < len(overlay_reader.pages):
+                overlay_page = overlay_reader.pages[page_idx]
+                template_page.merge_page(overlay_page)
+            
+            writer.add_page(template_page)
         
         # Write output
         with open(output_path, 'wb') as output_file:
             writer.write(output_file)
         
-        logger.info(f"PDF generated using template overlay: {output_path}")
+        logger.info(f"PDF generated using template overlay ({total_pages} pages): {output_path}")
         
     except Exception as e:
         logger.error(f"Error generating PDF: {e}")
