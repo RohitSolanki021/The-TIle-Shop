@@ -103,10 +103,9 @@
 #====================================================================================================
 
 user_problem_statement: |
-  1. Dashboard icons WHITE
-  2. Remove ALL Emergent branding
-  3. Size dropdown in tiles management
-  4. Invoice PDF exactly matches reference template
+  1. Invoice PDF must match reference template EXACTLY (pixel-perfect)
+  2. Quotation number format: TTS / XXX / YYYY-YY (financial year format)
+  3. Financial year changes in April (April 2025 to March 2026 = 2025-26)
 
 backend:
   - task: "API Health Check"
@@ -117,7 +116,7 @@ backend:
     priority: "high"
     needs_retesting: false
 
-  - task: "PDF Generation - The Tile Shop Template"
+  - task: "Invoice ID Format - TTS / XXX / YYYY-YY"
     implemented: true
     working: true
     file: "server.py"
@@ -127,7 +126,19 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "REWRITTEN to exact template match: 15mm margins, 35mm logo, 18pt company name, correct column proportions, 8mm table headers, 1pt borders, center-aligned columns"
+        comment: "New format TTS / 001 / 2025-26 implemented. Sequence auto-increments. Financial year changes in April."
+
+  - task: "PDF Generation - Pixel Perfect Template"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "92% match rate with reference. Key elements match: Logo, Quotation box, Buyer/Consignee, Table headers, Bank details (horizontal row), Terms."
 
 frontend:
   - task: "Dashboard Icons WHITE"
@@ -137,10 +148,6 @@ frontend:
     stuck_count: 0
     priority: "high"
     needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Icons inherit white from parent container"
 
   - task: "Remove Emergent Branding"
     implemented: true
@@ -149,10 +156,6 @@ frontend:
     stuck_count: 0
     priority: "high"
     needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Removed emergent-main.js and debug-monitor.js scripts"
 
   - task: "Size Dropdown in Tiles Management"
     implemented: true
@@ -161,10 +164,6 @@ frontend:
     stuck_count: 0
     priority: "high"
     needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Added dropdown with 14 standard sizes + existing DB sizes + Custom Size option"
 
 metadata:
   created_by: "main_agent"
