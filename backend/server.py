@@ -554,6 +554,10 @@ async def create_invoice(invoice_input: InvoiceCreate):
         invoice_dict['customer_gstin'] = customer.get('gstin')
         
         invoice = Invoice(**invoice_dict)
+        
+        # Generate financial year-based invoice ID
+        invoice.invoice_id = await generate_invoice_id()
+        
         invoice = calculate_invoice_totals(invoice)
         
         doc = invoice.model_dump()
