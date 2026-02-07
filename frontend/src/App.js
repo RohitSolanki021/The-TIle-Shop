@@ -376,7 +376,7 @@ function TilesManagement({ tiles, fetchTiles }) {
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
+            className="bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
             data-testid="add-tile-button"
           >
             <Plus className="h-5 w-5" />
@@ -481,7 +481,7 @@ function TilesManagement({ tiles, fetchTiles }) {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all"
+                className="px-6 py-2 bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white rounded-lg hover:shadow-lg transition-all"
                 data-testid="tile-save-button"
               >
                 <Save className="inline h-5 w-5 mr-2" />
@@ -496,7 +496,7 @@ function TilesManagement({ tiles, fetchTiles }) {
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full" data-testid="tiles-table">
-            <thead className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+            <thead className="bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Size</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Coverage (Sqft/Box)</th>
@@ -615,7 +615,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
+            className="bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
             data-testid="add-customer-button"
           >
             <Plus className="h-5 w-5" />
@@ -707,7 +707,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg hover:shadow-lg transition-all"
+                className="px-6 py-2 bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white rounded-lg hover:shadow-lg transition-all"
                 data-testid="customer-save-button"
               >
                 <Save className="inline h-5 w-5 mr-2" />
@@ -1270,7 +1270,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
+            className="bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
             data-testid="add-invoice-button"
           >
             <Plus className="h-5 w-5" />
@@ -1543,7 +1543,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                 <button
                   type="button"
                   onClick={handleAddLineItem}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all"
+                  className="w-full px-4 py-2 bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white rounded-lg hover:shadow-lg transition-all"
                   data-testid="add-line-item-button"
                 >
                   <Plus className="inline h-5 w-5 mr-2" />
@@ -1708,7 +1708,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all"
+                className="px-6 py-2 bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white rounded-lg hover:shadow-lg transition-all"
                 data-testid="invoice-save-button"
               >
                 <Save className="inline h-5 w-5 mr-2" />
