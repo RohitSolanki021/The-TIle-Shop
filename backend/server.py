@@ -723,13 +723,15 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
     - Uses the fixed template PDF as background
     - Only overlays dynamic text at fixed coordinates
     - Never redraws borders, sections, or layout
+    - Prices rounded to nearest integer
     """
     try:
         import io
         import json
+        import tempfile
+        import os as os_module
         from pypdf import PdfReader, PdfWriter
         from reportlab.pdfgen import canvas as rl_canvas
-        from reportlab.lib.pagesizes import A4
         
         # Load template map
         template_map_path = ROOT_DIR / "assets" / "template_map.json"
@@ -743,6 +745,12 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         def y_coord(y_from_top):
             return PAGE_HEIGHT - y_from_top
         
+        # Helper to format price (rounded to nearest integer)
+        def fmt_price(value, with_decimal=False):
+            if with_decimal:
+                return f"₹{round(value):,}"
+            return f"₹{round(value):,}"
+        
         # Load the template PDF
         template_path = ROOT_DIR / "assets" / "invoice-template.pdf"
         template_reader = PdfReader(str(template_path))
@@ -753,51 +761,50 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         c = rl_canvas.Canvas(overlay_buffer, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
         
         # Register DejaVuSans font for Rupee symbol
+        use_dejavusans = False
         try:
             c.setFont("DejaVuSans", 10)
             use_dejavusans = True
         except:
-            use_dejavusans = False
+            pass
         
         # ==================== OVERLAY QUOTATION BOX ====================
         qbox = tmap['quotation_box']
         
-        # Quotation No.
-        c.setFont("Helvetica", 7.5)
+        c.setFont("Helvetica-Bold", 7.5)
         c.setFillColorRGB(0, 0, 0)
         c.drawString(qbox['quotation_no_value']['x'], y_coord(qbox['quotation_no_value']['y_from_top']), 
                     invoice['invoice_id'])
         
-        # Date
         invoice_date = invoice['invoice_date']
         if isinstance(invoice_date, str):
             invoice_date = datetime.fromisoformat(invoice_date)
         c.drawString(qbox['date_value']['x'], y_coord(qbox['date_value']['y_from_top']), 
                     invoice_date.strftime("%d/%m/%Y"))
         
-        # Reference Name
         ref_name = invoice.get('reference_name', '') or ''
         if ref_name:
+            c.setFont("Helvetica", 7.5)
             c.drawString(qbox['reference_name_value']['x'], y_coord(qbox['reference_name_value']['y_from_top']), 
-                        ref_name[:20])
+                        ref_name[:18])
         
         # ==================== OVERLAY BUYER SECTION ====================
         buyer = tmap['buyer_section']
         
-        c.setFont("Helvetica-Bold", 8)
+        c.setFont("Helvetica-Bold", 7.5)
         c.drawString(buyer['name']['x'], y_coord(buyer['name']['y_from_top']), 
-                    invoice.get('customer_name', '')[:40])
+                    invoice.get('customer_name', '')[:35])
         
-        c.setFont("Helvetica", 7.5)
+        c.setFont("Helvetica", 7)
         c.drawString(buyer['phone']['x'], y_coord(buyer['phone']['y_from_top']), 
-                    f"Phone: {invoice.get('customer_phone', '')}")
+                    f"Ph: {invoice.get('customer_phone', '')}")
         
         address = invoice.get('customer_address', '')
-        if len(address) > 45:
+        if len(address) > 40:
             c.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), 
-                        address[:45])
+                        address[:40])
             c.drawString(buyer['address_line2']['x'], y_coord(buyer['address_line2']['y_from_top']), 
-                        address[45:90])
+                        address[40:80])
         else:
             c.drawString(buyer['address_line1']['x'], y_coord(buyer['address_line1']['y_from_top']), 
                         address)
@@ -813,19 +820,19 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         consignee_phone = invoice.get('consignee_phone') or invoice.get('customer_phone', '')
         consignee_address = invoice.get('consignee_address') or invoice.get('customer_address', '')
         
-        c.setFont("Helvetica-Bold", 8)
+        c.setFont("Helvetica-Bold", 7.5)
         c.drawString(consignee['name']['x'], y_coord(consignee['name']['y_from_top']), 
-                    consignee_name[:40])
+                    consignee_name[:35])
         
-        c.setFont("Helvetica", 7.5)
+        c.setFont("Helvetica", 7)
         c.drawString(consignee['phone']['x'], y_coord(consignee['phone']['y_from_top']), 
-                    f"Phone: {consignee_phone}")
+                    f"Ph: {consignee_phone}")
         
-        if len(consignee_address) > 45:
+        if len(consignee_address) > 40:
             c.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), 
-                        consignee_address[:45])
+                        consignee_address[:40])
             c.drawString(consignee['address_line2']['x'], y_coord(consignee['address_line2']['y_from_top']), 
-                        consignee_address[45:90])
+                        consignee_address[40:80])
         else:
             c.drawString(consignee['address_line1']['x'], y_coord(consignee['address_line1']['y_from_top']), 
                         consignee_address)
@@ -842,17 +849,16 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 grouped_items[location] = []
             grouped_items[location].append(item)
         
-        current_y_from_top = table_cfg['first_row_y_from_top']
+        current_y = table_cfg['first_row_y_from_top']
         
         for location, items in grouped_items.items():
-            # Location header
-            c.setFont("Helvetica-Bold", 9.8)
+            # Location header - centered in table
+            c.setFont("Helvetica-Bold", 8)
             c.setFillColorRGB(0.35, 0.22, 0.15)  # Brown
-            c.drawCentredString(PAGE_WIDTH / 2, y_coord(current_y_from_top + table_cfg['location_header_y_offset']), 
-                               location.upper())
+            c.drawCentredString(PAGE_WIDTH / 2, y_coord(current_y - 5), location.upper())
             c.setFillColorRGB(0, 0, 0)
             
-            current_y_from_top += 5  # Space after location header
+            current_y += table_cfg['location_header_y_offset']
             location_subtotal = 0
             
             for idx, item in enumerate(items):
@@ -860,23 +866,20 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                 has_image = bool(item.get('tile_image'))
                 row_height = table_cfg['row_height_with_image'] if has_image else table_cfg['row_height']
                 
-                row_y = current_y_from_top
-                text_y = row_y + 10 if has_image else row_y + 5
+                # Text baseline Y position
+                text_y = current_y + (row_height / 2) - 3
                 
-                # SR NO.
+                # SR NO. - centered
                 c.setFont("Helvetica", 7)
-                c.drawCentredString(cols['sr_no']['x'] + cols['sr_no']['width']/2, y_coord(text_y), str(sr_no))
+                c.drawCentredString(cols['sr_no']['center'], y_coord(text_y), str(sr_no))
                 
-                # NAME
+                # NAME - left aligned
                 tile_name = item.get('tile_name') or item.get('product_name') or ''
-                c.drawString(cols['name']['x'], y_coord(text_y), tile_name[:20])
+                c.drawString(cols['name']['x'], y_coord(text_y), tile_name[:18])
                 
                 # IMAGE
                 if has_image and item.get('tile_image'):
                     try:
-                        import tempfile
-                        import os as os_module
-                        
                         if item['tile_image'].startswith('data:image'):
                             image_data = item['tile_image'].split(',')[1]
                         else:
@@ -890,10 +893,10 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                         
                         img_w = cols['image']['img_width']
                         img_h = cols['image']['img_height']
-                        img_x = cols['image']['x'] + (cols['image']['width'] - img_w) / 2
-                        img_y = y_coord(row_y + row_height - 5) + img_h
+                        img_x = cols['image']['center'] - img_w / 2
+                        img_y = y_coord(current_y + row_height - 5)
                         
-                        c.drawImage(tmp_path, img_x, y_coord(row_y + row_height - 5), 
+                        c.drawImage(tmp_path, img_x, img_y, 
                                    width=img_w, height=img_h,
                                    preserveAspectRatio=True, mask='auto')
                         
@@ -901,143 +904,118 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
                     except Exception as e:
                         logger.warning(f"Error overlaying image: {e}")
                 
-                # SIZE
+                # SIZE - centered
                 c.setFont("Helvetica", 7)
-                c.drawCentredString(cols['size']['x'] + cols['size']['width']/2, y_coord(text_y), 
-                                   item.get('size', '')[:12])
+                c.drawCentredString(cols['size']['center'], y_coord(text_y), item.get('size', '')[:12])
                 
-                # RATE/BOX
-                rate_box = item.get('rate_per_box', 0)
+                # RATE/BOX - centered, rounded
+                rate_box = round(item.get('rate_per_box', 0))
                 if use_dejavusans:
                     try:
                         c.setFont("DejaVuSans", 7)
-                        c.drawCentredString(cols['rate_box']['x'] + cols['rate_box']['width']/2, y_coord(text_y), 
-                                           f"₹{rate_box:.0f}")
                     except:
                         c.setFont("Helvetica", 7)
-                        c.drawCentredString(cols['rate_box']['x'] + cols['rate_box']['width']/2, y_coord(text_y), 
-                                           f"Rs.{rate_box:.0f}")
                 else:
                     c.setFont("Helvetica", 7)
-                    c.drawCentredString(cols['rate_box']['x'] + cols['rate_box']['width']/2, y_coord(text_y), 
-                                       f"Rs.{rate_box:.0f}")
+                c.drawCentredString(cols['rate_box']['center'], y_coord(text_y), f"₹{rate_box}")
                 
-                # RATE/SQFT
-                rate_sqft = item.get('rate_per_sqft', 0)
-                if use_dejavusans:
-                    try:
-                        c.setFont("DejaVuSans", 7)
-                        c.drawCentredString(cols['rate_sqft']['x'] + cols['rate_sqft']['width']/2, y_coord(text_y), 
-                                           f"₹{rate_sqft:.0f}")
-                    except:
-                        c.setFont("Helvetica", 7)
-                        c.drawCentredString(cols['rate_sqft']['x'] + cols['rate_sqft']['width']/2, y_coord(text_y), 
-                                           f"Rs.{rate_sqft:.0f}")
-                else:
-                    c.setFont("Helvetica", 7)
-                    c.drawCentredString(cols['rate_sqft']['x'] + cols['rate_sqft']['width']/2, y_coord(text_y), 
-                                       f"Rs.{rate_sqft:.0f}")
+                # RATE/SQFT - centered, rounded
+                rate_sqft = round(item.get('rate_per_sqft', 0))
+                c.drawCentredString(cols['rate_sqft']['center'], y_coord(text_y), f"₹{rate_sqft}")
                 
-                # QUANTITY
+                # QUANTITY - centered
                 c.setFont("Helvetica", 7)
-                c.drawCentredString(cols['quantity']['x'] + cols['quantity']['width']/2, y_coord(text_y), 
-                                   f"{item.get('box_qty', 0)} box")
+                c.drawCentredString(cols['quantity']['center'], y_coord(text_y), f"{item.get('box_qty', 0)} box")
                 
-                # DISC.
-                c.drawCentredString(cols['disc']['x'] + cols['disc']['width']/2, y_coord(text_y), 
-                                   f"{item.get('discount_percent', 0):.0f}%")
+                # DISC. - centered
+                c.drawCentredString(cols['disc']['center'], y_coord(text_y), f"{round(item.get('discount_percent', 0))}%")
                 
-                # AMOUNT
-                final_amount = item.get('final_amount', 0)
+                # AMOUNT - right aligned, rounded
+                final_amount = round(item.get('final_amount', 0))
                 if use_dejavusans:
                     try:
                         c.setFont("DejaVuSans", 7)
-                        c.drawRightString(cols['amount']['x'] + cols['amount']['width'] - 5, y_coord(text_y), 
-                                         f"₹{final_amount:.2f}")
                     except:
                         c.setFont("Helvetica", 7)
-                        c.drawRightString(cols['amount']['x'] + cols['amount']['width'] - 5, y_coord(text_y), 
-                                         f"Rs.{final_amount:.2f}")
                 else:
                     c.setFont("Helvetica", 7)
-                    c.drawRightString(cols['amount']['x'] + cols['amount']['width'] - 5, y_coord(text_y), 
-                                     f"Rs.{final_amount:.2f}")
+                c.drawRightString(cols['amount']['right'], y_coord(text_y), f"₹{final_amount:,}")
                 
-                location_subtotal += final_amount
-                current_y_from_top += row_height
+                location_subtotal += item.get('final_amount', 0)
+                current_y += row_height
             
-            # Location subtotal
-            c.setFont("Helvetica-Bold", 7.5)
+            # Location subtotal - rounded
+            current_y += 3
+            c.setFont("Helvetica-Bold", 7)
             c.setFillColorRGB(0.35, 0.22, 0.15)
-            c.drawRightString(table_cfg['location_total_label_x'], y_coord(current_y_from_top + 5), 
-                             f"{location}'s Total Amount:")
+            c.drawRightString(table_cfg['location_total_label_x'], y_coord(current_y), 
+                             f"{location}'s Total:")
             
             if use_dejavusans:
                 try:
-                    c.setFont("DejaVuSans", 7.5)
-                    c.drawRightString(table_cfg['location_total_value_x'], y_coord(current_y_from_top + 5), 
-                                     f"₹{location_subtotal:.2f}")
+                    c.setFont("DejaVuSans", 7)
                 except:
-                    c.setFont("Helvetica-Bold", 7.5)
-                    c.drawRightString(table_cfg['location_total_value_x'], y_coord(current_y_from_top + 5), 
-                                     f"Rs.{location_subtotal:.2f}")
+                    c.setFont("Helvetica-Bold", 7)
             else:
-                c.setFont("Helvetica-Bold", 7.5)
-                c.drawRightString(table_cfg['location_total_value_x'], y_coord(current_y_from_top + 5), 
-                                 f"Rs.{location_subtotal:.2f}")
+                c.setFont("Helvetica-Bold", 7)
+            c.drawRightString(table_cfg['location_total_value_x'], y_coord(current_y), 
+                             f"₹{round(location_subtotal):,}")
             
             c.setFillColorRGB(0, 0, 0)
-            current_y_from_top += 20
+            current_y += 18
         
         # ==================== OVERLAY FINANCIAL SUMMARY ====================
         fin = tmap['financial_summary']
         
-        def draw_amount(x, y_from_top, value):
+        def draw_fin_amount(y_from_top, value):
             if use_dejavusans:
                 try:
-                    c.setFont("DejaVuSans", 8.3)
-                    c.drawString(x, y_coord(y_from_top), f"₹{value:.2f}")
+                    c.setFont("DejaVuSans", 7.5)
                 except:
-                    c.setFont("Helvetica", 8.3)
-                    c.drawString(x, y_coord(y_from_top), f"Rs.{value:.2f}")
+                    c.setFont("Helvetica", 7.5)
             else:
-                c.setFont("Helvetica", 8.3)
-                c.drawString(x, y_coord(y_from_top), f"Rs.{value:.2f}")
+                c.setFont("Helvetica", 7.5)
+            c.drawRightString(fin['value_x'], y_coord(y_from_top), f"₹{round(value):,}")
         
         c.setFillColorRGB(0, 0, 0)
-        draw_amount(fin['total_amount_value']['x'], fin['total_amount_value']['y_from_top'], 
-                   invoice.get('subtotal', 0))
-        draw_amount(fin['transport_value']['x'], fin['transport_value']['y_from_top'], 
-                   invoice.get('transport_charges', 0))
-        draw_amount(fin['unloading_value']['x'], fin['unloading_value']['y_from_top'], 
-                   invoice.get('unloading_charges', 0))
+        
+        # Total Amount
+        draw_fin_amount(fin['total_amount']['y_from_top'], invoice.get('subtotal', 0))
+        
+        # Transport Charges
+        draw_fin_amount(fin['transport']['y_from_top'], invoice.get('transport_charges', 0))
+        
+        # Unloading Charges
+        draw_fin_amount(fin['unloading']['y_from_top'], invoice.get('unloading_charges', 0))
         
         # GST
         gst_amount = invoice.get('gst_amount', 0)
         gst_percent = invoice.get('gst_percent', 0)
         if gst_amount > 0 or gst_percent > 0:
-            draw_amount(fin['gst_value']['x'], fin['gst_value']['y_from_top'], gst_amount)
+            draw_fin_amount(fin['gst']['y_from_top'], gst_amount)
         else:
             c.setFont("Helvetica-Oblique", 7)
-            c.setFillColorRGB(0.5, 0.5, 0.5)
-            c.drawString(fin['gst_value']['x'], y_coord(fin['gst_value']['y_from_top']), "As applicable")
+            c.setFillColorRGB(0.4, 0.4, 0.4)
+            c.drawRightString(fin['value_x'], y_coord(fin['gst']['y_from_top']), "As applicable")
             c.setFillColorRGB(0, 0, 0)
         
-        # Final Amount
-        c.setFont("Helvetica-Bold", 8.3)
-        c.setFillColorRGB(1, 1, 1)  # White text on brown background
-        draw_amount(fin['final_amount_value']['x'], fin['final_amount_value']['y_from_top'], 
-                   invoice.get('grand_total', 0))
+        # Final Amount - rounded
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColorRGB(1, 1, 1)  # White on brown background
+        if use_dejavusans:
+            try:
+                c.setFont("DejaVuSans", 8)
+            except:
+                pass
+        c.drawRightString(fin['value_x'], y_coord(fin['final_amount']['y_from_top']), 
+                         f"₹{round(invoice.get('grand_total', 0)):,}")
         c.setFillColorRGB(0, 0, 0)
-        
-        # ==================== OVERLAY BANK DETAILS (already in template) ====================
-        # Bank details are fixed in the template, no need to overlay
         
         # ==================== OVERLAY OVERALL REMARKS ====================
         remarks = invoice.get('overall_remarks', '')
         if remarks:
             remarks_cfg = tmap['overall_remarks']
-            c.setFont("Helvetica", 7.5)
+            c.setFont("Helvetica", 7)
             c.setFillColorRGB(0, 0, 0)
             
             # Word wrap remarks
@@ -1046,7 +1024,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
             y_offset = 0
             for word in words:
                 test_line = line + " " + word if line else word
-                if c.stringWidth(test_line, "Helvetica", 7.5) < remarks_cfg['max_width']:
+                if c.stringWidth(test_line, "Helvetica", 7) < remarks_cfg['max_width']:
                     line = test_line
                 else:
                     c.drawString(remarks_cfg['x'], y_coord(remarks_cfg['y_from_top'] + y_offset), line)
@@ -1091,9 +1069,60 @@ async def get_invoice_pdf(invoice_id: str):
         if not invoice:
             raise HTTPException(status_code=404, detail="Invoice not found")
         
-        # Generate PDF with safe filename (replace / with -)
         pdf_dir = ROOT_DIR / "pdfs"
         pdf_dir.mkdir(exist_ok=True)
+        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
+        pdf_path = pdf_dir / f"{safe_filename}.pdf"
+        
+        generate_invoice_pdf(invoice, str(pdf_path))
+        
+        return FileResponse(
+            path=str(pdf_path),
+            media_type='application/pdf',
+            filename=f"Invoice_{safe_filename}.pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=Invoice_{safe_filename}.pdf",
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "no-cache"
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating PDF: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/public/invoices/{invoice_id:path}/pdf")
+async def get_public_invoice_pdf(invoice_id: str):
+    """Public endpoint for PDF download (for WhatsApp sharing)"""
+    try:
+        invoice = await db.invoices.find_one({"invoice_id": invoice_id, "deleted": False}, {"_id": 0})
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Invoice not found")
+        
+        pdf_dir = ROOT_DIR / "pdfs"
+        pdf_dir.mkdir(exist_ok=True)
+        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
+        pdf_path = pdf_dir / f"{safe_filename}.pdf"
+        
+        generate_invoice_pdf(invoice, str(pdf_path))
+        
+        return FileResponse(
+            path=str(pdf_path),
+            media_type='application/pdf',
+            filename=f"Invoice_{safe_filename}.pdf",
+            headers={
+                "Content-Disposition": f"inline; filename=Invoice_{safe_filename}.pdf",
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "public, max-age=3600"
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating PDF: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
         safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
         pdf_path = pdf_dir / f"{safe_filename}.pdf"
         
