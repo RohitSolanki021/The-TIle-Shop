@@ -174,7 +174,7 @@ function NavItem({ icon, label, active, onClick, testId }) {
       }`}
       style={active ? {background: 'linear-gradient(to right, #5a3825, #6b4a35)'} : {}}
     >
-      <div className="h-5 w-5">{icon}</div>
+      <div className={`h-5 w-5 ${active ? 'text-white' : ''}`}>{icon}</div>
       <span className="font-medium">{label}</span>
     </button>
   );
@@ -1850,7 +1850,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
             <div className="flex flex-col lg:flex-row justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-3">
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-lg">
+                  <div className="bg-gradient-to-r from-[#5a3825] to-[#6b4a35] p-3 rounded-lg">
                     <FileText className="h-6 w-6 text-white" />
                   </div>
                   <div>
