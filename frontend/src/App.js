@@ -1339,7 +1339,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `Invoice_${invoice.invoice_id}.pdf`);
+        link.setAttribute('download', `Invoice_${safeFileName}.pdf`);
         document.body.appendChild(link);
         link.click();
         link.remove();
