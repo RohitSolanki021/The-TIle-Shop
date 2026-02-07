@@ -1,3 +1,14 @@
+/* The Tile Shop - Brand Colors */
+:root {
+  --tile-shop-bg: #fef7f7;
+  --tile-shop-dark-brown: #5a3825;
+  --tile-shop-medium-brown: #6b4a35;
+  --tile-shop-light-brown: #8b6b4a;
+  --tile-shop-tan: #a58b6a;
+  --tile-shop-cream: #d4c4b0;
+  --tile-shop-text: #3d2817;
+}
+
 /* Global Styles */
 * {
   margin: 0;
@@ -11,6 +22,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--tile-shop-bg);
 }
 
 code {
@@ -25,17 +37,17 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--tile-shop-cream);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, var(--tile-shop-dark-brown) 0%, var(--tile-shop-medium-brown) 100%);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #5568d3 0%, #6a4190 100%);
+  background: linear-gradient(180deg, var(--tile-shop-medium-brown) 0%, var(--tile-shop-light-brown) 100%);
 }
 
 /* Custom Animations */
@@ -84,7 +96,7 @@ table {
 
 /* Gradient Text */
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--tile-shop-dark-brown) 0%, var(--tile-shop-medium-brown) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -92,8 +104,8 @@ table {
 
 /* Loading Spinner */
 .spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #667eea;
+  border: 3px solid var(--tile-shop-cream);
+  border-top: 3px solid var(--tile-shop-dark-brown);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -177,7 +189,7 @@ table {
 
 /* Focus Visible for Accessibility */
 *:focus-visible {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--tile-shop-dark-brown);
   outline-offset: 2px;
 }
 
@@ -233,8 +245,8 @@ input[type='checkbox'] {
 }
 
 input[type='checkbox']:checked {
-  background-color: #667eea;
-  border-color: #667eea;
+  background-color: var(--tile-shop-dark-brown);
+  border-color: var(--tile-shop-dark-brown);
 }
 
 /* Smooth Scroll */
@@ -255,11 +267,22 @@ input[type='number'] {
 
 /* Selection Color */
 ::selection {
-  background-color: #667eea;
+  background-color: var(--tile-shop-dark-brown);
   color: white;
 }
 
 ::-moz-selection {
-  background-color: #667eea;
+  background-color: var(--tile-shop-dark-brown);
   color: white;
+}
+
+/* Brand Logo Styles */
+.brand-logo {
+  height: 50px;
+  object-fit: contain;
+}
+
+.brand-logo-small {
+  height: 36px;
+  object-fit: contain;
 }
