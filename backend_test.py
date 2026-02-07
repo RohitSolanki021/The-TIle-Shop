@@ -98,7 +98,7 @@ def create_test_tiles():
     created_tiles = []
     for tile_data in tiles_data:
         response = requests.post(f"{BASE_URL}/tiles", json=tile_data, timeout=10)
-        if response.status_code == 201:
+        if response.status_code in [200, 201]:
             created_tiles.append(tile_data)
         else:
             raise Exception(f"Failed to create tile {tile_data['name']}: {response.status_code}")
