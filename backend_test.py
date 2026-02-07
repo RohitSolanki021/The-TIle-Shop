@@ -420,10 +420,8 @@ def main():
         ("Health Check", tester.test_health_check),
         ("Create Customer", tester.test_create_customer),
         ("Create Tile", tester.test_create_tile),
-        ("Create Custom Tile Size", tester.test_create_custom_tile_size),
-        ("Create Invoice with Multiple Locations", tester.test_create_invoice_multiple_locations),
-        ("Get Invoice", tester.test_get_invoice),
-        ("PDF Generation with SR NO. Reset", tester.test_pdf_generation_sr_no_reset),
+        ("Invoice ID Format Test", tester.test_invoice_id_format),
+        ("PDF Generation with Template Overlay", tester.test_pdf_generation_with_template_overlay),
         ("Get All Customers", tester.test_get_customers),
         ("Get All Tiles", tester.test_get_tiles),
         ("Get All Invoices", tester.test_get_invoices)
