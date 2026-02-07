@@ -151,7 +151,7 @@ def create_test_invoice_with_sa_section(customer, tiles):
     }
     
     response = requests.post(f"{BASE_URL}/invoices", json=invoice_data, timeout=15)
-    if response.status_code == 201:
+    if response.status_code in [200, 201]:
         invoice = response.json()
         return invoice, expected_total
     else:
