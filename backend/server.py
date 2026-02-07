@@ -778,17 +778,17 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         if logo_path.exists():
             try:
-                c.drawImage(str(logo_path), logo_x, logo_y_top - logo_size, 
+                c.drawImage(str(logo_path), logo_x, logo_y - logo_size, 
                            width=logo_size, height=logo_size, 
                            preserveAspectRatio=True, mask='auto')
             except Exception as e:
                 logger.warning(f"Could not draw logo: {e}")
         
         # =================================================================
-        # COMPANY HEADER (Right of logo)
+        # COMPANY HEADER (Right of logo) - Reference: x=112.6, y_from_top=44.9
         # =================================================================
         header_x = 112.6  # Exact from reference
-        header_y = height - 44.9
+        header_y = height - 44.9  # Same Y as logo top
         
         # Company Name - 12pt Bold (exact from reference)
         c.setFont("Helvetica-Bold", 12)
