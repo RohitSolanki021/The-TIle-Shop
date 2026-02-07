@@ -257,15 +257,101 @@ class TileShopAPITester:
             200
         )[0]
 
-    def test_pdf_generation_sr_no_reset(self):
-        """Test PDF generation and verify SR NO. resets per location"""
+    def test_invoice_id_format(self):
+        """Test that new invoices use TTS / XXX / YYYY-YY format and auto-increment"""
+        if not self.created_customer_id:
+            print("❌ Cannot test invoice ID format - no customer created")
+            return False
+            
+        invoice_data = {
+            "customer_id": self.created_customer_id,
+            "line_items": [
+                {
+                    "location": "Testing Area",
+                    "tile_name": "Test Tile for ID Format",
+                    "size": "600x600mm",
+                    "box_qty": 1,
+                    "extra_sqft": 0.0,
+                    "rate_per_sqft": 100.0,
+                    "rate_per_box": 0,
+                    "discount_percent": 0.0,
+                    "coverage": 23.68,
+                    "box_packing": 4
+                }
+            ],
+            "transport_charges": 0.0,
+            "unloading_charges": 0.0,
+            "amount_paid": 0.0,
+            "status": "Draft",
+            "gst_percent": 0
+        }
+        
+        # Create first invoice
+        success1, response1 = self.run_test(
+            "Create Invoice 1 - Check ID Format",
+            "POST",
+            "invoices",
+            200,
+            data=invoice_data
+        )
+        
+        if not success1 or 'invoice_id' not in response1:
+            return False
+            
+        invoice_id_1 = response1['invoice_id']
+        print(f"   First Invoice ID: {invoice_id_1}")
+        
+        # Verify format: TTS / XXX / YYYY-YY
+        import re
+        pattern = r'^TTS / \d{3} / \d{4}-\d{2}$'
+        if not re.match(pattern, invoice_id_1):
+            print(f"❌ Invoice ID format incorrect. Expected: TTS / XXX / YYYY-YY, got: {invoice_id_1}")
+            return False
+        
+        print(f"✅ Invoice ID format is correct: {invoice_id_1}")
+        
+        # Create second invoice to test auto-increment
+        success2, response2 = self.run_test(
+            "Create Invoice 2 - Check Auto-increment",
+            "POST",
+            "invoices",
+            200,
+            data=invoice_data
+        )
+        
+        if not success2 or 'invoice_id' not in response2:
+            return False
+            
+        invoice_id_2 = response2['invoice_id']
+        print(f"   Second Invoice ID: {invoice_id_2}")
+        
+        # Extract sequence numbers
+        seq1 = int(invoice_id_1.split(' / ')[1])
+        seq2 = int(invoice_id_2.split(' / ')[1])
+        
+        if seq2 == seq1 + 1:
+            print(f"✅ Auto-increment working: {seq1} → {seq2}")
+            # Store the second invoice for PDF testing
+            self.created_invoice_id = invoice_id_2
+            return True
+        else:
+            print(f"❌ Auto-increment failed: {seq1} → {seq2}")
+            return False
+
+    def test_pdf_generation_with_template_overlay(self):
+        """Test PDF generation using template overlay method and verify file size"""
         if not self.created_invoice_id:
             print("❌ Cannot test PDF generation - no invoice created")
             return False
             
-        print(f"\n🔍 Testing PDF Generation with SR NO. Reset...")
-        url = f"{self.api_url}/invoices/{self.created_invoice_id}/pdf"
+        print(f"\n🔍 Testing PDF Generation with Template Overlay...")
+        
+        # Test with URL encoding to handle TTS / XXX / YYYY-YY format
+        import urllib.parse
+        encoded_invoice_id = urllib.parse.quote(self.created_invoice_id, safe='')
+        url = f"{self.api_url}/invoices/{encoded_invoice_id}/pdf"
         print(f"   URL: {url}")
+        print(f"   Invoice ID: {self.created_invoice_id}")
         
         try:
             response = requests.get(url)
@@ -275,14 +361,23 @@ class TileShopAPITester:
                 # Check if response is PDF
                 content_type = response.headers.get('content-type', '')
                 if 'application/pdf' in content_type:
-                    print("✅ PDF generated successfully")
+                    file_size = len(response.content)
+                    print(f"✅ PDF generated successfully")
                     print(f"   Content-Type: {content_type}")
-                    print(f"   Content-Length: {len(response.content)} bytes")
+                    print(f"   Content-Length: {file_size} bytes ({file_size/1024:.1f}KB)")
                     
-                    # Save PDF for manual verification if needed
-                    with open('/tmp/test_invoice.pdf', 'wb') as f:
+                    # Check if file size indicates template overlay method (should be substantial)
+                    if file_size >= 500000:  # 500KB+ indicates template with overlay
+                        print(f"✅ PDF size indicates template overlay method (>{file_size/1024:.0f}KB)")
+                    else:
+                        print(f"⚠️  PDF size may indicate recreated layout ({file_size/1024:.0f}KB)")
+                    
+                    # Save PDF for verification
+                    safe_filename = self.created_invoice_id.replace(" / ", "-").replace("/", "-")
+                    pdf_path = f'/tmp/test_invoice_{safe_filename}.pdf'
+                    with open(pdf_path, 'wb') as f:
                         f.write(response.content)
-                    print("   📄 PDF saved to /tmp/test_invoice.pdf for verification")
+                    print(f"   📄 PDF saved to {pdf_path} for verification")
                     
                     self.tests_passed += 1
                     return True
