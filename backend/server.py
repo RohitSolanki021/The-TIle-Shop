@@ -128,7 +128,7 @@ class InvoiceLineItem(BaseModel):
 class Invoice(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
-    invoice_id: str = Field(default_factory=lambda: f"QT-{str(uuid.uuid4())[:8].upper()}")
+    invoice_id: str = ""  # Will be set by generate_invoice_id()
     invoice_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     customer_id: str
     customer_name: str = ""
