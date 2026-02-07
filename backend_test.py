@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
-Simplified Backend Test - Focus on Key Requirements
-Tests the specific requirements from the review request
+PDF Pagination Test - Focus on Multi-page Header Repeat
+Tests PDF generation with pagination fix ensuring headers repeat on ALL pages
 """
 
 import requests
 import re
+import os
 from datetime import datetime
+from urllib.parse import quote
 
-BACKEND_URL = "https://dynamic-page-breaks.preview.emergentagent.com/api"
+BACKEND_URL = "https://bbb96806-750e-42b3-a6a9-080d8cd65a98.preview.emergentagent.com/api"
 
-def test_complete_workflow():
+def test_pdf_pagination_workflow():
     """Test the complete invoice workflow as per review request"""
     print("🔍 TESTING TILE SHOP INVOICING API - KEY REQUIREMENTS")
     print("=" * 60)
