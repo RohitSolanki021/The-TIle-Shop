@@ -118,9 +118,7 @@ def create_test_invoice_with_sa_section(customer, tiles):
         discount_percent = 0.0
         
         # Calculate amounts (mimicking backend calculation)
-        rate_per_box = tile.get('rate_per_box') or tile.get('rate_box', 0)
-        if rate_per_box is None:
-            rate_per_box = 800.0 + (i * 100)  # fallback calculation
+        rate_per_box = tile['rate_per_box']
         subtotal = rate_per_box * box_qty
         discount_amount = subtotal * (discount_percent / 100)
         final_amount = subtotal - discount_amount
