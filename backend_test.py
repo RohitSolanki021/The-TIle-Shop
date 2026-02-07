@@ -126,7 +126,7 @@ def create_test_invoice_with_sa_section(customer, tiles):
         expected_total += final_amount
         
         line_item = {
-            "tile_id": tile['id'],
+            "tile_id": tile.get('tile_id') or tile.get('id'),
             "tile_name": tile['name'],
             "size": tile['size'],
             "location": "SA",  # This is the key - all items in SA section
