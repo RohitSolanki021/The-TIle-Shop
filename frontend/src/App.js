@@ -22,6 +22,31 @@ function App() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  // PDF template state for client-side generation
+  const [pdfTemplateBytes, setPdfTemplateBytes] = useState(null);
+  const [useClientPdf, setUseClientPdf] = useState(true); // Use client-side PDF by default
+  
+  // Load PDF template for client-side generation
+  const loadPdfTemplate = useCallback(async () => {
+    if (pdfTemplateBytes) return pdfTemplateBytes;
+    try {
+      const response = await fetch('/invoice-template.pdf');
+      if (!response.ok) throw new Error('Template not found');
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      setPdfTemplateBytes(bytes);
+      return bytes;
+    } catch (error) {
+      console.warn('Client PDF template not available, using server-side:', error);
+      setUseClientPdf(false);
+      return null;
+    }
+  }, [pdfTemplateBytes]);
+  
+  // Preload template on mount
+  useEffect(() => {
+    loadPdfTemplate();
+  }, [loadPdfTemplate]);
 
   // Fetch all data
   useEffect(() => {
