@@ -294,12 +294,49 @@ function TilesManagement({ tiles, fetchTiles }) {
     box_packing: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [useCustomSize, setUseCustomSize] = useState(false);
+
+  // Standard tile sizes for dropdown
+  const STANDARD_SIZES = [
+    '600x600mm',
+    '800x800mm',
+    '600x1200mm',
+    '800x1600mm',
+    '300x600mm',
+    '400x400mm',
+    '300x300mm',
+    '450x450mm',
+    '600x900mm',
+    '800x1200mm',
+    '1000x1000mm',
+    '1200x1200mm',
+    '1200x1800mm',
+    '1200x2400mm'
+  ];
+
+  // Get existing sizes from DB that are not in standard list
+  const existingSizes = useMemo(() => {
+    const dbSizes = tiles.map(t => t.size);
+    return [...new Set(dbSizes)].filter(s => !STANDARD_SIZES.includes(s));
+  }, [tiles]);
+
+  // Combined sizes for dropdown (standard + existing custom)
+  const allSizes = useMemo(() => {
+    return [...STANDARD_SIZES, ...existingSizes];
+  }, [existingSizes]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const finalSize = useCustomSize ? formData.customSize.trim() : formData.size;
+      
+      if (!finalSize) {
+        alert('Please select or enter a tile size');
+        return;
+      }
+
       const dataToSend = {
-        size: formData.size.trim(),
+        size: finalSize,
         coverage: parseFloat(formData.coverage),
         box_packing: parseInt(formData.box_packing)
       };
@@ -337,18 +374,31 @@ function TilesManagement({ tiles, fetchTiles }) {
     });
     setEditingTile(null);
     setShowForm(false);
+    setUseCustomSize(false);
   };
 
   const startEdit = (tile) => {
-    // All sizes are custom since there are no predefined sizes
+    const isStandardSize = allSizes.includes(tile.size);
     setFormData({
-      size: tile.size,
-      customSize: '',
+      size: isStandardSize ? tile.size : '',
+      customSize: isStandardSize ? '' : tile.size,
       coverage: (tile.coverage || tile.box_coverage_sqft || '').toString(),
       box_packing: (tile.box_packing || '').toString()
     });
+    setUseCustomSize(!isStandardSize);
     setEditingTile(tile);
     setShowForm(true);
+  };
+
+  const handleSizeChange = (e) => {
+    const value = e.target.value;
+    if (value === 'custom') {
+      setUseCustomSize(true);
+      setFormData({ ...formData, size: '' });
+    } else {
+      setUseCustomSize(false);
+      setFormData({ ...formData, size: value, customSize: '' });
+    }
   };
 
   const filteredTiles = tiles.filter(tile =>
