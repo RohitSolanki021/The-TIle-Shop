@@ -194,7 +194,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
-            icon={<Package className="text-blue-600" />}
+            icon={<Package className="text-[#5a3825]" />}
             title="Active Tiles"
             value={activeTiles}
             total={tiles.length}
@@ -211,7 +211,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
             onClick={() => onNavigate('customers')}
           />
           <StatCard
-            icon={<FileText className="text-purple-600" />}
+            icon={<FileText className="text-[#5a3825]" />}
             title="Total Invoices"
             value={invoices.length}
             subtitle={`${paidInvoices} Paid, ${draftInvoices} Draft`}
@@ -393,7 +393,7 @@ function TilesManagement({ tiles, fetchTiles }) {
               placeholder="Search tiles by name or size..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
               data-testid="search-tiles-input"
             />
           </div>
@@ -419,7 +419,7 @@ function TilesManagement({ tiles, fetchTiles }) {
                   required
                   value={formData.size}
                   onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                   data-testid="tile-size-select"
                 >
                   <option value="">-- Select Size --</option>
@@ -437,7 +437,7 @@ function TilesManagement({ tiles, fetchTiles }) {
                     value={formData.customSize}
                     onChange={(e) => setFormData({ ...formData, customSize: e.target.value })}
                     placeholder="e.g., 900x450mm"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="tile-custom-size-input"
                   />
                 </div>
@@ -450,7 +450,7 @@ function TilesManagement({ tiles, fetchTiles }) {
                   required
                   value={formData.coverage}
                   onChange={(e) => setFormData({ ...formData, coverage: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                   data-testid="tile-coverage-input"
                   placeholder="e.g., 23.68"
                 />
@@ -463,7 +463,7 @@ function TilesManagement({ tiles, fetchTiles }) {
                   required
                   value={formData.box_packing}
                   onChange={(e) => setFormData({ ...formData, box_packing: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                   data-testid="tile-box-packing-input"
                   placeholder="e.g., 4"
                 />
@@ -514,7 +514,7 @@ function TilesManagement({ tiles, fetchTiles }) {
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => startEdit(tile)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        className="p-2 text-[#5a3825] hover:bg-blue-50 rounded-lg transition"
                         data-testid={`edit-tile-${tile.tile_id}`}
                       >
                         <Edit2 className="h-5 w-5" />
@@ -632,7 +632,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
               placeholder="Search customers by name or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
               data-testid="search-customers-input"
             />
           </div>
@@ -659,7 +659,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                   data-testid="customer-name-input"
                 />
               </div>
@@ -670,7 +670,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                   data-testid="customer-phone-input"
                 />
               </div>
@@ -681,7 +681,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                   data-testid="customer-address-input"
                 />
               </div>
@@ -691,7 +691,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
                   type="text"
                   value={formData.gstin}
                   onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                   data-testid="customer-gstin-input"
                 />
               </div>
@@ -728,7 +728,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
           >
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-green-500 to-teal-500 p-3 rounded-full">
+                <div className="bg-gradient-to-r from-[#5a3825] to-[#6b4a35] p-3 rounded-full">
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -739,7 +739,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
               <div className="flex space-x-2">
                 <button
                   onClick={() => startEdit(customer)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                  className="p-2 text-[#5a3825] hover:bg-blue-50 rounded-lg transition"
                   data-testid={`edit-customer-${customer.customer_id}`}
                 >
                   <Edit2 className="h-4 w-4" />
@@ -1287,7 +1287,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
               placeholder="Search invoices by ID or customer name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
               data-testid="search-invoices-input"
             />
           </div>
@@ -1313,7 +1313,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                 required
                 value={formData.customer_id}
                 onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                 data-testid="invoice-customer-select"
               >
                 <option value="">-- Select Customer --</option>
@@ -1336,7 +1336,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     value={currentLineItem.location}
                     onChange={(e) => setCurrentLineItem({ ...currentLineItem, location: e.target.value })}
                     placeholder="e.g., Main Floor"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-location-input"
                   />
                 </div>
@@ -1347,7 +1347,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     value={currentLineItem.tile_name}
                     onChange={(e) => setCurrentLineItem({ ...currentLineItem, tile_name: e.target.value })}
                     placeholder="e.g., Vitrified Premium"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-tile-name-input"
                   />
                 </div>
@@ -1356,7 +1356,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                   <select
                     value={currentLineItem.size}
                     onChange={(e) => handleSizeSelect(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-size-select"
                   >
                     <option value="">-- Select Size --</option>
@@ -1372,7 +1372,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     min="0"
                     value={currentLineItem.box_qty}
                     onChange={(e) => handleBoxQtyChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-box-qty-input"
                   />
                 </div>
@@ -1384,7 +1384,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     min="0"
                     value={currentLineItem.extra_sqft}
                     onChange={(e) => handleExtraSqftChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-extra-sqft-input"
                   />
                 </div>
@@ -1396,7 +1396,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     min="0"
                     value={currentLineItem.rate_per_sqft}
                     onChange={(e) => handleRateSqftChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-rate-sqft-input"
                     placeholder="Enter rate per sqft"
                   />
@@ -1409,7 +1409,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     min="0"
                     value={currentLineItem.rate_per_box}
                     onChange={(e) => handleRateBoxChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-rate-box-input"
                     placeholder="Auto-calculated or enter"
                   />
@@ -1423,7 +1423,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     max="100"
                     value={currentLineItem.discount_percent}
                     onChange={(e) => setCurrentLineItem({ ...currentLineItem, discount_percent: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-discount-input"
                   />
                 </div>
@@ -1627,7 +1627,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                   </div>
                   <div className="flex justify-between border-t-2 border-blue-300 pt-2">
                     <span className="text-gray-800 font-bold">Grand Total:</span>
-                    <span className="font-bold text-lg text-blue-600">₹{calculateTotals.grandTotal.toFixed(2)}</span>
+                    <span className="font-bold text-lg text-[#5a3825]">₹{calculateTotals.grandTotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-700">Amount Paid:</span>
@@ -1652,7 +1652,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     min="0"
                     value={formData.transport_charges}
                     onChange={(e) => setFormData({ ...formData, transport_charges: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="invoice-transport-charges-input"
                   />
                 </div>
@@ -1664,7 +1664,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     min="0"
                     value={formData.unloading_charges}
                     onChange={(e) => setFormData({ ...formData, unloading_charges: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="invoice-unloading-charges-input"
                   />
                 </div>
@@ -1676,7 +1676,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     min="0"
                     value={formData.amount_paid}
                     onChange={(e) => setFormData({ ...formData, amount_paid: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="invoice-amount-paid-input"
                   />
                 </div>
@@ -1685,7 +1685,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="invoice-status-select"
                   >
                     <option value="Draft">Draft</option>
