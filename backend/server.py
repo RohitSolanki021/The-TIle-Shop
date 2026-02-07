@@ -786,9 +786,12 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         
         # =================================================================
         # COMPANY HEADER (Right of logo) - Reference: x=112.6, y_from_top=44.9
+        # Text Y in ReportLab is baseline, so we need to subtract font ascender
         # =================================================================
         header_x = 112.6  # Exact from reference
-        header_y = height - 44.9  # Same Y as logo top
+        # Reference shows text TOP at y=44.9 from top
+        # For 12pt font, ascender is ~10pt, so baseline is at TOP + ascender
+        header_y = height - 44.9 - 10  # Adjusted for font baseline
         
         # Company Name - 12pt Bold (exact from reference)
         c.setFont("Helvetica-Bold", 12)
