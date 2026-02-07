@@ -1418,7 +1418,7 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         raise
 
 
-@api_router.get("/invoices/{invoice_id}/pdf")
+@api_router.get("/invoices/{invoice_id:path}/pdf")
 async def get_invoice_pdf(invoice_id: str):
     """Generate and return PDF for invoice"""
     try:
@@ -1426,19 +1426,20 @@ async def get_invoice_pdf(invoice_id: str):
         if not invoice:
             raise HTTPException(status_code=404, detail="Invoice not found")
         
-        # Generate PDF
+        # Generate PDF with safe filename (replace / with -)
         pdf_dir = ROOT_DIR / "pdfs"
         pdf_dir.mkdir(exist_ok=True)
-        pdf_path = pdf_dir / f"{invoice_id}.pdf"
+        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
+        pdf_path = pdf_dir / f"{safe_filename}.pdf"
         
         generate_invoice_pdf(invoice, str(pdf_path))
         
         return FileResponse(
             path=str(pdf_path),
             media_type='application/pdf',
-            filename=f"Invoice_{invoice_id}.pdf",
+            filename=f"Invoice_{safe_filename}.pdf",
             headers={
-                "Content-Disposition": f"attachment; filename=Invoice_{invoice_id}.pdf",
+                "Content-Disposition": f"attachment; filename=Invoice_{safe_filename}.pdf",
                 "Access-Control-Allow-Origin": "*",
                 "Cache-Control": "no-cache"
             }
@@ -1449,7 +1450,7 @@ async def get_invoice_pdf(invoice_id: str):
         logger.error(f"Error generating PDF: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/public/invoices/{invoice_id}/pdf")
+@api_router.get("/public/invoices/{invoice_id:path}/pdf")
 async def get_public_invoice_pdf(invoice_id: str):
     """Public endpoint for PDF download (for WhatsApp sharing)"""
     try:
@@ -1457,19 +1458,20 @@ async def get_public_invoice_pdf(invoice_id: str):
         if not invoice:
             raise HTTPException(status_code=404, detail="Invoice not found")
         
-        # Generate PDF
+        # Generate PDF with safe filename
         pdf_dir = ROOT_DIR / "pdfs"
         pdf_dir.mkdir(exist_ok=True)
-        pdf_path = pdf_dir / f"{invoice_id}.pdf"
+        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
+        pdf_path = pdf_dir / f"{safe_filename}.pdf"
         
         generate_invoice_pdf(invoice, str(pdf_path))
         
         return FileResponse(
             path=str(pdf_path),
             media_type='application/pdf',
-            filename=f"Invoice_{invoice_id}.pdf",
+            filename=f"Invoice_{safe_filename}.pdf",
             headers={
-                "Content-Disposition": f"inline; filename=Invoice_{invoice_id}.pdf",
+                "Content-Disposition": f"inline; filename=Invoice_{safe_filename}.pdf",
                 "Access-Control-Allow-Origin": "*",
                 "Cache-Control": "public, max-age=3600"
             }
