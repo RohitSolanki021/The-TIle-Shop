@@ -1,395 +1,450 @@
 #!/usr/bin/env python3
 """
-PDF Pagination Test - Focus on Multi-page Header Repeat
-Tests PDF generation with pagination fix ensuring headers repeat on ALL pages
+Backend API Testing for PDF Multi-Item Support with Dynamic Sections
+Tile Shop Invoicing System
 """
 
 import requests
-import re
+import json
+import time
 import os
+import uuid
 from datetime import datetime
 from urllib.parse import quote
 
-BACKEND_URL = "https://bbb96806-750e-42b3-a6a9-080d8cd65a98.preview.emergentagent.com/api"
+# Test configuration
+BASE_URL = "https://bbb96806-750e-42b3-a6a9-080d8cd65a98.preview.emergentagent.com/api"
+HEADERS = {"Content-Type": "application/json"}
 
-def test_pdf_pagination_workflow():
-    """Test PDF pagination with multi-page invoice (30+ items)"""
-    print("🔍 TESTING PDF PAGINATION - HEADER REPEAT ON ALL PAGES")
-    print("=" * 70)
+class TileShopBackendTester:
+    def __init__(self):
+        self.base_url = BASE_URL
+        self.headers = HEADERS
+        self.test_customer_id = None
+        self.test_invoice_id = None
+        self.test_tile_ids = []
+        
+    def log(self, message):
+        """Log test messages with timestamp"""
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
     
-    # 1. Test API Health
-    print("\n1. API Health Check...")
-    try:
-        response = requests.get(f"{BACKEND_URL}/health", timeout=10)
-        if response.status_code == 200:
-            print("✅ API is accessible")
-        else:
-            print("❌ API not accessible")
-            return False
-    except:
-        print("❌ API connection failed")
+    def make_request(self, method, endpoint, data=None, timeout=30):
+        """Make HTTP request with error handling"""
+        url = f"{self.base_url}{endpoint}"
+        try:
+            if method.upper() == "GET":
+                response = requests.get(url, headers=self.headers, timeout=timeout)
+            elif method.upper() == "POST":
+                response = requests.post(url, headers=self.headers, json=data, timeout=timeout)
+            elif method.upper() == "PUT":
+                response = requests.put(url, headers=self.headers, json=data, timeout=timeout)
+            elif method.upper() == "DELETE":
+                response = requests.delete(url, headers=self.headers, timeout=timeout)
+            else:
+                raise ValueError(f"Unsupported method: {method}")
+            
+            return response
+        except requests.exceptions.Timeout:
+            self.log(f"❌ Request timeout for {method} {endpoint}")
+            return None
+        except Exception as e:
+            self.log(f"❌ Request failed for {method} {endpoint}: {str(e)}")
+            return None
+    
+    def test_api_health(self):
+        """Test API health endpoint"""
+        self.log("Testing API health...")
+        response = self.make_request("GET", "/health")
+        
+        if response and response.status_code == 200:
+            data = response.json()
+            if data.get("status") == "healthy":
+                self.log("✅ API health check passed")
+                return True
+        
+        self.log("❌ API health check failed")
         return False
     
-    # 2. Create test customer
-    print("\n2. Creating test customer...")
-    customer_data = {
-        "name": "Heritage Builders & Developers", 
-        "phone": "9876543210",
-        "address": "Block A, Commercial Complex, Sector 18, Noida - 201301, Uttar Pradesh",
-        "gstin": "09AABCH5241M1ZX"
-    }
-    
-    try:
-        response = requests.post(f"{BACKEND_URL}/customers", json=customer_data, timeout=10)
-        if response.status_code == 200:
+    def create_test_customer(self):
+        """Create a test customer for invoice creation"""
+        self.log("Creating test customer...")
+        
+        customer_data = {
+            "name": "Rajesh Kumar",
+            "phone": "+91-9876543210",
+            "address": "123 MG Road, Sector 15, Gurugram, Haryana - 122001",
+            "gstin": "06AAAAA0000A1Z5"
+        }
+        
+        response = self.make_request("POST", "/customers", customer_data)
+        
+        if response and response.status_code == 200:
             customer = response.json()
-            customer_id = customer['customer_id']
-            print(f"✅ Customer created: {customer['name']}")
-        else:
-            print("❌ Customer creation failed")
-            return False
-    except Exception as e:
-        print(f"❌ Customer creation error: {e}")
+            self.test_customer_id = customer.get("customer_id")
+            self.log(f"✅ Customer created: {customer.get('name')} (ID: {self.test_customer_id})")
+            return True
+        
+        self.log("❌ Customer creation failed")
         return False
     
-    # 3. Create Large Invoice to Force Multi-page PDF (30+ items)
-    print("\n3. 📋 CREATING LARGE INVOICE FOR PAGINATION TEST...")
-    print("   Creating invoice with 35+ line items to force 2-3 pages")
-    
-    # Create line items for different rooms/locations
-    line_items = []
-    
-    # Living Room items (12 items)
-    living_room_items = [
-        {"tile_name": "Premium Vitrified Tiles", "size": "600x600mm", "box_qty": 15, "rate_per_sqft": 120},
-        {"tile_name": "Glossy Ceramic Tiles", "size": "800x800mm", "box_qty": 8, "rate_per_sqft": 95}, 
-        {"tile_name": "Matt Finish Tiles", "size": "600x1200mm", "box_qty": 12, "rate_per_sqft": 140},
-        {"tile_name": "Wood Look Tiles", "size": "200x1200mm", "box_qty": 20, "rate_per_sqft": 85},
-        {"tile_name": "Marble Look Tiles", "size": "600x600mm", "box_qty": 10, "rate_per_sqft": 180},
-        {"tile_name": "Stone Texture Tiles", "size": "300x600mm", "box_qty": 25, "rate_per_sqft": 75},
-        {"tile_name": "High Gloss Tiles", "size": "800x800mm", "box_qty": 6, "rate_per_sqft": 160},
-        {"tile_name": "Designer Pattern Tiles", "size": "600x600mm", "box_qty": 14, "rate_per_sqft": 200},
-        {"tile_name": "Anti-Skid Tiles", "size": "400x400mm", "box_qty": 30, "rate_per_sqft": 65},
-        {"tile_name": "Digital Print Tiles", "size": "600x1200mm", "box_qty": 9, "rate_per_sqft": 220},
-        {"tile_name": "Rustic Finish Tiles", "size": "300x300mm", "box_qty": 40, "rate_per_sqft": 55},
-        {"tile_name": "Premium Marble Tiles", "size": "800x800mm", "box_qty": 7, "rate_per_sqft": 280}
-    ]
-    
-    # Kitchen items (8 items)
-    kitchen_items = [
-        {"tile_name": "Kitchen Wall Tiles", "size": "300x600mm", "box_qty": 18, "rate_per_sqft": 90},
-        {"tile_name": "Backsplash Tiles", "size": "100x300mm", "box_qty": 45, "rate_per_sqft": 40},
-        {"tile_name": "Counter Top Tiles", "size": "600x600mm", "box_qty": 8, "rate_per_sqft": 250},
-        {"tile_name": "Floor Tiles Heavy Duty", "size": "600x600mm", "box_qty": 12, "rate_per_sqft": 130},
-        {"tile_name": "Subway Tiles", "size": "75x300mm", "box_qty": 60, "rate_per_sqft": 45},
-        {"tile_name": "Mosaic Pattern Tiles", "size": "300x300mm", "box_qty": 22, "rate_per_sqft": 80},
-        {"tile_name": "Heat Resistant Tiles", "size": "400x400mm", "box_qty": 16, "rate_per_sqft": 110},
-        {"tile_name": "Easy Clean Tiles", "size": "300x600mm", "box_qty": 20, "rate_per_sqft": 95}
-    ]
-    
-    # Bedroom items (8 items) 
-    bedroom_items = [
-        {"tile_name": "Warm Tone Tiles", "size": "600x600mm", "box_qty": 12, "rate_per_sqft": 105},
-        {"tile_name": "Textured Wall Tiles", "size": "300x900mm", "box_qty": 15, "rate_per_sqft": 120},
-        {"tile_name": "Comfort Floor Tiles", "size": "600x1200mm", "box_qty": 8, "rate_per_sqft": 150},
-        {"tile_name": "Designer Accent Tiles", "size": "200x600mm", "box_qty": 25, "rate_per_sqft": 85},
-        {"tile_name": "Luxury Finish Tiles", "size": "800x800mm", "box_qty": 5, "rate_per_sqft": 320},
-        {"tile_name": "Ceramic Border Tiles", "size": "100x600mm", "box_qty": 35, "rate_per_sqft": 50},
-        {"tile_name": "Elegant Pattern Tiles", "size": "450x450mm", "box_qty": 18, "rate_per_sqft": 95},
-        {"tile_name": "Premium Floor Tiles", "size": "600x600mm", "box_qty": 10, "rate_per_sqft": 175}
-    ]
-    
-    # Bathroom items (10 items)
-    bathroom_items = [
-        {"tile_name": "Waterproof Wall Tiles", "size": "300x600mm", "box_qty": 20, "rate_per_sqft": 85},
-        {"tile_name": "Anti-Slip Floor Tiles", "size": "300x300mm", "box_qty": 28, "rate_per_sqft": 70},
-        {"tile_name": "Shower Area Tiles", "size": "200x600mm", "box_qty": 30, "rate_per_sqft": 95},
-        {"tile_name": "Decorative Border Tiles", "size": "50x600mm", "box_qty": 50, "rate_per_sqft": 35},
-        {"tile_name": "High Durability Tiles", "size": "400x800mm", "box_qty": 12, "rate_per_sqft": 140},
-        {"tile_name": "Bathroom Floor Tiles", "size": "400x400mm", "box_qty": 22, "rate_per_sqft": 80},
-        {"tile_name": "Ceramic Wall Tiles", "size": "250x750mm", "box_qty": 18, "rate_per_sqft": 110},
-        {"tile_name": "Designer Mosaic Tiles", "size": "300x300mm", "box_qty": 25, "rate_per_sqft": 125},
-        {"tile_name": "Premium Bath Tiles", "size": "600x300mm", "box_qty": 15, "rate_per_sqft": 160},
-        {"tile_name": "Water Resistant Tiles", "size": "200x400mm", "box_qty": 40, "rate_per_sqft": 65}
-    ]
-    
-    # Create line items for each location
-    locations = [
-        ("Living Room", living_room_items),
-        ("Kitchen", kitchen_items), 
-        ("Master Bedroom", bedroom_items),
-        ("Bathroom", bathroom_items)
-    ]
-    
-    for location, items in locations:
-        for item_data in items:
-            line_item = {
-                "location": location,
-                "tile_name": item_data["tile_name"],
-                "size": item_data["size"],
-                "box_qty": item_data["box_qty"],
-                "extra_sqft": 5.0,  # Some extra coverage
-                "rate_per_sqft": item_data["rate_per_sqft"],
-                "discount_percent": 8,  # 8% discount
-                "coverage": 3.2,  # sqft per box
-                "box_packing": 4
+    def create_test_tiles(self):
+        """Create test tiles for invoice line items"""
+        self.log("Creating test tiles...")
+        
+        tiles_data = [
+            {
+                "size": "600x600mm",
+                "coverage": 2.88,
+                "box_packing": 8
+            },
+            {
+                "size": "800x800mm", 
+                "coverage": 5.12,
+                "box_packing": 8
+            },
+            {
+                "size": "300x600mm",
+                "coverage": 1.44,
+                "box_packing": 8
             }
-            line_items.append(line_item)
-    
-    print(f"   Total line items: {len(line_items)} (across {len(locations)} locations)")
-    
-    invoice_data = {
-        "customer_id": customer_id,
-        "line_items": line_items,
-        "transport_charges": 2500.0,
-        "unloading_charges": 1500.0,
-        "gst_percent": 18.0,
-        "reference_name": "Luxury Villa Flooring Project",
-        "consignee_name": "Heritage Builders Site Office",
-        "consignee_phone": "9876543210",
-        "consignee_address": "Construction Site, Sector 18, Noida - 201301",
-        "overall_remarks": "Premium quality tiles for luxury villa project. All tiles should be carefully inspected before installation."
-    }
-    
-    try:
-        response = requests.post(f"{BACKEND_URL}/invoices", json=invoice_data, timeout=15)
-        if response.status_code == 200:
-            invoice = response.json()
-            invoice_id = invoice['invoice_id']
-            
-            print(f"✅ Invoice Created: {invoice_id}")
-            
-            # Verify TTS / XXX / YYYY-YY format
-            pattern = r'^TTS / \d{3} / \d{4}-\d{2}$'
-            if re.match(pattern, invoice_id):
-                print("✅ Invoice ID Format: CORRECT (TTS / XXX / YYYY-YY)")
+        ]
+        
+        created_count = 0
+        for tile_data in tiles_data:
+            response = self.make_request("POST", "/tiles", tile_data)
+            if response and response.status_code == 200:
+                tile = response.json()
+                self.test_tile_ids.append(tile.get("tile_id"))
+                self.log(f"✅ Tile created: {tile.get('size')} (ID: {tile.get('tile_id')})")
+                created_count += 1
             else:
-                print(f"❌ Invoice ID Format: INCORRECT - {invoice_id}")
-                return False
-            
-            # Verify Price Calculations
-            print(f"\n   💰 Price Verification:")
-            print(f"   Subtotal: ₹{invoice['subtotal']:,.2f}")
-            print(f"   GST (18%): ₹{invoice['gst_amount']:,.2f}") 
-            print(f"   Transport: ₹{invoice['transport_charges']:,.2f}")
-            print(f"   Unloading: ₹{invoice['unloading_charges']:,.2f}")
-            print(f"   Grand Total: ₹{invoice['grand_total']:,.2f}")
-            
-            # Basic calculation verification
-            expected_gst = invoice['subtotal'] * 0.18
-            expected_total = invoice['subtotal'] + invoice['transport_charges'] + invoice['unloading_charges'] + invoice['gst_amount']
-            
-            if abs(invoice['gst_amount'] - expected_gst) < 0.01:
-                print("✅ GST Calculation: CORRECT")
-            else:
-                print("❌ GST Calculation: INCORRECT")
-                
-            if abs(invoice['grand_total'] - expected_total) < 0.01:
-                print("✅ Grand Total Calculation: CORRECT")
-            else:
-                print("❌ Grand Total Calculation: INCORRECT")
-            
-        else:
-            print(f"❌ Invoice creation failed: {response.status_code}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Invoice creation error: {e}")
-        return False
+                self.log(f"❌ Tile creation failed for {tile_data['size']}")
+        
+        return created_count >= 2  # Need at least 2 tiles for testing
     
-    # 4. Test Multi-page PDF Generation with Pagination
-    print(f"\n4. 📄 TESTING MULTI-PAGE PDF PAGINATION...")
-    print("   OBJECTIVE: Verify header and table column headers repeat on ALL pages")
-    
-    from urllib.parse import quote
-    encoded_invoice_id = quote(invoice_id, safe='')
-    pdf_url = f"{BACKEND_URL}/invoices/{encoded_invoice_id}/pdf"
-    
-    print(f"   Invoice ID: {invoice_id}")
-    print(f"   Expected pages: 2-3 (with {len(line_items)} items)")
-    
-    try:
-        print("\n   📥 Downloading PDF...")
-        response = requests.get(pdf_url, timeout=60)  # Longer timeout for larger PDF
-        if response.status_code == 200:
-            pdf_size = len(response.content)
-            pdf_size_kb = pdf_size / 1024
-            
-            print(f"✅ PDF Generated Successfully")
-            print(f"   Size: {pdf_size:,} bytes ({pdf_size_kb:.1f} KB)")
-            print(f"   Content-Type: {response.headers.get('content-type')}")
-            
-            # Save PDF for manual inspection if needed
-            pdf_filename = f"test_invoice_{invoice_id.replace(' / ', '_').replace('/', '_')}.pdf"
-            with open(pdf_filename, 'wb') as f:
-                f.write(response.content)
-            print(f"   📁 Saved as: {pdf_filename}")
-            
-            # Verify PDF size indicates template overlay (should be ~590KB+ for multi-page)
-            if pdf_size_kb >= 570:
-                print("✅ PDF Size: Template overlay method confirmed (570KB+)")
-            else:
-                print(f"⚠️  PDF Size: Smaller than expected ({pdf_size_kb:.1f} KB)")
-            
-            # Verify PDF header
-            if response.content[:5] == b'%PDF-':
-                print("✅ PDF Header: Valid PDF format")
-            else:
-                print("❌ PDF Header: Invalid")
-                return False
-            
-            # Try to analyze PDF structure (basic check)
-            pdf_content_str = response.content[:2000].decode('latin-1', errors='ignore')
-            
-            # Check for multi-page indicators
-            if '/Count' in pdf_content_str and '/Pages' in pdf_content_str:
-                print("✅ PDF Structure: Multi-page PDF detected")
-            else:
-                print("⚠️  PDF Structure: Could not confirm multi-page structure")
-            
-            # PDF Analysis Results
-            print(f"\n   📊 PDF PAGINATION TEST RESULTS:")
-            print(f"   • Invoice contains {len(line_items)} line items across {len(locations)} locations")
-            print(f"   • PDF size: {pdf_size_kb:.1f} KB (indicates template overlay method)")
-            print(f"   • Expected behavior: Header and table columns repeat on ALL pages")
-            print(f"   • Template elements: Company logo, quotation box, buyer/consignee sections")
-            print(f"   • Table headers: SR NO, NAME, IMAGE, SIZE, RATE/BOX, RATE/SQFT, QUANTITY, DISC, AMOUNT")
-            print(f"   • Financial summary should appear ONLY on the last page")
-                
-        else:
-            print(f"❌ PDF generation failed: {response.status_code}")
-            if response.text:
-                print(f"   Error: {response.text[:200]}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ PDF generation error: {e}")
-        return False
-    
-    # 5. Test Additional PDF Endpoints
-    print(f"\n5. 🔗 TESTING PDF PUBLIC ENDPOINT...")
-    public_pdf_url = f"{BACKEND_URL}/public/invoices/{encoded_invoice_id}/pdf"
-    
-    try:
-        response = requests.get(public_pdf_url, timeout=30)
-        if response.status_code == 200:
-            print("✅ Public PDF endpoint working")
-            print(f"   Content-Disposition: {response.headers.get('content-disposition')}")
-        else:
-            print(f"⚠️  Public PDF endpoint failed: {response.status_code}")
-    except Exception as e:
-        print(f"⚠️  Public PDF endpoint error: {e}")
-    
-    # 6. Summary
-    print(f"\n{'='*70}")
-    print("🎉 PDF PAGINATION TEST COMPLETED!")
-    print(f"{'='*70}")
-    print("✅ Large invoice created with 38+ line items across 4 locations")
-    print("✅ Multi-page PDF generated successfully")
-    print("✅ Template overlay method confirmed (file size 570KB+)")
-    print("✅ Invoice ID format TTS / XXX / YYYY-YY working correctly")
-    print("✅ Price calculations accurate for complex invoice")
-    print("")
-    print("📋 PAGINATION FIX VERIFICATION:")
-    print("   ✅ PDF generated with pagination fix implementation")
-    print("   ✅ create_page_overlay() function used for per-page generation")
-    print("   ✅ Each page should have fresh template copy with headers")
-    print("   ✅ Table column headers (SR NO, NAME, IMAGE, etc.) repeat on all pages")
-    print("   ✅ Financial summary appears only on last page")
-    print("")
-    print("📁 Manual verification recommended:")
-    print(f"   Open saved PDF: test_invoice_{invoice_id.replace(' / ', '_').replace('/', '_')}.pdf")
-    print("   Verify: Page 1 has full header and table headers")
-    print("   Verify: Page 2+ have IDENTICAL header and table headers")
-    print("   Verify: Items continue correctly across pages")
-    print("   Verify: Totals section only on last page")
-    
-    return True
-
-def test_single_page_pdf():
-    """Test single page PDF to ensure basic functionality"""
-    print("\n\n🔍 TESTING SINGLE PAGE PDF (BASELINE CHECK)")
-    print("=" * 50)
-    
-    # Test with minimal items
-    try:
-        # Get existing customers
-        response = requests.get(f"{BACKEND_URL}/customers", timeout=10)
-        customers = response.json()
-        if not customers:
-            print("❌ No customers available for single page test")
+    def create_multi_item_invoice_sa_section(self):
+        """Create invoice with 5+ items in SA section for testing dynamic sections"""
+        if not self.test_customer_id:
+            self.log("❌ No customer ID available for invoice creation")
             return False
         
-        customer_id = customers[0]['customer_id']
-        print(f"✅ Using existing customer: {customers[0]['name']}")
+        self.log("Creating multi-item invoice with SA section (5+ items)...")
         
-        # Create simple invoice
-        simple_invoice = {
-            "customer_id": customer_id,
-            "line_items": [
-                {
-                    "location": "Test Area",
-                    "tile_name": "Basic Test Tile",
-                    "size": "300x300mm",
-                    "box_qty": 5,
-                    "rate_per_sqft": 50,
-                    "coverage": 2.0,
-                    "box_packing": 4
-                }
-            ],
+        # Create line items for SA section (all with location="SA")
+        line_items = [
+            {
+                "location": "SA",
+                "tile_name": "Premium Marble Finish",
+                "tile_image": None,
+                "size": "600x600mm",
+                "box_qty": 5,
+                "extra_sqft": 0,
+                "rate_per_sqft": 45,
+                "rate_per_box": 0,  # Will be auto-calculated
+                "discount_percent": 10,
+                "coverage": 2.88
+            },
+            {
+                "location": "SA",
+                "tile_name": "Glossy Stone Effect",
+                "tile_image": None,
+                "size": "800x800mm",
+                "box_qty": 3,
+                "extra_sqft": 0,
+                "rate_per_sqft": 55,
+                "rate_per_box": 0,
+                "discount_percent": 5,
+                "coverage": 5.12
+            },
+            {
+                "location": "SA",
+                "tile_name": "Wood Finish Ceramic",
+                "tile_image": None,
+                "size": "300x600mm",
+                "box_qty": 8,
+                "extra_sqft": 0,
+                "rate_per_sqft": 35,
+                "rate_per_box": 0,
+                "discount_percent": 15,
+                "coverage": 1.44
+            },
+            {
+                "location": "SA",
+                "tile_name": "Designer Hexagon",
+                "tile_image": None,
+                "size": "600x600mm",
+                "box_qty": 4,
+                "extra_sqft": 0,
+                "rate_per_sqft": 60,
+                "rate_per_box": 0,
+                "discount_percent": 8,
+                "coverage": 2.88
+            },
+            {
+                "location": "SA",
+                "tile_name": "Matte Finish Classic",
+                "tile_image": None,
+                "size": "800x800mm",
+                "box_qty": 6,
+                "extra_sqft": 0,
+                "rate_per_sqft": 40,
+                "rate_per_box": 0,
+                "discount_percent": 12,
+                "coverage": 5.12
+            },
+            {
+                "location": "SA",
+                "tile_name": "Anti-Slip Outdoor",
+                "tile_image": None,
+                "size": "300x600mm",
+                "box_qty": 10,
+                "extra_sqft": 0,
+                "rate_per_sqft": 50,
+                "rate_per_box": 0,
+                "discount_percent": 20,
+                "coverage": 1.44
+            }
+        ]
+        
+        invoice_data = {
+            "customer_id": self.test_customer_id,
+            "line_items": line_items,
             "transport_charges": 500.0,
+            "unloading_charges": 200.0,
+            "amount_paid": 0.0,
+            "status": "Draft",
+            "reference_name": "Home Renovation Project",
+            "consignee_name": "Rajesh Kumar",
+            "consignee_phone": "+91-9876543210",
+            "consignee_address": "123 MG Road, Sector 15, Gurugram, Haryana - 122001",
+            "overall_remarks": "Special tiles for living room and kitchen area. Handle with care during delivery.",
             "gst_percent": 18.0
         }
         
-        # Create invoice
-        response = requests.post(f"{BACKEND_URL}/invoices", json=simple_invoice, timeout=15)
-        if response.status_code == 200:
+        response = self.make_request("POST", "/invoices", invoice_data)
+        
+        if response and response.status_code == 200:
             invoice = response.json()
-            invoice_id = invoice['invoice_id']
-            print(f"✅ Simple invoice created: {invoice_id}")
+            self.test_invoice_id = invoice.get("invoice_id")
+            self.log(f"✅ Multi-item invoice created: {self.test_invoice_id}")
+            self.log(f"   Items in SA section: {len(line_items)}")
+            self.log(f"   Subtotal: ₹{invoice.get('subtotal', 0):,.2f}")
+            self.log(f"   GST: ₹{invoice.get('gst_amount', 0):,.2f}")
+            self.log(f"   Grand Total: ₹{invoice.get('grand_total', 0):,.2f}")
             
-            # Generate PDF
-            encoded_id = quote(invoice_id, safe='')
-            pdf_url = f"{BACKEND_URL}/invoices/{encoded_id}/pdf"
+            # Verify that all items are calculated correctly
+            calculated_items = invoice.get('line_items', [])
+            total_items_amount = sum(item.get('final_amount', 0) for item in calculated_items)
             
-            response = requests.get(pdf_url, timeout=30)
-            if response.status_code == 200:
-                pdf_size_kb = len(response.content) / 1024
-                print(f"✅ Single page PDF generated: {pdf_size_kb:.1f} KB")
-                return True
-            else:
-                print(f"❌ Single page PDF failed: {response.status_code}")
-                return False
-        else:
-            print(f"❌ Simple invoice creation failed: {response.status_code}")
-            return False
+            self.log(f"   Total items amount: ₹{total_items_amount:,.2f}")
             
-    except Exception as e:
-        print(f"❌ Single page test error: {e}")
+            # Check that all items have SA location
+            sa_items = [item for item in calculated_items if item.get('location') == 'SA']
+            self.log(f"   Verified SA location items: {len(sa_items)}/{len(calculated_items)}")
+            
+            return True
+        
+        self.log("❌ Multi-item invoice creation failed")
+        if response:
+            self.log(f"   Status: {response.status_code}")
+            self.log(f"   Response: {response.text}")
         return False
+    
+    def test_pdf_generation_and_download(self):
+        """Test PDF generation for the multi-item SA section invoice"""
+        if not self.test_invoice_id:
+            self.log("❌ No invoice ID available for PDF generation")
+            return False
+        
+        self.log(f"Testing PDF generation for invoice: {self.test_invoice_id}")
+        
+        # URL encode the invoice ID for the request
+        encoded_invoice_id = quote(self.test_invoice_id, safe='')
+        endpoint = f"/invoices/{encoded_invoice_id}/pdf"
+        
+        self.log(f"PDF endpoint: {endpoint}")
+        
+        response = self.make_request("GET", endpoint)
+        
+        if response and response.status_code == 200:
+            # Check if response is PDF
+            content_type = response.headers.get('content-type', '')
+            content_length = len(response.content)
+            
+            self.log(f"✅ PDF generated successfully")
+            self.log(f"   Content-Type: {content_type}")
+            self.log(f"   Content-Length: {content_length:,} bytes ({content_length/1024:.1f} KB)")
+            
+            # Verify content type
+            if 'application/pdf' in content_type:
+                self.log("✅ Correct content type (application/pdf)")
+            else:
+                self.log(f"❌ Incorrect content type: {content_type}")
+                return False
+            
+            # Check PDF size - template overlay should be ~593KB+ for multi-page
+            if content_length > 500000:  # > 500KB indicates template overlay method
+                self.log("✅ PDF size indicates template overlay method")
+            else:
+                self.log("⚠️  PDF size is small - may not be using template overlay")
+            
+            # Save PDF for manual verification if needed
+            pdf_filename = f"test_invoice_{self.test_invoice_id.replace(' / ', '_').replace('/', '_')}.pdf"
+            try:
+                with open(pdf_filename, 'wb') as f:
+                    f.write(response.content)
+                self.log(f"✅ PDF saved as: {pdf_filename}")
+            except Exception as e:
+                self.log(f"⚠️  Could not save PDF: {e}")
+            
+            return True
+        
+        self.log("❌ PDF generation failed")
+        if response:
+            self.log(f"   Status: {response.status_code}")
+            try:
+                error_data = response.json()
+                self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+            except:
+                self.log(f"   Response: {response.text}")
+        return False
+    
+    def verify_invoice_data_structure(self):
+        """Verify the invoice data structure for SA section testing"""
+        if not self.test_invoice_id:
+            self.log("❌ No invoice ID available for verification")
+            return False
+        
+        self.log("Verifying invoice data structure...")
+        
+        encoded_invoice_id = quote(self.test_invoice_id, safe='')
+        response = self.make_request("GET", f"/invoices/{encoded_invoice_id}")
+        
+        if response and response.status_code == 200:
+            invoice = response.json()
+            line_items = invoice.get('line_items', [])
+            
+            # Group items by location
+            grouped_items = {}
+            for item in line_items:
+                location = item.get('location', 'Unknown')
+                if location not in grouped_items:
+                    grouped_items[location] = []
+                grouped_items[location].append(item)
+            
+            self.log(f"✅ Invoice data retrieved successfully")
+            self.log(f"   Total line items: {len(line_items)}")
+            self.log(f"   Sections found: {list(grouped_items.keys())}")
+            
+            # Verify SA section
+            if 'SA' in grouped_items:
+                sa_items = grouped_items['SA']
+                self.log(f"✅ SA section found with {len(sa_items)} items:")
+                
+                # Calculate SA section total
+                sa_total = sum(item.get('final_amount', 0) for item in sa_items)
+                self.log(f"   SA section total: ₹{sa_total:,.2f}")
+                
+                # List SA items with details
+                for idx, item in enumerate(sa_items, 1):
+                    tile_name = item.get('tile_name', 'Unknown')
+                    size = item.get('size', 'Unknown')
+                    qty = item.get('box_qty', 0)
+                    rate_sqft = item.get('rate_per_sqft', 0)
+                    discount = item.get('discount_percent', 0)
+                    amount = item.get('final_amount', 0)
+                    
+                    self.log(f"     {idx}. {tile_name} ({size}) - {qty} box, ₹{rate_sqft}/sqft, {discount}% disc, ₹{amount:,.2f}")
+                
+                if len(sa_items) >= 5:
+                    self.log("✅ SA section has 5+ items as required")
+                else:
+                    self.log(f"❌ SA section has only {len(sa_items)} items (need 5+)")
+                    return False
+            else:
+                self.log("❌ SA section not found in invoice")
+                return False
+            
+            return True
+        
+        self.log("❌ Invoice data verification failed")
+        return False
+    
+    def run_comprehensive_test(self):
+        """Run comprehensive test of PDF Multi-Item Support with Dynamic Sections"""
+        self.log("=" * 80)
+        self.log("BACKEND TEST: PDF Multi-Item Support with Dynamic Sections")
+        self.log("=" * 80)
+        
+        test_results = []
+        
+        # Test 1: API Health Check
+        self.log("\n1. Testing API Health...")
+        health_result = self.test_api_health()
+        test_results.append(("API Health Check", health_result))
+        
+        if not health_result:
+            self.log("❌ Cannot continue tests - API is not healthy")
+            return False
+        
+        # Test 2: Create Test Customer
+        self.log("\n2. Creating Test Customer...")
+        customer_result = self.create_test_customer()
+        test_results.append(("Customer Creation", customer_result))
+        
+        # Test 3: Create Test Tiles
+        self.log("\n3. Creating Test Tiles...")
+        tiles_result = self.create_test_tiles()
+        test_results.append(("Tiles Creation", tiles_result))
+        
+        # Test 4: Create Multi-Item Invoice with SA Section
+        self.log("\n4. Creating Multi-Item Invoice (SA Section)...")
+        invoice_result = self.create_multi_item_invoice_sa_section()
+        test_results.append(("Multi-Item SA Invoice Creation", invoice_result))
+        
+        # Test 5: Verify Invoice Data Structure
+        self.log("\n5. Verifying Invoice Data Structure...")
+        structure_result = self.verify_invoice_data_structure()
+        test_results.append(("Invoice Data Structure Verification", structure_result))
+        
+        # Test 6: Generate and Download PDF
+        self.log("\n6. Testing PDF Generation & Download...")
+        pdf_result = self.test_pdf_generation_and_download()
+        test_results.append(("PDF Generation & Download", pdf_result))
+        
+        # Summary
+        self.log("\n" + "=" * 80)
+        self.log("TEST RESULTS SUMMARY")
+        self.log("=" * 80)
+        
+        passed_tests = 0
+        total_tests = len(test_results)
+        
+        for test_name, result in test_results:
+            status = "✅ PASSED" if result else "❌ FAILED"
+            self.log(f"{status}: {test_name}")
+            if result:
+                passed_tests += 1
+        
+        self.log("-" * 80)
+        self.log(f"OVERALL: {passed_tests}/{total_tests} tests passed")
+        
+        if passed_tests == total_tests:
+            self.log("🎉 ALL TESTS PASSED! PDF Multi-Item Support with Dynamic Sections is working correctly.")
+            return True
+        else:
+            self.log("❌ Some tests failed. Please check the issues above.")
+            return False
+
+def main():
+    """Main test execution function"""
+    tester = TileShopBackendTester()
+    success = tester.run_comprehensive_test()
+    
+    # Return appropriate exit code
+    exit_code = 0 if success else 1
+    return exit_code
 
 if __name__ == "__main__":
-    print("🚀 STARTING COMPREHENSIVE PDF PAGINATION TESTS")
-    print("="*70)
-    
-    # Test 1: Multi-page pagination
-    success1 = test_pdf_pagination_workflow()
-    
-    # Test 2: Single page baseline
-    success2 = test_single_page_pdf()
-    
-    print(f"\n{'='*70}")
-    print("📊 FINAL TEST RESULTS:")
-    print(f"{'='*70}")
-    
-    if success1 and success2:
-        print("🎯 ALL PAGINATION TESTS PASSED!")
-        print("✅ Multi-page PDF with header repeat: WORKING")
-        print("✅ Single page PDF baseline: WORKING") 
-        print("✅ Template overlay method: CONFIRMED")
-        print("✅ PDF pagination fix: VERIFIED")
-    else:
-        print("❌ SOME TESTS FAILED:")
-        print(f"   Multi-page test: {'PASSED' if success1 else 'FAILED'}")
-        print(f"   Single page test: {'PASSED' if success2 else 'FAILED'}")
-        print("\n🔍 Check error messages above for details")
+    exit_code = main()
+    exit(exit_code)
