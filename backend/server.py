@@ -800,23 +800,24 @@ def generate_invoice_pdf(invoice: dict, output_path: str):
         c.setLineWidth(0.5)
         c.rect(qbox_x, qbox_y - qbox_header_height - qbox_content_height, qbox_width, qbox_content_height, stroke=1, fill=0)
         
-        # Quotation details
+        # Quotation details - EXACT positions from reference
+        # Reference: Quotation No. at (310.5, 50.9), Date at (310.5, 83.8), Reference at (307.8, 114.4)
         c.setFillColorRGB(0, 0, 0)
-        detail_y = qbox_y - qbox_header_height - 15
         
+        # Quotation No. - Reference: x=310.5, y_from_top=50.9
         c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(qbox_x + 5, detail_y, "Quotation No. :")
+        c.drawString(310.5, height - 50.9 - 8, "Quotation No. :")
         c.setFont("Helvetica", 7.5)
-        c.drawString(qbox_x + 70, detail_y, invoice['invoice_id'])
+        c.drawString(370, height - 50.9 - 8, invoice['invoice_id'])
         
-        detail_y -= 14
+        # Date - Reference: x=310.5, y_from_top=83.8
         c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(qbox_x + 5, detail_y, "Date :")
+        c.drawString(310.5, height - 83.8 - 8, "Date :")
         invoice_date = invoice['invoice_date']
         if isinstance(invoice_date, str):
             invoice_date = datetime.fromisoformat(invoice_date)
         c.setFont("Helvetica", 7.5)
-        c.drawString(qbox_x + 70, detail_y, invoice_date.strftime("%d/%m/%Y"))
+        c.drawString(332.6, height - 83.8 - 8, invoice_date.strftime("%d/%m/%Y"))
         
         detail_y -= 14
         c.setFont("Helvetica-Bold", 7.5)
