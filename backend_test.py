@@ -75,7 +75,8 @@ def create_test_customer():
     
     response = requests.post(f"{BASE_URL}/customers", json=customer_data, timeout=10)
     if response.status_code in [200, 201]:
-        return customer_data
+        # Return the response data which may have a different customer_id
+        return response.json()
     else:
         raise Exception(f"Failed to create customer: {response.status_code} - {response.text}")
 
