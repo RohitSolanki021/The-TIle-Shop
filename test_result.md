@@ -199,7 +199,9 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "PDF Pagination - Header Repeat on All Pages"
+    - "PDF Generation - Template Overlay Method"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
