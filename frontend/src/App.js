@@ -342,10 +342,10 @@ function TilesManagement({ tiles, fetchTiles }) {
   };
 
   const startEdit = (tile) => {
-    const isCustomSize = !STANDARD_TILE_SIZES.includes(tile.size);
+    // All sizes are custom since there are no predefined sizes
     setFormData({
-      size: isCustomSize ? 'Custom Size' : tile.size,
-      customSize: isCustomSize ? tile.size : '',
+      size: tile.size,
+      customSize: '',
       coverage: (tile.coverage || tile.box_coverage_sqft || '').toString(),
       box_packing: (tile.box_packing || '').toString()
     });
