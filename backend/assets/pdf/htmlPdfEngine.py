@@ -61,19 +61,17 @@ def _normalize_invoice_data(invoice: dict) -> dict:
     """
     # Group line items by location/section
     sections_dict = {}
-    line_items_by_location = {}
     
     for item in invoice.get('line_items', []):
         location = item.get('location', 'Items')
         if location not in sections_dict:
-            sections_dict[location] = []
-            line_items_by_location[location] = []
-        
-        # Store original item for total calculation
-        line_items_by_location[location].append(item)
+            sections_dict[location] = {
+                'items': [],
+                'total': 0
+            }
         
         # Format item data
-        sections_dict[location].append({
+        formatted_item = {
             'name': item.get('tile_name') or item.get('product_name', ''),
             'size': item.get('size', ''),
             'rate_box': f"{item.get('rate_per_box', 0):.2f}",
@@ -82,19 +80,18 @@ def _normalize_invoice_data(invoice: dict) -> dict:
             'disc': f"{round(item.get('discount_percent', 0))}",
             'amount': f"{item.get('final_amount', 0):,.2f}",
             'image': item.get('tile_image', '')
-        })
+        }
+        
+        sections_dict[location]['items'].append(formatted_item)
+        sections_dict[location]['total'] += item.get('final_amount', 0)
     
-    # Calculate section totals
+    # Convert to list format
     sections = []
-    for name, items in sections_dict.items():
-        section_total = sum(
-            item.get('final_amount', 0)
-            for item in line_items_by_location[name]
-        )
+    for name, section_data in sections_dict.items():
         sections.append({
             'name': name,
-            'items': items,
-            'total': f"{section_total:,.2f}"
+            'items': section_data['items'],
+            'total': f"{section_data['total']:,.2f}"
         })
     
     # Format date
