@@ -57,10 +57,16 @@ def _normalize_invoice_data(invoice: dict) -> dict:
     """
     # Group line items by location/section
     sections_dict = {}
+    line_items_by_location = {}
+    
     for item in invoice.get('line_items', []):
         location = item.get('location', 'Items')
         if location not in sections_dict:
             sections_dict[location] = []
+            line_items_by_location[location] = []
+        
+        # Store original item for total calculation
+        line_items_by_location[location].append(item)
         
         # Format item data
         sections_dict[location].append({
@@ -78,8 +84,8 @@ def _normalize_invoice_data(invoice: dict) -> dict:
     sections = []
     for name, items in sections_dict.items():
         section_total = sum(
-            invoice['line_items'][i].get('final_amount', 0)
-            for i, item in enumerate(items)
+            item.get('final_amount', 0)
+            for item in line_items_by_location[name]
         )
         sections.append({
             'name': name,
