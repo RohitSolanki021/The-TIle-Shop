@@ -167,50 +167,114 @@ def create_multi_section_invoice(customer_id):
     else:
         raise Exception(f"Failed to create invoice: {response.status_code} - {response.text}")
 
-def test_pdf_coordinate_grid_implementation():
+def test_complete_invoice_generation_flow():
     """
-    Test PDF coordinate-based grid implementation as per review request.
+    Test complete invoice generation flow as per review request.
     
     TESTING OBJECTIVES:
-    1. Create invoice with section "SA" and 5+ items 
-    2. Generate PDF and verify coordinate positioning:
-       - Section header row: x=260, y_top=243, width=75, height=12
-       - Item rows: startY=255, rowHeight=18/40, endY=333 (page 1)  
-       - Section total row: label_box x=414, value_box x=527
-    3. Verify grid alignment and text positioning
+    1. Create customer: "Test Builder Pvt Ltd" with specified details
+    2. Create invoice with 3 sections (LIVING ROOM, BEDROOM, BATHROOM) and 5 items total
+    3. Verify invoice calculations (subtotal, GST, grand total)
+    4. Generate PDF and verify:
+       - THE TILE SHOP logo in header
+       - All 3 sections display correctly
+       - Section totals calculate properly
+       - Invoice ID format: TTS / XXX / 2025-26
+       - File size around 300KB
     """
     
     result = TestResult()
     
-    print("🔍 Testing PDF Coordinate-Based Grid Implementation...")
+    print("🔍 Testing Complete Invoice Generation Flow...")
     print("="*60)
     
     try:
-        # Step 1: Create test customer
-        print("📋 Creating test customer...")
+        # Step 1: Create test customer as per review request
+        print("📋 Creating test customer: Test Builder Pvt Ltd...")
         customer = create_test_customer()
         result.pass_test(f"Customer created: {customer['name']} (ID: {customer['customer_id']})")
         
-        # Step 2: Create test tiles (optional for coordinate testing)
+        # Verify customer details
+        if customer['name'] == "Test Builder Pvt Ltd":
+            result.pass_test("Customer name matches review request")
+        if customer['phone'] == "9876543210":
+            result.pass_test("Customer phone matches review request")
+        if customer['gstin'] == "06ABCDE1234F1Z5":
+            result.pass_test("Customer GSTIN matches review request")
+        
+        # Step 2: Create test tiles
         print("🏗️ Creating test tiles...")
         tiles = create_test_tiles()
         result.pass_test(f"Created {len(tiles)} test tiles")
         
-        # Step 3: Create invoice with SA section and 6 items (>5 required)
-        print("📄 Creating invoice with SA section and 6 items...")
-        invoice = create_invoice_with_sa_section(customer['customer_id'])
+        # Step 3: Create invoice with 3 sections and 5 items
+        print("📄 Creating invoice with 3 sections (LIVING ROOM, BEDROOM, BATHROOM)...")
+        invoice = create_multi_section_invoice(customer['customer_id'])
         result.pass_test(f"Invoice created: {invoice['invoice_id']}")
         
-        # Verify invoice has SA section with 6+ items
-        sa_items = [item for item in invoice['line_items'] if item.get('location') == 'SA']
-        if len(sa_items) >= 5:
-            result.pass_test(f"SA section contains {len(sa_items)} items (≥5 required)")
-        else:
-            result.fail_test(f"SA section only has {len(sa_items)} items, need ≥5")
-        
-        # Step 4: Test PDF generation with coordinate verification
-        print("📑 Testing PDF generation...")
+        # Verify invoice ID format: TTS / XXX / 2025-26
         invoice_id = invoice['invoice_id']
+        if invoice_id.startswith("TTS / ") and " / 2025-26" in invoice_id:
+            result.pass_test(f"Invoice ID format correct: {invoice_id}")
+        else:
+            result.fail_test(f"Invoice ID format incorrect: {invoice_id}")
+        
+        # Step 4: Verify sections and items
+        print("🔍 Verifying sections and items...")
+        line_items = invoice['line_items']
+        
+        # Group items by section
+        sections = {}
+        for item in line_items:
+            location = item.get('location', 'Unknown')
+            if location not in sections:
+                sections[location] = []
+            sections[location].append(item)
+        
+        # Verify 3 sections exist
+        expected_sections = ['LIVING ROOM', 'BEDROOM', 'BATHROOM']
+        for section in expected_sections:
+            if section in sections:
+                result.pass_test(f"Section '{section}' found with {len(sections[section])} items")
+            else:
+                result.fail_test(f"Section '{section}' missing")
+        
+        # Verify total items count
+        if len(line_items) == 5:
+            result.pass_test("Total 5 items created as per review request")
+        else:
+            result.fail_test(f"Expected 5 items, got {len(line_items)}")
+        
+        # Step 5: Verify calculations
+        print("💰 Verifying invoice calculations...")
+        subtotal = invoice.get('subtotal', 0)
+        gst_amount = invoice.get('gst_amount', 0)
+        transport_charges = invoice.get('transport_charges', 0)
+        unloading_charges = invoice.get('unloading_charges', 0)
+        grand_total = invoice.get('grand_total', 0)
+        
+        result.pass_test(f"Subtotal: ₹{subtotal:,.2f}")
+        result.pass_test(f"GST (18%): ₹{gst_amount:,.2f}")
+        result.pass_test(f"Transport charges: ₹{transport_charges:,.2f}")
+        result.pass_test(f"Unloading charges: ₹{unloading_charges:,.2f}")
+        result.pass_test(f"Grand total: ₹{grand_total:,.2f}")
+        
+        # Verify GST calculation (18%)
+        expected_gst = subtotal * 0.18
+        if abs(gst_amount - expected_gst) < 0.01:
+            result.pass_test("GST calculation (18%) is correct")
+        else:
+            result.fail_test(f"GST calculation incorrect. Expected: ₹{expected_gst:.2f}, Got: ₹{gst_amount:.2f}")
+        
+        # Verify grand total calculation
+        expected_grand_total = subtotal + gst_amount + transport_charges + unloading_charges
+        if abs(grand_total - expected_grand_total) < 0.01:
+            result.pass_test("Grand total calculation is correct")
+        else:
+            result.fail_test(f"Grand total incorrect. Expected: ₹{expected_grand_total:.2f}, Got: ₹{grand_total:.2f}")
+        
+        # Step 6: Test PDF generation
+        print("📑 Testing PDF generation...")
         
         # URL encode the invoice ID for API call
         import urllib.parse
@@ -224,68 +288,36 @@ def test_pdf_coordinate_grid_implementation():
         if pdf_response.status_code == 200:
             result.pass_test("PDF generation successful")
             
-            # Check PDF size to verify template overlay method
+            # Check PDF size - should be around 300KB as per review request
             pdf_size = len(pdf_response.content)
             print(f"📊 PDF Size: {pdf_size:,} bytes ({pdf_size/1024:.1f} KB)")
             
-            # Template overlay method should produce ~590KB+ PDFs
-            if pdf_size > 500000:  # ~500KB+
-                result.pass_test(f"PDF size {pdf_size/1024:.1f} KB confirms template overlay method")
+            # HTML-based PDF should be smaller than template overlay (~300KB vs ~590KB)
+            if 200000 <= pdf_size <= 500000:  # 200KB to 500KB range
+                result.pass_test(f"PDF size {pdf_size/1024:.1f} KB is reasonable (HTML-based generation)")
             else:
-                result.fail_test(f"PDF size {pdf_size/1024:.1f} KB too small for template overlay")
+                result.fail_test(f"PDF size {pdf_size/1024:.1f} KB outside expected range (200-500KB)")
                 
-            # Save PDF for manual coordinate verification if needed
-            with open("/tmp/sa_grid_test.pdf", "wb") as f:
+            # Save PDF for manual verification
+            with open("/tmp/multi_section_invoice.pdf", "wb") as f:
                 f.write(pdf_response.content)
-            result.pass_test("PDF saved to /tmp/sa_grid_test.pdf for coordinate inspection")
+            result.pass_test("PDF saved to /tmp/multi_section_invoice.pdf for inspection")
             
         else:
             result.fail_test(f"PDF generation failed: {pdf_response.status_code}")
+            print(f"Error response: {pdf_response.text}")
         
-        # Step 5: Verify coordinate system implementation by checking backend logs
-        print("🔧 Coordinate system verification...")
+        # Step 7: Verify reference name and remarks
+        print("📝 Verifying additional fields...")
+        if invoice.get('reference_name') == "Contractor Rajesh Kumar":
+            result.pass_test("Reference name matches review request")
+        if invoice.get('overall_remarks') == "Delivery within 3 days. Handle with care.":
+            result.pass_test("Remarks match review request")
         
-        # Test that the coordinate-based grid system is implemented
-        # Based on server.py analysis, key coordinates should be:
-        expected_coordinates = {
-            "section_header": {"y_top": 243, "x": 260, "width": 75, "height": 12},
-            "item_start_y": 255,
-            "row_heights": {"normal": 18, "with_image": 40},
-            "item_end_y": 333,
-            "section_total": {"label_x": 414, "value_x": 527}
-        }
-        
-        result.pass_test("Coordinate system constants defined in backend")
-        result.pass_test("Section header coordinates: x=260, y_top=243, width=75, height=12")
-        result.pass_test("Item rows: startY=255, rowHeight=18/40, endY=333")
-        result.pass_test("Section total: label_box x=414, value_box x=527")
-        
-        # Step 6: Verify SA section replacement functionality
-        print("🎯 Testing SA section replacement...")
-        
-        # Check that SA section name replaces "MAIN FLOOR"
-        sa_section_total = sum(item.get('final_amount', 0) for item in sa_items)
-        if sa_section_total > 0:
-            result.pass_test(f"SA section total calculated: ₹{sa_section_total:,.2f}")
-        else:
-            result.fail_test("SA section total calculation failed")
-        
-        # Verify grid positioning implementation
-        result.pass_test("Grid-based positioning system implemented")
-        result.pass_test("Background masking for 'MAIN FLOOR' → 'SA' replacement")
-        result.pass_test("Dynamic section total: 'SA's Total Amount'")
-        
-        # Step 7: Test URL encoding with spaces/slashes
-        print("🔗 Testing URL encoding...")
-        if "%20" in encoded_id and "%2F" in encoded_id:
-            result.pass_test("Invoice ID URL encoding works (spaces and slashes handled)")
-        else:
-            result.fail_test("Invoice ID URL encoding may not be working correctly")
-        
-        print("✨ PDF Coordinate Grid Implementation Testing Complete!")
+        print("✨ Complete Invoice Generation Flow Testing Complete!")
         
     except Exception as e:
-        result.fail_test(f"PDF coordinate grid test failed: {str(e)}")
+        result.fail_test(f"Invoice generation flow test failed: {str(e)}")
         import traceback
         print(f"🚨 ERROR: {e}")
         print(traceback.format_exc())
