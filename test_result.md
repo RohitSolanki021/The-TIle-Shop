@@ -103,9 +103,14 @@
 #====================================================================================================
 
 user_problem_statement: |
-  1. Invoice PDF must match reference template EXACTLY (pixel-perfect)
-  2. Quotation number format: TTS / XXX / YYYY-YY (financial year format)
-  3. Financial year changes in April (April 2025 to March 2026 = 2025-26)
+  1. Replace pdfEngine.js with user-provided version for proper invoice generation
+  2. Add login page with admin authentication (username: Thetileshop, password: Vicky123)
+  3. Test invoice generation with new PDF engine
+  
+  Previous requirements (COMPLETED):
+  - Invoice PDF matches reference template EXACTLY (pixel-perfect)
+  - Quotation number format: TTS / XXX / YYYY-YY (financial year format)
+  - Financial year changes in April (April 2025 to March 2026 = 2025-26)
 
 backend:
   - task: "API Health Check"
