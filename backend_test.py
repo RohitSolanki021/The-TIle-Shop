@@ -70,13 +70,12 @@ def create_test_customer():
         raise Exception(f"Failed to create customer: {response.status_code}")
 
 def create_test_tiles():
-    """Create test tiles for the invoice"""
+    """Create test tiles for the invoice as per review request"""
     tiles = [
-        {"size": "600x600mm", "coverage": 3.24, "box_packing": 9},
-        {"size": "800x800mm", "coverage": 5.12, "box_packing": 8}, 
-        {"size": "300x600mm", "coverage": 5.4, "box_packing": 30},
-        {"size": "400x400mm", "coverage": 4.8, "box_packing": 30},
-        {"size": "1200x600mm", "coverage": 4.32, "box_packing": 6}
+        {"size": "600x600mm", "coverage": 2.16, "box_packing": 6},  # For Marble Finish & Anti-Slip
+        {"size": "800x800mm", "coverage": 2.56, "box_packing": 4},  # For Granite Tiles
+        {"size": "600x1200mm", "coverage": 4.32, "box_packing": 6}, # For Wooden Look
+        {"size": "300x450mm", "coverage": 8.1, "box_packing": 60},  # For Ceramic Wall
     ]
     
     created_tiles = []
