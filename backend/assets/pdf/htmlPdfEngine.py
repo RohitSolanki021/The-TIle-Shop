@@ -31,23 +31,27 @@ def generate_invoice_pdf_html(invoice: dict, output_path: str) -> str:
     """
     try:
         # Normalize invoice data
+        logger.info("Normalizing invoice data...")
         data = _normalize_invoice_data(invoice)
         
         # Setup Jinja2 environment
+        logger.info(f"Loading template from: {TEMPLATE_DIR}")
         env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
         template = env.get_template('invoice_template.html')
         
         # Render HTML
+        logger.info("Rendering HTML template...")
         html_content = template.render(**data)
         
         # Generate PDF
+        logger.info(f"Generating PDF: {output_path}")
         HTML(string=html_content).write_pdf(output_path)
         
         logger.info(f"HTML Invoice PDF generated: {output_path}")
         return output_path
         
     except Exception as e:
-        logger.error(f"Error generating HTML PDF: {e}")
+        logger.error(f"Error generating HTML PDF: {e}", exc_info=True)
         raise
 
 
