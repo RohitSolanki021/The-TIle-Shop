@@ -33,23 +33,19 @@
             page-break-after: auto;
         }
         
-        /* Header - Professional Letterhead Style */
+        /* Header - Horizontal Layout */
         .header {
-            display: block;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
             border-bottom: 3px solid #5a3825;
-            padding-bottom: 15px;
-        }
-        
-        .letterhead {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 10px;
+            padding-bottom: 12px;
+            gap: 15px;
         }
         
         .letterhead-logo {
-            width: 140px;
+            width: 200px;
             height: auto;
             object-fit: contain;
             flex-shrink: 0;
@@ -57,49 +53,49 @@
         
         .company-info {
             flex: 1;
+            padding: 0 10px;
         }
         
         .company-name {
-            font-size: 22pt;
+            font-size: 18pt;
             font-weight: bold;
             color: #5a3825;
-            margin-bottom: 3px;
-            line-height: 1.2;
+            margin-bottom: 2px;
+            line-height: 1.1;
         }
         
         .company-tagline {
-            font-size: 9pt;
+            font-size: 7pt;
             color: #8b6b4a;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             font-style: italic;
         }
         
         .company-details {
-            font-size: 8pt;
-            line-height: 1.5;
+            font-size: 7pt;
+            line-height: 1.4;
             color: #333;
         }
         
         .invoice-info {
-            text-align: right;
-            margin-top: -10px;
+            flex-shrink: 0;
         }
         
         .quotation-box {
             background: #5a3825;
             color: white;
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 5px;
-            margin-bottom: 10px;
+            min-width: 150px;
         }
         
         .quotation-box h2 {
-            font-size: 14pt;
-            margin-bottom: 5px;
+            font-size: 12pt;
+            margin-bottom: 4px;
         }
         
         .quotation-box p {
-            font-size: 9pt;
+            font-size: 7pt;
             margin: 2px 0;
         }
         
@@ -332,19 +328,19 @@
 </head>
 <body>
     <div class="page">
-        <!-- Header - Professional Letterhead -->
+        <!-- Header - Horizontal Layout -->
         <div class="header">
-            <div class="letterhead">
-                <img src="{{ logos.main_logo }}" alt="The Tile Shop" class="letterhead-logo">
-                <div class="company-info">
-                    <div class="company-name">THE TILE SHOP</div>
-                    <div class="company-tagline">A Subsidiary of SHREE SONANA SHETRPAL CERAMIC</div>
-                    <div class="company-details">
-                        Plot no. 39, Khasra No. 2, Opp. Balaji Temple, Hisar Road, Hansi - 125033, Haryana<br>
-                        <strong>Email:</strong> dhavantilesindustry@gmail.com | <strong>Phone:</strong> +91 9416309076 | <strong>GSTIN:</strong> 06AOEPJ4244Q1ZI
-                    </div>
+            <img src="{{ logos.main_logo }}" alt="The Tile Shop" class="letterhead-logo">
+            
+            <div class="company-info">
+                <div class="company-name">THE TILE SHOP</div>
+                <div class="company-tagline">A Subsidiary of SHREE SONANA SHETRPAL CERAMIC</div>
+                <div class="company-details">
+                    Plot no. 39, Khasra No. 2, Opp. Balaji Temple, Hisar Road, Hansi - 125033, Haryana<br>
+                    <strong>Email:</strong> dhavantilesindustry@gmail.com | <strong>Phone:</strong> +91 9416309076 | <strong>GSTIN:</strong> 06AOEPJ4244Q1ZI
                 </div>
             </div>
+            
             <div class="invoice-info">
                 <div class="quotation-box">
                     <h2>QUOTATION</h2>
