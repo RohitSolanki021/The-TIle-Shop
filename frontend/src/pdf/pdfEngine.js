@@ -36,7 +36,7 @@ export function coverBox(page, box, color = BG_COLOR) {
   });
 }
 
-function drawTextInBox(page, font, textRaw, box, opts = {}) {
+export function drawTextInBox(page, font, textRaw, box, opts = {}) {
   const text = (textRaw ?? '').toString().trim();
   if (!text || !box) return;
 
