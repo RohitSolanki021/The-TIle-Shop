@@ -86,88 +86,79 @@ def create_test_tiles():
     
     return created_tiles
 
-def create_invoice_with_sa_section(customer_id):
-    """Create invoice with section 'SA' and 5+ items as per review request"""
+def create_multi_section_invoice(customer_id):
+    """Create invoice with 3 sections as per review request"""
     
-    # Create line items for SA section - 6 items (>5 required)
+    # Create line items for 3 sections: LIVING ROOM, BEDROOM, BATHROOM
     line_items = [
+        # LIVING ROOM - 2 items
         {
-            "tile_name": "Premium Marble Vitrified",
+            "tile_name": "Marble Finish Tiles",
             "size": "600x600mm",
-            "location": "SA",
-            "rate_per_box": 850.0,
-            "rate_per_sqft": 262.35,
-            "box_qty": 12,
+            "location": "LIVING ROOM",
+            "rate_per_box": 950.0,
+            "rate_per_sqft": 48.0,
+            "box_qty": 5,
             "discount_percent": 5.0,
-            "coverage": 3.24,
-            "box_packing": 9
-        },
-        {
-            "tile_name": "Designer Floor Tiles",
-            "size": "800x800mm", 
-            "location": "SA",
-            "rate_per_box": 1200.0,
-            "rate_per_sqft": 234.38,
-            "box_qty": 8,
-            "discount_percent": 3.0,
-            "coverage": 5.12,
-            "box_packing": 8
-        },
-        {
-            "tile_name": "Wall Ceramic Tiles",
-            "size": "300x600mm",
-            "location": "SA", 
-            "rate_per_box": 425.0,
-            "rate_per_sqft": 78.70,
-            "box_qty": 15,
-            "discount_percent": 2.0,
-            "coverage": 5.4,
-            "box_packing": 30
-        },
-        {
-            "tile_name": "Bathroom Floor Tiles",
-            "size": "400x400mm",
-            "location": "SA",
-            "rate_per_box": 320.0,
-            "rate_per_sqft": 66.67,
-            "box_qty": 10,
-            "discount_percent": 4.0,
-            "coverage": 4.8,
-            "box_packing": 30
-        },
-        {
-            "tile_name": "Large Format Tiles", 
-            "size": "1200x600mm",
-            "location": "SA",
-            "rate_per_box": 1850.0,
-            "rate_per_sqft": 428.24,
-            "box_qty": 6,
-            "discount_percent": 1.0,
-            "coverage": 4.32,
+            "coverage": 2.16,
             "box_packing": 6
         },
         {
-            "tile_name": "Luxury Porcelain Tiles",
+            "tile_name": "Granite Tiles",
+            "size": "800x800mm", 
+            "location": "LIVING ROOM",
+            "rate_per_box": 1200.0,
+            "rate_per_sqft": 60.0,
+            "box_qty": 3,
+            "discount_percent": 10.0,
+            "coverage": 2.56,
+            "box_packing": 4
+        },
+        # BEDROOM - 1 item
+        {
+            "tile_name": "Wooden Look Tiles",
+            "size": "600x1200mm",
+            "location": "BEDROOM", 
+            "rate_per_box": 850.0,
+            "rate_per_sqft": 42.0,
+            "box_qty": 4,
+            "discount_percent": 0.0,
+            "coverage": 4.32,
+            "box_packing": 6
+        },
+        # BATHROOM - 2 items
+        {
+            "tile_name": "Ceramic Wall Tiles",
+            "size": "300x450mm",
+            "location": "BATHROOM",
+            "rate_per_box": 560.0,
+            "rate_per_sqft": 28.0,
+            "box_qty": 8,
+            "discount_percent": 5.0,
+            "coverage": 8.1,
+            "box_packing": 60
+        },
+        {
+            "tile_name": "Anti-Slip Floor Tiles",
             "size": "600x600mm", 
-            "location": "SA",
-            "rate_per_box": 950.0,
-            "rate_per_sqft": 293.21,
-            "box_qty": 9,
-            "discount_percent": 6.0,
-            "coverage": 3.24,
-            "box_packing": 9
+            "location": "BATHROOM",
+            "rate_per_box": 780.0,
+            "rate_per_sqft": 39.0,
+            "box_qty": 6,
+            "discount_percent": 0.0,
+            "coverage": 2.16,
+            "box_packing": 6
         }
     ]
     
     invoice_data = {
         "customer_id": customer_id,
-        "reference_name": "SA Section Grid Test",
+        "reference_name": "Contractor Rajesh Kumar",
         "line_items": line_items,
-        "transport_charges": 500.0,
-        "unloading_charges": 200.0,
+        "transport_charges": 800.0,
+        "unloading_charges": 300.0,
         "gst_percent": 18.0,
-        "advance_paid": 5000.0,
-        "overall_remarks": "PDF Grid Coordinate Testing - SA Section"
+        "overall_remarks": "Delivery within 3 days. Handle with care."
     }
     
     response = requests.post(f"{BASE_URL}/invoices", json=invoice_data)
