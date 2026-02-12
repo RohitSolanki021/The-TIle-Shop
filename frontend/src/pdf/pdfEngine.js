@@ -13,6 +13,7 @@ import templateMapCont from './template_map.cont.json';
 
 const BLACK = rgb(0, 0, 0);
 const BROWN = rgb(0.35, 0.22, 0.15);
+const BG_COLOR = rgb(0.95, 0.95, 0.95);
 
 // ==================== UTILITIES ====================
 
