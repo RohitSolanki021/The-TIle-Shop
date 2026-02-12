@@ -32,6 +32,10 @@ db = client[os.environ['DB_NAME']]
 # Create the main app without a prefix
 app = FastAPI()
 
+# Serve static files for brand logos
+from fastapi.staticfiles import StaticFiles
+app.mount("/static", StaticFiles(directory=str(ROOT_DIR / "assets")), name="static")
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
