@@ -66,7 +66,7 @@ def _normalize_invoice_data(invoice: dict) -> dict:
         location = item.get('location', 'Items')
         if location not in sections_dict:
             sections_dict[location] = {
-                'items': [],
+                'line_items': [],
                 'total': 0
             }
         
@@ -82,7 +82,7 @@ def _normalize_invoice_data(invoice: dict) -> dict:
             'image': item.get('tile_image', '')
         }
         
-        sections_dict[location]['items'].append(formatted_item)
+        sections_dict[location]['line_items'].append(formatted_item)
         sections_dict[location]['total'] += item.get('final_amount', 0)
     
     # Convert to list format
@@ -90,7 +90,7 @@ def _normalize_invoice_data(invoice: dict) -> dict:
     for name, section_data in sections_dict.items():
         sections.append({
             'name': name,
-            'items': section_data['items'],
+            'line_items': section_data['line_items'],
             'total': f"{section_data['total']:,.2f}"
         })
     
