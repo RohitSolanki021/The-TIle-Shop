@@ -11,6 +11,7 @@ from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 import logging
+from .load_logos import get_all_logos
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,11 @@ def generate_invoice_pdf_html(invoice: dict, output_path: str) -> str:
         # Normalize invoice data
         logger.info("Normalizing invoice data...")
         data = _normalize_invoice_data(invoice)
+        
+        # Load brand logos
+        logger.info("Loading brand logos...")
+        logos = get_all_logos()
+        data['logos'] = logos
         
         # Setup Jinja2 environment
         logger.info(f"Loading template from: {TEMPLATE_DIR}")
