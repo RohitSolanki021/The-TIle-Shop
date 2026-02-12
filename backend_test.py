@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BASE_URL = "https://bbb96806-750e-42b3-a6a9-080d8cd65a98.preview.emergentagent.com/api"
+BASE_URL = "https://code-fork-4.preview.emergentagent.com/api"
 
 class TestResult:
     def __init__(self):
