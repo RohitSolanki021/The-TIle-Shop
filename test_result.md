@@ -138,15 +138,18 @@ backend:
 
   - task: "HTML-Based PDF Generation"
     implemented: true
-    working: "NA"
+    working: true
     file: "assets/pdf/htmlPdfEngine.py, assets/pdf/invoice_template.html"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "NEW TASK: Replaced template overlay method with HTML-to-PDF generation using WeasyPrint. Created professional HTML invoice template matching THE TILE SHOP design. Proper tables with sections (LIVING ROOM, BATHROOM, etc.), section totals, bank details, terms & conditions. Mock data like 'MAIN FLOOR' removed - all data now comes from actual invoice. Fixed Python dict .items() conflict by renaming to line_items. Generated test PDF successfully (25KB). Clean, professional invoices without prefilled template data."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE TESTING COMPLETED: HTML-based PDF generation fully functional. Created test invoice TTS / 004 / 2025-26 with 3 sections (LIVING ROOM, BEDROOM, BATHROOM) and 5 items as per review request. VERIFIED: ✅ Customer 'Test Builder Pvt Ltd' with correct details ✅ Invoice ID format TTS / XXX / 2025-26 working ✅ Multi-section support (LIVING ROOM: 2 items, BEDROOM: 1 item, BATHROOM: 2 items) ✅ Calculations accurate: Subtotal ₹3,862.08, GST 18% ₹695.17, Grand Total ₹5,657.25 ✅ PDF generation successful: 307,934 bytes (300.7 KB) - confirms HTML method vs template overlay ✅ PDF download endpoints working (both private and public) ✅ Reference name 'Contractor Rajesh Kumar' and remarks correctly included ✅ Transport charges ₹800, Unloading charges ₹300 ✅ All 14 brand logos and main logo loading correctly ✅ Professional HTML template with proper styling ✅ WeasyPrint engine generating clean PDFs without template overlay artifacts. HTML-based PDF generation FULLY WORKING."
 
   - task: "PDF Generation - Template Overlay Method"
     implemented: true
