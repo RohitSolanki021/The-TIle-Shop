@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for The Tile Shop - PDF Coordinate-Based Grid Implementation
-Testing specific coordinate alignment and grid positioning as per review request.
+Backend API Testing for The Tile Shop - Complete Invoice Generation Flow
+Testing invoice creation with multiple sections and PDF generation as per review request.
 """
 
 import requests
