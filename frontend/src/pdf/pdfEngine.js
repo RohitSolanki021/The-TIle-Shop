@@ -35,47 +35,45 @@ export function coverBox(page, box, color = BG_COLOR) {
   });
 }
 
-export function drawTextInBox(page, font, textRaw, box, opts = {}) {
+function drawTextInBox(page, font, textRaw, box, opts = {}) {
   const text = (textRaw ?? '').toString().trim();
-  if (!text) return;
-  
+  if (!text || !box) return;
+
   const {
-    size: initialSize = 9,
+    size = 8,
     align = 'left',
     pad = 2,
     minSize = 6,
     color = BLACK
   } = opts;
-  
-  let size = initialSize;
-  const maxW = box.w - pad * 2;
-  
-  // Shrink to fit
-  while (size > minSize && textWidth(font, text, size) > maxW) {
-    size -= 0.25;
+
+  let fontSize = size;
+  const maxWidth = box.w - pad * 2;
+
+  while (fontSize > minSize && textWidth(font, text, fontSize) > maxWidth) {
+    fontSize -= 0.2;
   }
-  
-  // Truncate if still too long
-  let displayText = text;
-  if (textWidth(font, displayText, size) > maxW) {
-    while (displayText.length > 3 && textWidth(font, displayText + '..', size) > maxW) {
-      displayText = displayText.slice(0, -1);
+
+  let display = text;
+  if (textWidth(font, display, fontSize) > maxWidth) {
+    while (
+      display.length > 3 &&
+      textWidth(font, display + '..', fontSize) > maxWidth
+    ) {
+      display = display.slice(0, -1);
     }
-    displayText += '..';
+    display += '..';
   }
-  
-  const w = textWidth(font, displayText, size);
-  
+
+  const w = textWidth(font, display, fontSize);
+
   let x = box.x + pad;
-  if (align === 'right') {
-    x = box.x + box.w - pad - w;
-  } else if (align === 'center') {
-    x = box.x + (box.w - w) / 2;
-  }
-  
-  const y = box.y + (box.h - size) / 2;
-  
-  page.drawText(displayText, { x, y, size, font, color });
+  if (align === 'right') x = box.x + box.w - pad - w;
+  if (align === 'center') x = box.x + (box.w - w) / 2;
+
+  const y = box.y + (box.h - fontSize) / 2;
+
+  page.drawText(display, { x, y, size: fontSize, font, color });
 }
 
 export async function drawImageInBox(pdfDoc, page, imageBase64, box, pad = 2) {
