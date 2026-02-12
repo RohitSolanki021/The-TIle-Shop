@@ -25,6 +25,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   
+  // PDF template state for client-side generation
+  const [pdfTemplateBytes, setPdfTemplateBytes] = useState(null);
+  const [useClientPdf, setUseClientPdf] = useState(false); // Temporarily disable client-side PDF to test
+  
   // Check authentication on mount
   useEffect(() => {
     const auth = localStorage.getItem('tileShopAuth');
@@ -44,15 +48,6 @@ function App() {
     setActiveTab('dashboard');
   };
   
-  // Show login if not authenticated
-  if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
-  }
-  
-  // PDF template state for client-side generation
-  const [pdfTemplateBytes, setPdfTemplateBytes] = useState(null);
-  const [useClientPdf, setUseClientPdf] = useState(false); // Temporarily disable client-side PDF to test
-  
   // Load PDF template for client-side generation
   const loadPdfTemplate = useCallback(async () => {
     if (pdfTemplateBytes) return pdfTemplateBytes;
@@ -71,15 +66,19 @@ function App() {
   
   // Preload template on mount
   useEffect(() => {
-    loadPdfTemplate();
-  }, [loadPdfTemplate]);
+    if (isAuthenticated) {
+      loadPdfTemplate();
+    }
+  }, [loadPdfTemplate, isAuthenticated]);
 
   // Fetch all data
   useEffect(() => {
-    fetchTiles();
-    fetchCustomers();
-    fetchInvoices();
-  }, []);
+    if (isAuthenticated) {
+      fetchTiles();
+      fetchCustomers();
+      fetchInvoices();
+    }
+  }, [isAuthenticated]);
 
   const fetchTiles = async () => {
     try {
