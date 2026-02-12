@@ -107,6 +107,11 @@ function App() {
     }
   };
 
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen" style={{backgroundColor: '#fef7f7'}}>
       {/* Header */}
