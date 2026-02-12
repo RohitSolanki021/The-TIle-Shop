@@ -33,14 +33,26 @@
             page-break-after: auto;
         }
         
-        /* Header */
+        /* Header - Professional Letterhead Style */
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
+            display: block;
+            margin-bottom: 20px;
             border-bottom: 3px solid #5a3825;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
+        }
+        
+        .letterhead {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .letterhead-logo {
+            width: 140px;
+            height: auto;
+            object-fit: contain;
+            flex-shrink: 0;
         }
         
         .company-info {
@@ -48,16 +60,24 @@
         }
         
         .company-name {
-            font-size: 24pt;
+            font-size: 22pt;
             font-weight: bold;
             color: #5a3825;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
+            line-height: 1.2;
+        }
+        
+        .company-tagline {
+            font-size: 9pt;
+            color: #8b6b4a;
+            margin-bottom: 8px;
+            font-style: italic;
         }
         
         .company-details {
             font-size: 8pt;
-            line-height: 1.4;
-            color: #666;
+            line-height: 1.5;
+            color: #333;
         }
         
         .invoice-info {
@@ -309,21 +329,16 @@
 </head>
 <body>
     <div class="page">
-        <!-- Header -->
+        <!-- Header - Professional Letterhead -->
         <div class="header">
-            <div class="company-info">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <img src="{{ logos.main_logo }}" 
-                         alt="The Tile Shop Logo" 
-                         style="width: 180px; height: auto; object-fit: contain; flex-shrink: 0;">
-                    <div>
-                        <div class="company-name">THE TILE SHOP</div>
-                        <div class="company-details">
-                            A Subsidiary of SHREE SONANA SHETRPAL CERAMIC<br>
-                            Plot no. 39, Khasra No. 2, Opp. Balaji Temple, Hisar Road, Hansi - 125033, Haryana<br>
-                            <strong>Email:</strong> dhavantilesindustry@gmail.com | <strong>Phone:</strong> +91 9416309076<br>
-                            <strong>GSTIN:</strong> 06AOEPJ4244Q1ZI
-                        </div>
+            <div class="letterhead">
+                <img src="{{ logos.main_logo }}" alt="The Tile Shop" class="letterhead-logo">
+                <div class="company-info">
+                    <div class="company-name">THE TILE SHOP</div>
+                    <div class="company-tagline">A Subsidiary of SHREE SONANA SHETRPAL CERAMIC</div>
+                    <div class="company-details">
+                        Plot no. 39, Khasra No. 2, Opp. Balaji Temple, Hisar Road, Hansi - 125033, Haryana<br>
+                        <strong>Email:</strong> dhavantilesindustry@gmail.com | <strong>Phone:</strong> +91 9416309076 | <strong>GSTIN:</strong> 06AOEPJ4244Q1ZI
                     </div>
                 </div>
             </div>
