@@ -326,7 +326,7 @@ def test_complete_invoice_generation_flow():
 
 def main():
     """Main testing function"""
-    print("🚀 Starting PDF Coordinate Grid Backend Testing...")
+    print("🚀 Starting Complete Invoice Generation Flow Testing...")
     print(f"🌐 Backend URL: {BASE_URL}")
     print("="*60)
     
@@ -341,10 +341,10 @@ def main():
         print("❌ API health check failed. Stopping tests.")
         return False
     
-    # Test 2: PDF Coordinate Grid Implementation
-    print("\n2️⃣ PDF Coordinate-Based Grid Implementation")
-    grid_result = test_pdf_coordinate_grid_implementation()
-    all_results.append(grid_result)
+    # Test 2: Complete Invoice Generation Flow
+    print("\n2️⃣ Complete Invoice Generation Flow")
+    flow_result = test_complete_invoice_generation_flow()
+    all_results.append(flow_result)
     
     # Final Summary
     print("\n" + "="*60)
@@ -362,7 +362,7 @@ def main():
         print(f"\n🚨 FAILED TEST DETAILS:")
         for i, result in enumerate(all_results, 1):
             if result.errors:
-                test_names = ["API Health", "PDF Grid Implementation"] 
+                test_names = ["API Health", "Invoice Generation Flow"] 
                 print(f"\nTest {i} - {test_names[i-1]}:")
                 for error in result.errors:
                     print(f"  ❌ {error}")
@@ -370,7 +370,7 @@ def main():
     success = total_failed == 0
     
     if success:
-        print(f"\n🎉 ALL TESTS PASSED! PDF coordinate grid implementation working correctly.")
+        print(f"\n🎉 ALL TESTS PASSED! Complete invoice generation flow working correctly.")
     else:
         print(f"\n⚠️  SOME TESTS FAILED. Review issues above.")
     
