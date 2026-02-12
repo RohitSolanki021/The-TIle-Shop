@@ -718,7 +718,7 @@ async def delete_invoice(invoice_id: str):
 # ==================== PRO INVOICE ENGINE ====================
 # Import the PRO Invoice Engine for PDF generation
 
-from assets.pdf.pdfEngine import generate_invoice_pdf
+from assets.pdf.htmlPdfEngine import generate_invoice_pdf_html
 
 @api_router.get("/invoices/{invoice_id:path}/pdf")
 async def get_invoice_pdf(invoice_id: str):
@@ -733,7 +733,7 @@ async def get_invoice_pdf(invoice_id: str):
         safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
         pdf_path = pdf_dir / f"{safe_filename}.pdf"
         
-        generate_invoice_pdf(invoice, str(pdf_path))
+        generate_invoice_pdf_html(invoice, str(pdf_path))
         
         return FileResponse(
             path=str(pdf_path),
@@ -764,7 +764,7 @@ async def get_public_invoice_pdf(invoice_id: str):
         safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
         pdf_path = pdf_dir / f"{safe_filename}.pdf"
         
-        generate_invoice_pdf(invoice, str(pdf_path))
+        generate_invoice_pdf_html(invoice, str(pdf_path))
         
         return FileResponse(
             path=str(pdf_path),
