@@ -128,13 +128,24 @@ function App() {
                 <p className="text-xs" style={{color: '#8b6b4a'}}>Your Tile Experts - Invoicing</p>
               </div>
             </div>
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-              data-testid="mobile-menu-button"
-            >
-              <Menu className="h-6 w-6 text-gray-600" />
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleLogout}
+                className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-all duration-200 hover:shadow-lg"
+                style={{background: 'linear-gradient(to right, #5a3825, #6b4a35)'}}
+                data-testid="logout-button"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
+              <button
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+                data-testid="mobile-menu-button"
+              >
+                <Menu className="h-6 w-6 text-gray-600" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
