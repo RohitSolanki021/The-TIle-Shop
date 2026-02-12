@@ -221,6 +221,30 @@ frontend:
     priority: "high"
     needs_retesting: false
 
+  - task: "Login Page with Admin Authentication"
+    implemented: true
+    working: "NA"
+    file: "components/Login.js, App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW TASK: Implemented Login component with authentication. Credentials: Username='Thetileshop', Password='Vicky123'. Uses localStorage for session persistence. Added logout button in header (desktop) and sidebar (mobile). Protected all routes with authentication check."
+
+  - task: "Replace pdfEngine.js with User Version"
+    implemented: true
+    working: "NA"
+    file: "pdf/pdfEngine.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW TASK: Replaced existing pdfEngine.js with user-provided cleaner version. New engine uses template maps from JSON files (template_map.page1.json and template_map.cont.json). Simplified utilities and main PDF generation function. Maintains template overlay method for pixel-perfect PDFs."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
