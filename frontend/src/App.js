@@ -183,6 +183,16 @@ function App() {
                 onClick={() => { setActiveTab('invoices'); setShowMobileMenu(false); }}
                 testId="nav-invoices"
               />
+              {/* Mobile Logout Button */}
+              <div className="lg:hidden pt-4 border-t border-gray-200 mt-4">
+                <NavItem
+                  icon={<LogOut />}
+                  label="Logout"
+                  active={false}
+                  onClick={handleLogout}
+                  testId="nav-logout-mobile"
+                />
+              </div>
             </nav>
           </aside>
 
