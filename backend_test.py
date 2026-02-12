@@ -55,12 +55,12 @@ def test_api_health():
     return result
 
 def create_test_customer():
-    """Create a test customer for invoice testing"""
+    """Create test customer as per review request"""
     customer_data = {
-        "name": "Raja Tiles Emporium",
-        "phone": "+91-9876543210", 
-        "address": "123 Ceramic Street, Tile Market, Mumbai - 400001",
-        "gstin": "27ABCDE1234F1Z5"
+        "name": "Test Builder Pvt Ltd",
+        "phone": "9876543210", 
+        "address": "Plot 123, Industrial Area, Hansi, Haryana - 125033",
+        "gstin": "06ABCDE1234F1Z5"
     }
     
     response = requests.post(f"{BASE_URL}/customers", json=customer_data)
