@@ -3,9 +3,10 @@ import axios from 'axios';
 import { 
   Package, Users, FileText, Plus, Edit2, Trash2, Save, X, 
   Download, Share2, Search, Menu, Home, Camera, Upload, Image,
-  ChevronDown, ChevronRight
+  ChevronDown, ChevronRight, LogOut
 } from 'lucide-react';
 import './App.css';
+import Login from './components/Login';
 
 // PRO Invoice PDF Engine (pdf-lib based client-side generation)
 import { generateInvoicePDF, convertInvoiceToSections } from './pdf/pdfEngine';
@@ -16,12 +17,37 @@ const API = `${BACKEND_URL}/api`;
 // No hardcoded tile sizes - all sizes come from DB
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [tiles, setTiles] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  // Check authentication on mount
+  useEffect(() => {
+    const auth = localStorage.getItem('tileShopAuth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+  
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+  
+  const handleLogout = () => {
+    localStorage.removeItem('tileShopAuth');
+    localStorage.removeItem('tileShopUser');
+    setIsAuthenticated(false);
+    setActiveTab('dashboard');
+  };
+  
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
   
   // PDF template state for client-side generation
   const [pdfTemplateBytes, setPdfTemplateBytes] = useState(null);
