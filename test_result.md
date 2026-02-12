@@ -136,6 +136,18 @@ backend:
         agent: "testing"
         comment: "VERIFIED: Invoice ID format TTS / XXX / YYYY-YY working correctly. Created invoices TTS / 003 / 2025-26 and TTS / 004 / 2025-26. Auto-increment working (3→4). Financial year 2025-26 correct for Feb 2026. Regex pattern validation passed."
 
+  - task: "HTML-Based PDF Generation"
+    implemented: true
+    working: "NA"
+    file: "assets/pdf/htmlPdfEngine.py, assets/pdf/invoice_template.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW TASK: Replaced template overlay method with HTML-to-PDF generation using WeasyPrint. Created professional HTML invoice template matching THE TILE SHOP design. Proper tables with sections (LIVING ROOM, BATHROOM, etc.), section totals, bank details, terms & conditions. Mock data like 'MAIN FLOOR' removed - all data now comes from actual invoice. Fixed Python dict .items() conflict by renaming to line_items. Generated test PDF successfully (25KB). Clean, professional invoices without prefilled template data."
+
   - task: "PDF Generation - Template Overlay Method"
     implemented: true
     working: true
