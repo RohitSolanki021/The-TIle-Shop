@@ -1,21 +1,15 @@
-/**
- * PRO Invoice PDF Engine using pdf-lib
- * =====================================
- * 
- * Template-overlay approach with pixel-perfect alignment.
- */
-
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import templateMapPage1 from './template_map.page1.json';
-import templateMapCont from './template_map.cont.json';
 
-// ==================== CONSTANTS ====================
+/* ============================================
+   CONSTANTS
+============================================ */
 
 const BLACK = rgb(0, 0, 0);
 const BROWN = rgb(0.35, 0.22, 0.15);
-const BG_COLOR = rgb(0.95, 0.95, 0.95);
 
-// ==================== UTILITIES ====================
+/* ============================================
+   UTILITIES
+============================================ */
 
 function textWidth(font, text, size) {
   try {
@@ -25,18 +19,7 @@ function textWidth(font, text, size) {
   }
 }
 
-export function coverBox(page, box, color = BG_COLOR) {
-  page.drawRectangle({
-    x: box.x,
-    y: box.y,
-    width: box.w,
-    height: box.h,
-    color: color,
-    borderColor: color,
-  });
-}
-
-export function drawTextInBox(page, font, textRaw, box, opts = {}) {
+function drawTextInBox(page, font, textRaw, box, opts = {}) {
   const text = (textRaw ?? '').toString().trim();
   if (!text || !box) return;
 
@@ -77,309 +60,251 @@ export function drawTextInBox(page, font, textRaw, box, opts = {}) {
   page.drawText(display, { x, y, size: fontSize, font, color });
 }
 
-export async function drawImageInBox(pdfDoc, page, imageBase64, box, pad = 2) {
-  if (!imageBase64) return;
-  
+/* ============================================
+   IMAGE HANDLER (Node + Browser Safe)
+============================================ */
+
+async function drawImageInBox(pdfDoc, page, base64, box) {
+  if (!base64) return;
+
   try {
-    let base64Data = imageBase64;
-    if (base64Data.startsWith('data:image')) {
-      base64Data = base64Data.split(',')[1];
+    let clean = base64;
+    if (clean.startsWith('data:image')) {
+      clean = clean.split(',')[1];
     }
-    
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    
+
+    const bytes =
+      typeof window === 'undefined'
+        ? Buffer.from(clean, 'base64')
+        : Uint8Array.from(atob(clean), c => c.charCodeAt(0));
+
     let img;
     try {
       img = await pdfDoc.embedPng(bytes);
     } catch {
       img = await pdfDoc.embedJpg(bytes);
     }
-    
-    const maxW = box.w - pad * 2;
-    const maxH = box.h - pad * 2;
-    
-    const dim = img.scale(1);
-    const scale = Math.min(maxW / dim.width, maxH / dim.height);
-    
-    const w = dim.width * scale;
-    const h = dim.height * scale;
-    
+
+    const dims = img.scale(1);
+    const maxW = box.w;
+    const maxH = box.h;
+
+    const scale = Math.min(maxW / dims.width, maxH / dims.height);
+
+    const w = dims.width * scale;
+    const h = dims.height * scale;
+
     const x = box.x + (box.w - w) / 2;
     const y = box.y + (box.h - h) / 2;
-    
+
     page.drawImage(img, { x, y, width: w, height: h });
-  } catch (error) {
-    console.warn('Error drawing image:', error);
+
+  } catch (err) {
+    console.warn('Image render failed:', err);
   }
 }
 
-function rowBox(col, y, rowH) {
-  return { x: col.x, y, w: col.w, h: rowH };
-}
-
-// ==================== PDF ENGINE ====================
+/* ============================================
+   TEMPLATE PAGE
+============================================ */
 
 async function addTemplatePage(pdfDoc, templateBytes) {
-  const templateDoc = await PDFDocument.load(templateBytes);
-  const [tplPage] = await pdfDoc.copyPages(templateDoc, [0]);
-  pdfDoc.addPage(tplPage);
-  return tplPage;
+  const tpl = await PDFDocument.load(templateBytes);
+  const [page] = await pdfDoc.copyPages(tpl, [0]);
+  pdfDoc.addPage(page);
+  return page;
 }
 
-export async function generateInvoicePDF(data, templatePage1Bytes, templateContBytes = null) {
+/* ============================================
+   MAIN ENGINE
+============================================ */
+
+export async function generateInvoicePDF(
+  data,
+  templatePage1Bytes,
+  templateContBytes,
+  page1Map,
+  contMap
+) {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  
-  const contTemplateBytes = templateContBytes || templatePage1Bytes;
-  
+
   let page = await addTemplatePage(pdfDoc, templatePage1Bytes);
-  let map = templateMapPage1;
-  let isFirstPage = true;
-  
-  // Fill Header (Page 1 only)
-  if (map.header) {
-    drawTextInBox(page, fontBold, data.quotationNo, map.header.quotationNo, { align: 'left', size: 7.5 });
-    drawTextInBox(page, fontBold, data.date, map.header.date, { align: 'left', size: 7.5 });
-    if (data.referenceName) {
-      drawTextInBox(page, font, data.referenceName, map.header.referenceName, { align: 'left', size: 7.5 });
-    }
-  }
-  
-  // Fill Buyer (Page 1 only)
-  if (map.buyer && data.buyer) {
-    drawTextInBox(page, fontBold, data.buyer.name, map.buyer.name, { size: 7.5 });
-    drawTextInBox(page, font, `Ph: ${data.buyer.phone || ''}`, map.buyer.phone, { size: 7 });
-    
-    const addr = data.buyer.address || '';
-    drawTextInBox(page, font, addr.slice(0, 40), map.buyer.address1, { size: 7 });
-    if (addr.length > 40) {
-      drawTextInBox(page, font, addr.slice(40, 80), map.buyer.address2, { size: 7 });
-    }
-    if (data.buyer.gstin) {
-      drawTextInBox(page, font, `GSTIN: ${data.buyer.gstin}`, map.buyer.gstin, { size: 7 });
-    }
-  }
-  
-  // Fill Consignee (Page 1 only)
-  if (map.consignee && data.consignee) {
-    drawTextInBox(page, fontBold, data.consignee.name, map.consignee.name, { size: 7.5 });
-    drawTextInBox(page, font, `Ph: ${data.consignee.phone || ''}`, map.consignee.phone, { size: 7 });
-    
-    const addr = data.consignee.address || '';
-    drawTextInBox(page, font, addr.slice(0, 40), map.consignee.address1, { size: 7 });
-    if (addr.length > 40) {
-      drawTextInBox(page, font, addr.slice(40, 80), map.consignee.address2, { size: 7 });
-    }
-  }
-  
-  // Render Sections
+  let map = page1Map;
   let y = map.table.startY;
-  
+
+  /* ================= HEADER ================= */
+
+  drawTextInBox(page, fontBold, data.quotationNo, map.header.quotationNo);
+  drawTextInBox(page, fontBold, data.date, map.header.date);
+  drawTextInBox(page, font, data.referenceName, map.header.referenceName);
+
+  /* ================= BUYER ================= */
+
+  drawTextInBox(page, fontBold, data.buyer.name, map.buyer.name);
+  drawTextInBox(page, font, `Ph: ${data.buyer.phone}`, map.buyer.phone);
+  drawTextInBox(page, font, data.buyer.address, map.buyer.address1);
+  drawTextInBox(page, font, `GSTIN: ${data.buyer.gstin}`, map.buyer.gstin);
+
+  /* ================= CONSIGNEE ================= */
+
+  drawTextInBox(page, fontBold, data.consignee.name, map.consignee.name);
+  drawTextInBox(page, font, `Ph: ${data.consignee.phone}`, map.consignee.phone);
+  drawTextInBox(page, font, data.consignee.address, map.consignee.address1);
+
+  /* ================= TABLE ================= */
+
   for (const section of data.sections) {
     const rowH = map.table.rowH;
-    
-    if (y - rowH < map.table.safeBottomY) {
-      page = await addTemplatePage(pdfDoc, contTemplateBytes);
-      map = templateMapCont;
-      isFirstPage = false;
-      y = map.table.startY;
-    }
-    
-    // Section Header Row
-    const titleBox = { ...map.section.titleBox, y: y - rowH };
-    coverBox(page, titleBox, BG_COLOR);
-    drawTextInBox(page, fontBold, section.name.toUpperCase(), titleBox, { 
-      align: 'center', 
-      size: 9, 
-      color: BROWN 
-    });
-    
+
+    // Section header
+    drawTextInBox(
+      page,
+      fontBold,
+      section.name.toUpperCase(),
+      map.section.titleBox,
+      { align: 'center', size: 9, color: BROWN }
+    );
+
     y -= rowH;
-    
-    // Item Rows
-    let sr = 1;
+
     let sectionTotal = 0;
-    
+    let sr = 1;
+
     for (const item of section.items) {
-      const hasImage = !!item.imageBase64;
-      const itemRowH = hasImage ? map.table.rowHWithImage : rowH;
-      
+
+      const itemRowH = item.imageBase64
+        ? map.table.rowHWithImage
+        : map.table.rowH;
+
       if (y - itemRowH < map.table.safeBottomY) {
-        page = await addTemplatePage(pdfDoc, contTemplateBytes);
-        map = templateMapCont;
-        isFirstPage = false;
+        page = await addTemplatePage(pdfDoc, templateContBytes);
+        map = contMap;
         y = map.table.startY;
+
+        // re-render section title on new page
+        drawTextInBox(
+          page,
+          fontBold,
+          section.name.toUpperCase(),
+          map.section.titleBox,
+          { align: 'center', size: 9, color: BROWN }
+        );
+
+        y -= rowH;
       }
-      
+
       const cols = map.table.cols;
       const rowY = y - itemRowH;
-      
-      drawTextInBox(page, font, String(sr), rowBox(cols.sr, rowY, itemRowH), { align: 'center', size: 7 });
-      drawTextInBox(page, font, item.name, rowBox(cols.name, rowY, itemRowH), { align: 'left', size: 7 });
-      
-      if (hasImage) {
-        const imgBox = {
+
+      drawTextInBox(page, font, sr, { ...cols.sr, y: rowY, h: itemRowH });
+      drawTextInBox(page, font, item.name, { ...cols.name, y: rowY, h: itemRowH });
+      drawTextInBox(page, font, item.size, { ...cols.size, y: rowY, h: itemRowH });
+
+      drawTextInBox(page, font, item.rateBox, { ...cols.rateBox, y: rowY, h: itemRowH }, { align: 'right' });
+      drawTextInBox(page, font, item.rateSqft, { ...cols.rateSqft, y: rowY, h: itemRowH }, { align: 'right' });
+      drawTextInBox(page, font, item.qty, { ...cols.qty, y: rowY, h: itemRowH }, { align: 'center' });
+      drawTextInBox(page, font, item.disc, { ...cols.disc, y: rowY, h: itemRowH }, { align: 'center' });
+      drawTextInBox(page, fontBold, item.amount, { ...cols.amount, y: rowY, h: itemRowH }, { align: 'right' });
+
+      if (item.imageBase64) {
+        await drawImageInBox(pdfDoc, page, item.imageBase64, {
           x: cols.image.x,
-          y: rowY + 3,
-          w: cols.image.imgW || 30,
-          h: cols.image.imgH || 30
-        };
-        await drawImageInBox(pdfDoc, page, item.imageBase64, imgBox);
+          y: rowY + 4,
+          w: cols.image.imgW,
+          h: cols.image.imgH
+        });
       }
-      
-      drawTextInBox(page, font, item.size, rowBox(cols.size, rowY, itemRowH), { align: 'center', size: 7 });
-      drawTextInBox(page, font, item.rateBox || '', rowBox(cols.rateBox, rowY, itemRowH), { align: 'right', size: 6 });
-      drawTextInBox(page, font, item.rateSqft || '', rowBox(cols.rateSqft, rowY, itemRowH), { align: 'right', size: 6 });
-      drawTextInBox(page, font, item.qty || '', rowBox(cols.qty, rowY, itemRowH), { align: 'center', size: 6 });
-      drawTextInBox(page, font, item.disc || '', rowBox(cols.disc, rowY, itemRowH), { align: 'center', size: 6 });
-      drawTextInBox(page, fontBold, item.amount || '', rowBox(cols.amount, rowY, itemRowH), { align: 'right', size: 7 });
-      
-      sectionTotal += Number(item.amountNumeric ?? 0);
+
+      sectionTotal += item.amountNumeric || 0;
       sr++;
       y -= itemRowH;
     }
-    
-    // Section Total Row
-    if (y - rowH < map.table.safeBottomY) {
-      page = await addTemplatePage(pdfDoc, contTemplateBytes);
-      map = templateMapCont;
-      isFirstPage = false;
-      y = map.table.startY;
-    }
-    
-    const labelBox = { ...map.section.totalLabelBox, y: y - rowH };
-    const valueBox = { ...map.section.totalValueBox, y: y - rowH };
-    
-    coverBox(page, labelBox, BG_COLOR);
-    drawTextInBox(page, fontBold, `${section.name}'s Total Amount`, labelBox, { 
-      align: 'right', 
-      size: 8, 
-      color: BROWN 
-    });
-    
-    drawTextInBox(page, fontBold, `₹${sectionTotal.toLocaleString('en-IN')}`, valueBox, { 
-      align: 'right', 
-      size: 8 
-    });
-    
-    y -= rowH + 5;
+
+    // Section total
+    drawTextInBox(
+      page,
+      fontBold,
+      `${section.name}'s Total Amount`,
+      map.section.totalLabelBox,
+      { align: 'right', size: 8, color: BROWN }
+    );
+
+    drawTextInBox(
+      page,
+      fontBold,
+      `₹${sectionTotal.toLocaleString('en-IN')}`,
+      map.section.totalValueBox,
+      { align: 'right', size: 8 }
+    );
+
+    y -= 25;
   }
-  
-  // Footer (if on page 1 and has space)
-  if (isFirstPage && map.footer && y > 150) {
-    if (data.subtotal !== undefined) {
-      drawTextInBox(page, font, `₹${Math.round(data.subtotal).toLocaleString('en-IN')}`, map.footer.totalAmount, { align: 'right', size: 7.5 });
-    }
-    if (data.charges?.transport !== undefined) {
-      drawTextInBox(page, font, `₹${Math.round(data.charges.transport).toLocaleString('en-IN')}`, map.footer.transport, { align: 'right', size: 7.5 });
-    }
-    if (data.charges?.unloading !== undefined) {
-      drawTextInBox(page, font, `₹${Math.round(data.charges.unloading).toLocaleString('en-IN')}`, map.footer.unloading, { align: 'right', size: 7.5 });
-    }
-    if (data.gstAmount !== undefined && data.gstAmount > 0) {
-      drawTextInBox(page, font, `₹${Math.round(data.gstAmount).toLocaleString('en-IN')}`, map.footer.gst, { align: 'right', size: 7.5 });
-    } else {
-      drawTextInBox(page, font, 'As applicable', map.footer.gst, { align: 'right', size: 7, color: rgb(0.4, 0.4, 0.4) });
-    }
-    if (data.grandTotal !== undefined) {
-      drawTextInBox(page, fontBold, `₹${Math.round(data.grandTotal).toLocaleString('en-IN')}`, map.footer.finalAmount, { align: 'right', size: 8, color: rgb(1, 1, 1) });
-    }
-    if (data.remarks) {
-      drawTextInBox(page, font, data.remarks, map.footer.remarks, { align: 'left', size: 7 });
-    }
-  }
-  
-  // Page Numbers
+
+  /* ================= FOOTER ON LAST PAGE ================= */
+
+  const pages = pdfDoc.getPages();
+  const lastPage = pages[pages.length - 1];
+  const footer = page1Map.footer;
+
+  drawTextInBox(lastPage, font, `₹${data.subtotal}`, footer.totalAmount, { align: 'right' });
+  drawTextInBox(lastPage, font, `₹${data.charges.transport}`, footer.transport, { align: 'right' });
+  drawTextInBox(lastPage, font, `₹${data.charges.unloading}`, footer.unloading, { align: 'right' });
+  drawTextInBox(lastPage, font, `₹${data.gstAmount}`, footer.gst, { align: 'right' });
+  drawTextInBox(lastPage, fontBold, `₹${data.grandTotal}`, footer.finalAmount, { align: 'right', size: 9 });
+  drawTextInBox(lastPage, font, data.remarks, footer.remarks);
+
+  /* ================= PAGE NUMBERS ================= */
+
   const pageCount = pdfDoc.getPageCount();
-  if (pageCount > 1) {
-    const pages = pdfDoc.getPages();
-    for (let i = 0; i < pageCount; i++) {
-      const p = pages[i];
-      const pageNumText = `${data.quotationNo} (Page ${i + 1}/${pageCount})`;
-      drawTextInBox(p, font, pageNumText, { x: 350, y: 815, w: 220, h: 12 }, { 
-        align: 'right', 
-        size: 7, 
-        color: rgb(0.3, 0.3, 0.3) 
-      });
-    }
-  }
-  
+  pdfDoc.getPages().forEach((p, i) => {
+    drawTextInBox(
+      p,
+      font,
+      `Page ${i + 1} of ${pageCount}`,
+      { x: 450, y: 820, w: 120, h: 12 },
+      { align: 'right', size: 7 }
+    );
+  });
+
   return await pdfDoc.save();
 }
 
-export function convertInvoiceToSections(invoice) {
-  const sectionsDict = {};
-  
-  for (const item of (invoice.line_items || [])) {
-    const sectionName = item.location || 'Items';
-    if (!sectionsDict[sectionName]) {
-      sectionsDict[sectionName] = [];
-    }
-    
-    sectionsDict[sectionName].push({
-      name: item.tile_name || item.product_name || '',
-      size: item.size || '',
-      rateBox: `₹${Math.round(item.rate_per_box || 0)}`,
-      rateSqft: `₹${Math.round(item.rate_per_sqft || 0)}`,
-      qty: `${item.box_qty || 0} box`,
-      disc: `${Math.round(item.discount_percent || 0)}%`,
-      amount: `₹${Math.round(item.final_amount || 0).toLocaleString('en-IN')}`,
-      amountNumeric: item.final_amount || 0,
-      imageBase64: item.tile_image || ''
-    });
-  }
-  
-  const sections = Object.entries(sectionsDict).map(([name, items]) => ({
-    name,
-    items
-  }));
-  
-  let dateStr = invoice.invoice_date;
-  if (dateStr) {
-    try {
-      const d = new Date(dateStr);
-      dateStr = d.toLocaleDateString('en-GB');
-    } catch {
-      // Keep original
-    }
-  }
-  
-  return {
-    quotationNo: invoice.invoice_id || '',
-    date: dateStr || '',
-    referenceName: invoice.reference_name || '',
-    buyer: {
-      name: invoice.customer_name || '',
-      phone: invoice.customer_phone || '',
-      address: invoice.customer_address || '',
-      gstin: invoice.customer_gstin || ''
-    },
-    consignee: {
-      name: invoice.consignee_name || invoice.customer_name || '',
-      phone: invoice.consignee_phone || invoice.customer_phone || '',
-      address: invoice.consignee_address || invoice.customer_address || ''
-    },
-    sections,
-    charges: {
-      transport: invoice.transport_charges || 0,
-      unloading: invoice.unloading_charges || 0
-    },
-    subtotal: invoice.subtotal || 0,
-    gstAmount: invoice.gst_amount || 0,
-    grandTotal: invoice.grand_total || 0,
-    remarks: invoice.overall_remarks || ''
-  };
-}
+/* ============================================
+   HELPER: Convert Invoice to Sections Format
+============================================ */
 
-export default {
-  generateInvoicePDF,
-  convertInvoiceToSections,
-  coverBox,
-  drawTextInBox,
-  drawImageInBox
-};
+export function convertInvoiceToSections(invoice) {
+  const sections = [];
+  const locationMap = {};
+
+  invoice.line_items.forEach(item => {
+    const loc = item.location || 'GENERAL';
+    if (!locationMap[loc]) {
+      locationMap[loc] = [];
+    }
+    locationMap[loc].push(item);
+  });
+
+  Object.entries(locationMap).forEach(([location, items]) => {
+    const sectionItems = items.map((item, idx) => ({
+      name: item.tile_name || '',
+      size: item.size || '',
+      rateBox: item.rate_per_box ? `₹${item.rate_per_box.toFixed(2)}` : '',
+      rateSqft: item.rate_per_sqft ? `₹${item.rate_per_sqft.toFixed(2)}` : '',
+      qty: item.box_qty ? `${item.box_qty}` : '',
+      disc: item.discount_percent ? `${item.discount_percent}%` : '0%',
+      amount: `₹${(item.final_amount || 0).toFixed(2)}`,
+      amountNumeric: item.final_amount || 0,
+      imageBase64: item.tile_image || null
+    }));
+
+    sections.push({
+      name: location,
+      items: sectionItems
+    });
+  });
+
+  return sections;
+}
