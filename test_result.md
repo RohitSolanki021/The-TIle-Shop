@@ -241,15 +241,18 @@ backend:
 
   - task: "Delete Customer Functionality"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/App.js (line 704-712), backend/server.py (line 456-473)"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "VERIFIED: Delete Customer functionality fully working. Created test customer ('Test Customer', phone '9876543210', GSTIN '06TEST1234F1Z5') ✅ Customer appeared in GET /customers list before deletion ✅ DELETE /customers/{customer_id} returned success ✅ Customer properly soft-deleted (deleted: True flag set) ✅ Customer no longer appears in GET /customers list after deletion ✅ DELETE returns 404 for non-existent customer ✅ All 5 tests passed. Soft delete implementation working correctly."
 
   - task: "Delete Invoice Functionality"
     implemented: true
