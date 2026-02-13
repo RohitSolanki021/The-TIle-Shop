@@ -284,6 +284,19 @@ backend:
         agent: "main"
         comment: "DEMO DATA CLEANUP COMPLETED: ✅ Removed all test PDF files from root (test_invoice_TTS_*.pdf, extra_large_invoice_TTS_*.pdf) ✅ Removed test Python scripts (backend_test.py, backend_test_pro.py, extra_pagination_test.py, pdf_verification_test.py) ✅ Removed test_reports directory ✅ Removed .screenshots directory ✅ Removed backend/tests directory (test_crud_delete.py) ✅ Removed tests directory ✅ Cleaned all demo PDFs from backend/pdfs/ directory ✅ Cleaned MongoDB database (4 tiles, 6 customers, 4 invoices deleted) ✅ Application now in clean state with no demo data. Only essential files remain: backend/, frontend/, memory/, test_result.md, README.md"
 
+  - task: "Remove Demo Tile Sizes from Dropdown"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js (line 378-379)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "DEMO TILE SIZES REMOVED: Emptied STANDARD_SIZES array (previously contained 14 hardcoded sizes: 600x600mm, 800x800mm, etc.). Now dropdown will only show '+ Enter Custom Size' option and any existing sizes from database. Users must add their own custom tile sizes. Frontend restarted to apply changes."
+
+
 
 frontend:
   - task: "Dashboard Icons WHITE"
