@@ -691,7 +691,7 @@ async def update_invoice(invoice_id: str, invoice_update: InvoiceUpdate):
         logger.error(f"Error updating invoice: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.delete("/invoices/{invoice_id}")
+@api_router.delete("/invoices/{invoice_id:path}")
 async def delete_invoice(invoice_id: str):
     """Soft delete an invoice"""
     try:
