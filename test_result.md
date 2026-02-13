@@ -272,6 +272,19 @@ backend:
         agent: "testing"
         comment: "VERIFIED: Delete Invoice functionality fully working. Created complete test invoice (TTS / 003 / 2025-26) with customer and line items ✅ Invoice appeared in GET /invoices list before deletion ✅ Customer pending balance tracked (₹1,585.00) ✅ DELETE /invoices/{invoice_id} returned success (URL-encoded 'TTS / 003 / 2025-26') ✅ Invoice properly soft-deleted (deleted: True flag set) ✅ Invoice no longer appears in GET /invoices list ✅ Customer's total_pending correctly recalculated to ₹0.00 after invoice deletion ✅ DELETE returns 404 for non-existent invoice ✅ All 10 tests passed. Soft delete and customer balance recalculation working perfectly."
 
+  - task: "Remove Demo Data from Application"
+    implemented: true
+    working: true
+    file: "Multiple files"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "DEMO DATA CLEANUP COMPLETED: ✅ Removed all test PDF files from root (test_invoice_TTS_*.pdf, extra_large_invoice_TTS_*.pdf) ✅ Removed test Python scripts (backend_test.py, backend_test_pro.py, extra_pagination_test.py, pdf_verification_test.py) ✅ Removed test_reports directory ✅ Removed .screenshots directory ✅ Removed backend/tests directory (test_crud_delete.py) ✅ Removed tests directory ✅ Cleaned all demo PDFs from backend/pdfs/ directory ✅ Cleaned MongoDB database (4 tiles, 6 customers, 4 invoices deleted) ✅ Application now in clean state with no demo data. Only essential files remain: backend/, frontend/, memory/, test_result.md, README.md"
+
+
 frontend:
   - task: "Dashboard Icons WHITE"
     implemented: true
