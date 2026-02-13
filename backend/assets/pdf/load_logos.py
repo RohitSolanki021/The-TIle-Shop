@@ -21,8 +21,8 @@ def get_all_logos():
         'main_logo': get_logo_base64('main_logo')
     }
     
-    # Load all brand logos
-    for i in range(1, 15):
+    # Load all brand logos (15 logos)
+    for i in range(1, 16):
         logo_name = f'brand_{i:02d}'
         logos[logo_name] = get_logo_base64(logo_name)
     
