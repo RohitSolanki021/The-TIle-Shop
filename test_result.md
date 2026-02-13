@@ -295,8 +295,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Login Page with Admin Authentication"
-    - "Replace pdfEngine.js with User Version"
+    - "WhatsApp Share Functionality Test"
+    - "Delete Features (Tiles, Customers, Invoices) Test"
+    - "Remove Demo Data from Application"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
