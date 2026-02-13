@@ -304,26 +304,28 @@
         </div>
     </div>
     
-    <!-- Customer Boxes -->
-    <div class="customer-row">
-        <div class="customer-box">
-            <div class="customer-title">Buyer (Bill To):</div>
-            <div class="customer-content">
-                <strong>{{ buyer.name }}</strong><br>
-                {{ buyer.phone }}<br>
-                {{ buyer.address }}<br>
-                {% if buyer.gstin %}GSTIN: {{ buyer.gstin }}{% endif %}
-            </div>
-        </div>
-        <div class="customer-box">
-            <div class="customer-title">Consignee (Ship To):</div>
-            <div class="customer-content">
-                <strong>{{ consignee.name }}</strong><br>
-                {{ consignee.phone }}<br>
-                {{ consignee.address }}
-            </div>
-        </div>
-    </div>
+    <!-- Customer Boxes as Proper Table -->
+    <table class="customer-table">
+        <tr>
+            <td>
+                <div class="customer-title">Buyer (Bill To):</div>
+                <div class="customer-content">
+                    <strong>{{ buyer.name }}</strong><br>
+                    {{ buyer.phone }}<br>
+                    {{ buyer.address }}<br>
+                    {% if buyer.gstin %}GSTIN: {{ buyer.gstin }}{% endif %}
+                </div>
+            </td>
+            <td>
+                <div class="customer-title">Consignee (Ship To):</div>
+                <div class="customer-content">
+                    <strong>{{ consignee.name }}</strong><br>
+                    {{ consignee.phone }}<br>
+                    {{ consignee.address }}
+                </div>
+            </td>
+        </tr>
+    </table>
     
     <!-- Items Table with Colored Sections -->
     <table>
@@ -375,61 +377,72 @@
         </tbody>
     </table>
     
-    <!-- Totals Section - Right Aligned, Flows Naturally -->
-    <div class="totals-section">
+    <!-- Totals Section - Proper Table with Spacer -->
+    <div class="totals-wrapper">
         <table class="totals-table">
             <tr>
+                <td class="spacer-cell" style="width: 65%;"></td>
                 <td class="total-label">Total Amount :</td>
                 <td class="total-value">₹{{ subtotal }}</td>
             </tr>
             <tr>
+                <td class="spacer-cell"></td>
                 <td class="total-label">Transport Charges :</td>
                 <td class="total-value">₹{{ charges.transport }}</td>
             </tr>
             <tr>
+                <td class="spacer-cell"></td>
                 <td class="total-label">Unloading Charges :</td>
                 <td class="total-value">₹{{ charges.unloading }}</td>
             </tr>
             <tr>
+                <td class="spacer-cell"></td>
                 <td class="total-label">GST Amount :</td>
                 <td class="total-value">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
             </tr>
             <tr>
+                <td class="spacer-cell"></td>
                 <td class="total-label">Final Amount :</td>
                 <td class="total-value">₹{{ grand_total }}</td>
             </tr>
         </table>
     </div>
     
-    <!-- Bank Details - Single Row with 5 Cells -->
-    <div class="bank-details-row">
-        <div class="bank-cell">
-            <span class="bank-label">Account Name:</span>
-            SHREE SONANA SHETRPAL CERAMIC
-        </div>
-        <div class="bank-cell">
-            <span class="bank-label">Bank Name:</span>
-            HDFC BANK
-        </div>
-        <div class="bank-cell">
-            <span class="bank-label">Account No.:</span>
-            50200069370271
-        </div>
-        <div class="bank-cell">
-            <span class="bank-label">IFSC:</span>
-            HDFC0005291
-        </div>
-        <div class="bank-cell">
-            <span class="bank-label">Branch:</span>
-            HYDE PARK
-        </div>
-    </div>
+    <!-- Bank Details - Proper Table -->
+    <table class="bank-table">
+        <tr>
+            <td>
+                <span class="bank-label">Account Name:</span>
+                SHREE SONANA SHETRPAL CERAMIC
+            </td>
+            <td>
+                <span class="bank-label">Bank Name:</span>
+                HDFC BANK
+            </td>
+            <td>
+                <span class="bank-label">Account No.:</span>
+                50200069370271
+            </td>
+            <td>
+                <span class="bank-label">IFSC:</span>
+                HDFC0005291
+            </td>
+            <td>
+                <span class="bank-label">Branch:</span>
+                HYDE PARK
+            </td>
+        </tr>
+    </table>
     
-    <!-- Remarks Section -->
-    <div class="remarks-section">
-        <div class="remarks-title">Overall Remarks :</div>
-        <div class="remarks-box">{{ remarks or '' }}</div>
-    </div>
+    <!-- Remarks - Proper Table -->
+    <table class="remarks-table">
+        <tr>
+            <td class="remarks-title-cell">Overall Remarks :</td>
+        </tr>
+        <tr>
+            <td>{{ remarks or '' }}</td>
+        </tr>
+    </table>
     
     <!-- Terms & Conditions -->
     <div class="terms-section">
