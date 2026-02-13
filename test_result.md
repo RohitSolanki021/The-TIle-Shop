@@ -211,6 +211,55 @@ backend:
         agent: "testing"
         comment: "REVIEW REQUEST VERIFICATION COMPLETED: Created test invoice TTS / 009 / 2025-26 specifically for SA section template replacement testing. VERIFIED ALL REVIEW REQUIREMENTS: ✅ Created invoice with section name 'SA' and 6 items (>5 required) ✅ PDF generation produces 2-page PDF (1,188,980 bytes / 1161KB) confirming template overlay method ✅ cover_and_write() functionality working: background color (0.98, 0.96, 0.95) covers 'MAIN FLOOR' text ✅ Dynamic section name 'SA' replaces 'MAIN FLOOR' in section header ✅ Dynamic section total 'SA's Total Amount' replaces 'MAIN FLOOR's Total Amount' ✅ Total value ₹30,099.63 computed correctly from all 6 SA items ✅ All item rows strictly positioned inside table grid ✅ URL encoding works (TTS%20%2F%20009%20%2F%202025-26) ✅ Backend logs confirm per-page generation: 'Generated page 1/2', 'Generated page 2/2' ✅ Template-accurate replacement system FULLY FUNCTIONAL"
 
+
+  - task: "WhatsApp Share Functionality"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js (line 1316-1365)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "WhatsApp share implemented using Web Share API (mobile) and fallback download+link (desktop). Function downloads PDF from backend, shares via native API or opens WhatsApp web with invoice details and PDF link. Needs testing."
+
+  - task: "Delete Tile Functionality"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js (line 437-445), backend/server.py (line 361-378)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag. Needs testing."
+
+  - task: "Delete Customer Functionality"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js (line 704-712), backend/server.py (line 456-473)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag. Needs testing."
+
+  - task: "Delete Invoice Functionality"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js (line 1285-1293), backend/server.py (line 694-714)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag, recalculates customer pending balance. Needs testing."
+
 frontend:
   - task: "Dashboard Icons WHITE"
     implemented: true
