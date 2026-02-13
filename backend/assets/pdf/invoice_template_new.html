@@ -167,14 +167,16 @@
             object-fit: contain;
         }
         
-        /* Totals Section - Proper Table, Flows After Items */
+        /* Totals Section - Full Width Table */
         .totals-wrapper {
             margin-bottom: 10px;
+            width: 100%;
         }
         
         .totals-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
         
         .totals-table td {
@@ -183,21 +185,21 @@
             font-size: 9pt;
         }
         
-        .spacer-cell {
-            border: none;
-            background: transparent;
+        .totals-table .spacer-cell {
+            border: none !important;
+            background: transparent !important;
         }
         
         .total-label {
             text-align: right;
             font-weight: normal;
-            width: 20%;
+            background: #ffffff;
         }
         
         .total-value {
             text-align: right;
             font-weight: bold;
-            width: 15%;
+            background: #ffffff;
         }
         
         /* Bank Details - Proper Table Structure */
@@ -377,11 +379,16 @@
         </tbody>
     </table>
     
-    <!-- Totals Section - Proper Table with Spacer -->
+    <!-- Totals Section - Full Width Table -->
     <div class="totals-wrapper">
         <table class="totals-table">
+            <colgroup>
+                <col style="width: 65%;">
+                <col style="width: 20%;">
+                <col style="width: 15%;">
+            </colgroup>
             <tr>
-                <td class="spacer-cell" style="width: 65%;"></td>
+                <td class="spacer-cell"></td>
                 <td class="total-label">Total Amount :</td>
                 <td class="total-value">₹{{ subtotal }}</td>
             </tr>
