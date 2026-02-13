@@ -447,32 +447,37 @@
             </tbody>
         </table>
         
-        <!-- Totals Section - Full Width Rows -->
-        <table class="totals-table">
+        <!-- Totals Section - Full Width Rows with Extended Borders -->
+        <table class="totals-table" style="width: 100%; border-collapse: collapse;">
+            <colgroup>
+                <col style="width: 60%;">
+                <col style="width: 25%;">
+                <col style="width: 15%;">
+            </colgroup>
             <tr>
-                <td class="empty-cell"></td>
-                <td class="total-label">Total Amount :</td>
-                <td class="total-value">₹{{ subtotal }}</td>
+                <td style="border: 1px solid #d4b896;"></td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">Total Amount :</td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ subtotal }}</td>
             </tr>
             <tr>
-                <td class="empty-cell"></td>
-                <td class="total-label">Transport Charges :</td>
-                <td class="total-value">₹{{ charges.transport }}</td>
+                <td style="border: 1px solid #d4b896;"></td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">Transport Charges :</td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ charges.transport }}</td>
             </tr>
             <tr>
-                <td class="empty-cell"></td>
-                <td class="total-label">Unloading Charges :</td>
-                <td class="total-value">₹{{ charges.unloading }}</td>
+                <td style="border: 1px solid #d4b896;"></td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">Unloading Charges :</td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ charges.unloading }}</td>
             </tr>
             <tr>
-                <td class="empty-cell"></td>
-                <td class="total-label">GST Amount :</td>
-                <td class="total-value">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
+                <td style="border: 1px solid #d4b896;"></td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">GST Amount :</td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
             </tr>
-            <tr class="final-row">
-                <td class="empty-cell"></td>
-                <td class="total-label">Final Amount :</td>
-                <td class="total-value">₹{{ grand_total }}</td>
+            <tr>
+                <td style="border: 1px solid #d4b896; background: #f5e6d3;"></td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold; background: #f5e6d3;">Final Amount :</td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold; background: #f5e6d3;">₹{{ grand_total }}</td>
             </tr>
         </table>
         
