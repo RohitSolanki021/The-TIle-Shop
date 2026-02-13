@@ -1,68 +1,94 @@
-# The Tile Shop - Invoicing System PRD
+# The Tile Shop - Invoice Generation Application
 
 ## Original Problem Statement
-1. Clone GitHub repository: https://github.com/RohitSolanki021/The-Tile-Shop
-2. Integrate logo and color scheme (#fef7f7 background, brown tones)
-3. Implement PDF invoice generation that EXACTLY matches reference template
+Build and enhance an invoice generation application for The Tile Shop, a tile retail business. The primary goal is to create pixel-perfect PDF invoices that match a reference design provided by the user.
+
+## Core Requirements
+1. Implement a login page with credentials: `Thetileshop` / `Vicky123`
+2. Replace JavaScript-based PDF engine with HTML-to-PDF generation using WeasyPrint
+3. Create an exact replica of the user's reference invoice design
+4. Include main company logo and 14 partner brand logos
+5. All logos and images must be high quality
+6. Proper table structure for all sections
+7. Support sectioning of items (e.g., 'KITCHEN', 'BATHROOM')
+8. Updated Terms & Conditions with user-provided text
 
 ## Tech Stack
-- **Frontend:** React 19, TailwindCSS, Lucide Icons
-- **Backend:** FastAPI, MongoDB, ReportLab (PDF generation)
-- **Styling:** Custom CSS with brand variables
+- **Frontend**: React
+- **Backend**: FastAPI (Python)
+- **Database**: MongoDB
+- **PDF Generation**: WeasyPrint + Jinja2 (HTML-to-PDF)
+- **System Dependencies**: libpangoft2-1.0-0, libpango-1.0-0, poppler-utils
 
-## What's Been Implemented (Feb 7, 2026)
+## Architecture
+```
+/app/
+├── backend/
+│   ├── assets/
+│   │   ├── brand_logos/      # 14 partner logos + main_logo.png
+│   │   └── pdf/
+│   │       ├── htmlPdfEngine.py       # PDF generation logic
+│   │       ├── invoice_template_new.html  # HTML template
+│   │       └── load_logos.py          # Logo loader
+│   ├── pdfs/                 # Generated PDFs output
+│   └── server.py             # FastAPI application
+├── frontend/
+│   └── src/
+│       ├── components/
+│       │   └── Login.js
+│       └── App.js
+```
 
-### Phase 1: Repository Clone & Branding
-- ✅ Cloned full Tile Shop Invoicing application from GitHub
-- ✅ Logo integrated from customer assets
-- ✅ Brand color scheme applied throughout (#fef7f7, #5a3825, #6b4a35)
+## Key API Endpoints
+- `POST /api/invoices` - Create new invoice
+- `GET /api/invoices/{invoice_id}/pdf` - Generate and download PDF
+- `GET /api/public/invoices/{invoice_id}/pdf` - Public PDF endpoint
 
-### Phase 2: PDF Template Implementation
-- ✅ PDF generation rewritten to match THE TILE SHOP reference template
-- ✅ Company header with logo, address, contact, GSTIN
-- ✅ Quotation box with number, date, reference name
-- ✅ Buyer (Bill To) and Consignee (Ship To) sections
-- ✅ Items table with columns: SR NO., NAME, IMAGE, SIZE, RATE/BOX, RATE/SQFT, QUANTITY, DISC.(%), AMOUNT
-- ✅ Location grouping with subtotals
-- ✅ GST calculation
-- ✅ Overall Remarks section
-- ✅ Bank Details (HDFC Bank - SHREE SONANA SHETRPAL CERAMIC)
-- ✅ Terms & Conditions (9 points from template)
-- ✅ Footer with thank you message
+## Database Schema
+- **customers**: `{ customer_id, name, address, gstin }`
+- **tiles**: `{ tile_id, name, size, image_url }`
+- **invoices**: `{ invoice_id, customer_id, date, reference_name, line_items: [{tile_id, quantity, rate, section}] }`
 
-### New Optional Fields Added
-| Field | Type | Description |
-|-------|------|-------------|
-| reference_name | string | Reference person name |
-| consignee_name | string | Ship To name |
-| consignee_phone | string | Ship To phone |
-| consignee_address | string | Ship To address |
-| overall_remarks | string | Additional notes |
-| gst_percent | float | GST percentage (calculates gst_amount) |
+## What's Been Implemented (Feb 13, 2026)
 
-### Frontend Updates
-- ✅ Advanced Fields toggle in invoice form
-- ✅ Reference Name, GST %, Consignee section, Overall Remarks inputs
-- ✅ Real-time GST calculation in invoice summary
-- ✅ All fields optional and gracefully hidden if empty in PDF
+### Authentication System
+- ✅ Login/Logout flow for frontend application
+- ✅ Credentials: `Thetileshop` / `Vicky123`
 
-## API Endpoints
-- POST /api/invoices - Create invoice with optional fields
-- GET /api/invoices/{id}/pdf - Download PDF matching template
-- PUT /api/invoices/{id} - Update invoice
-- GET /api/invoices - List all invoices
+### PDF Generation System
+- ✅ Migrated from reportlab to WeasyPrint + Jinja2
+- ✅ HTML template (`invoice_template_new.html`) with:
+  - White background
+  - High-quality main logo (crisp, not blurry)
+  - Full-width tables with proper structure
+  - Section headers with brown background
+  - Section totals with beige background
+  - Highlighted Final Amount row
+  - Bank details table
+  - Terms & Conditions section
+  - 14 partner brand logos at bottom
 
-## Testing Status
-- ✅ All API endpoints tested (100% pass)
-- ✅ PDF generation verified with text extraction
-- ✅ Frontend UI tested (advanced fields toggle, form inputs)
-- ✅ GST calculation verified
+### Invoice Features
+- ✅ Buyer (Bill To) / Consignee (Ship To) sections
+- ✅ Item sections (KITCHEN, BATHROOM, etc.)
+- ✅ Rate per box / Rate per sqft columns
+- ✅ Discount percentage column
+- ✅ Transport and unloading charges
+- ✅ GST amount calculation
+- ✅ Overall remarks section
 
-## Next Action Items
-- None specified
+## Login Credentials
+- **Username**: `Thetileshop`
+- **Password**: `Vicky123`
 
-## Future/Backlog
-- Add tile images to PDF when uploaded
-- Multiple page PDF support for large invoices
-- Email invoice directly to customer
-- Inventory management integration
+## Known Issues & Solutions
+- **WeasyPrint dependency crash**: If backend fails to start, reinstall with:
+  ```bash
+  sudo apt-get install --reinstall libpangoft2-1.0-0 libpango-1.0-0 libpangocairo-1.0-0
+  ```
+
+## Future Tasks / Backlog
+- [ ] Delete obsolete PDF engine files (pdfEngine.js, pdfEngine.py)
+- [ ] Add product images to invoice items
+- [ ] Email invoice functionality
+- [ ] Invoice status tracking (Draft/Sent/Paid)
