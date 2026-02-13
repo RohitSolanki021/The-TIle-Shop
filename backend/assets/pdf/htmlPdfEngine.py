@@ -65,10 +65,17 @@ def _normalize_invoice_data(invoice: dict) -> dict:
     """
     Normalize invoice data for template rendering.
     """
-    # Flatten all line items into one list (no section grouping for this template)
-    all_items = []
+    # Group line items by location/section
+    sections_dict = {}
     
     for item in invoice.get('line_items', []):
+        location = item.get('location', 'Items')
+        if location not in sections_dict:
+            sections_dict[location] = {
+                'line_items': [],
+                'total': 0
+            }
+        
         # Format item data
         formatted_item = {
             'name': item.get('tile_name') or item.get('product_name', ''),
@@ -80,14 +87,18 @@ def _normalize_invoice_data(invoice: dict) -> dict:
             'amount': f"₹{item.get('final_amount', 0):,.2f}",
             'image': item.get('tile_image', '')
         }
-        all_items.append(formatted_item)
+        
+        sections_dict[location]['line_items'].append(formatted_item)
+        sections_dict[location]['total'] += item.get('final_amount', 0)
     
-    # Create a single section with all items
-    sections = [{
-        'name': 'All Items',
-        'line_items': all_items,
-        'total': f"{sum(item.get('final_amount', 0) for item in invoice.get('line_items', [])):,.2f}"
-    }]
+    # Convert to list format
+    sections = []
+    for name, section_data in sections_dict.items():
+        sections.append({
+            'name': name,
+            'line_items': section_data['line_items'],
+            'total': f"{section_data['total']:,.2f}"
+        })
     
     # Format date
     date = invoice.get('invoice_date')
