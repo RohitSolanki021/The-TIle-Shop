@@ -331,23 +331,14 @@
             page-break-inside: avoid;
         }
         
-        /* Brand Logos - 7 in first row, 7 in second row */
+        /* Brand Logos */
         .brand-logos {
-            display: block;
-            text-align: center;
-            padding: 12px 10px;
-        }
-        
-        .logo-row {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 12px;
-        }
-        
-        .logo-row:last-child {
-            margin-bottom: 0;
+            gap: 15px 20px;
+            padding: 15px 10px;
         }
         
         .brand-logos img {
