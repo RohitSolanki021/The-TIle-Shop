@@ -5,7 +5,7 @@
     <style>
         @page {
             size: A4;
-            margin: 10mm 12mm;
+            margin: 8mm 10mm;
         }
         
         * {
@@ -16,46 +16,59 @@
         
         body {
             font-family: Arial, sans-serif;
-            color: #000;
+            color: #5a3825;
             font-size: 10pt;
             background: #ffffff;
         }
         
-        .page-wrapper {
-            background: #ffffff;
-            min-height: 297mm;
+        /* Main Container with Border */
+        .main-container {
+            border: 1.5px solid #8b6914;
+            padding: 0;
         }
         
-        /* Quotation Title - Centered, Bold, Brown */
+        /* Quotation Title */
         .quotation-title {
             text-align: center;
-            font-size: 14pt;
+            font-size: 22pt;
             font-weight: bold;
             color: #5a3825;
-            margin-bottom: 12px;
+            padding: 8px 0;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
         }
         
-        /* Header with Logo */
-        .header-section {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
+        /* Header Table */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
         }
         
-        .left-with-logo {
+        .header-table td {
+            border: 1px solid #8b6914;
+            vertical-align: top;
+            padding: 8px 10px;
+        }
+        
+        .header-left {
+            width: 60%;
+        }
+        
+        .header-right {
+            width: 40%;
+        }
+        
+        /* Logo and Company Info */
+        .logo-company-wrapper {
             display: flex;
-            gap: 12px;
-            flex: 1;
+            align-items: flex-start;
+            gap: 10px;
         }
         
         .company-logo {
-            width: 140px;
+            width: 90px;
             height: auto;
             flex-shrink: 0;
-            background: #ffffff;
-            padding: 5px;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
         }
         
         .company-info {
@@ -63,129 +76,159 @@
         }
         
         .company-name {
-            font-size: 15pt;
+            font-size: 16pt;
             font-weight: bold;
-            margin-bottom: 1px;
+            color: #5a3825;
+            margin-bottom: 2px;
         }
         
         .company-subtitle {
-            font-size: 8.5pt;
+            font-size: 9pt;
+            color: #5a3825;
+            margin-bottom: 4px;
+        }
+        
+        .company-subtitle strong {
+            font-weight: bold;
+        }
+        
+        .company-address {
+            font-size: 9pt;
+            line-height: 1.4;
+            color: #5a3825;
             margin-bottom: 6px;
         }
         
-        .company-address, .company-contact {
-            font-size: 8.5pt;
-            line-height: 1.35;
-        }
-        
-        .right-info {
-            text-align: left;
+        .company-contact {
             font-size: 9pt;
-            line-height: 2;
-            min-width: 200px;
+            line-height: 1.5;
+            color: #5a3825;
         }
         
-        /* Customer Boxes - Proper Table Structure */
+        .company-contact strong {
+            font-weight: bold;
+        }
+        
+        /* Quotation Details (Right Side) */
+        .quotation-details {
+            font-size: 10pt;
+            color: #5a3825;
+        }
+        
+        .quotation-details .field {
+            border-bottom: 1px solid #8b6914;
+            padding: 12px 0;
+        }
+        
+        .quotation-details .field:last-child {
+            border-bottom: none;
+        }
+        
+        .quotation-details .field-label {
+            font-style: italic;
+            font-weight: normal;
+        }
+        
+        /* Customer Table */
         .customer-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
         }
         
         .customer-table td {
-            border: 1px solid #000;
-            padding: 8px 10px;
+            border: 1px solid #8b6914;
+            padding: 10px;
             vertical-align: top;
             width: 50%;
+            min-height: 80px;
         }
         
         .customer-title {
             font-weight: bold;
-            font-size: 9pt;
+            font-size: 10pt;
+            color: #5a3825;
             margin-bottom: 5px;
         }
         
         .customer-content {
-            font-size: 8.5pt;
+            font-size: 9pt;
             line-height: 1.4;
+            color: #5a3825;
         }
         
-        /* Table with Colors */
-        table {
+        /* Items Table */
+        .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
-            table-layout: fixed;
         }
         
-        th, td {
-            border: 1px solid #000;
+        .items-table th,
+        .items-table td {
+            border: 1px solid #8b6914;
             padding: 5px 4px;
             font-size: 8pt;
+            color: #5a3825;
+            text-align: center;
         }
         
-        thead th {
+        .items-table thead th {
             background: #d9d9d9;
             font-weight: bold;
-            text-align: center;
-            vertical-align: middle;
+            font-size: 8pt;
+            padding: 6px 3px;
         }
         
-        /* Section Headers - Brown background */
+        /* Column Widths - QUANTITY BEFORE RATES */
+        .col-sr { width: 4%; }
+        .col-name { width: 10%; text-align: left !important; }
+        .col-image { width: 8%; }
+        .col-size { width: 18%; }
+        .col-qty { width: 10%; }
+        .col-rate-box { width: 10%; }
+        .col-rate-sqft { width: 10%; }
+        .col-disc { width: 8%; }
+        .col-amount { width: 12%; text-align: right !important; }
+        
+        .item-image {
+            max-width: 40px;
+            max-height: 40px;
+            object-fit: contain;
+        }
+        
+        /* Section Header Row - Brown */
         .section-header-row {
             background: #8b6f47;
         }
         
         .section-header-row td {
-            color: white;
+            color: white !important;
             font-weight: bold;
             text-align: center;
-            padding: 7px;
-            font-size: 9.5pt;
+            padding: 6px;
+            font-size: 9pt;
         }
         
-        /* Section Total - Beige/Cream background */
+        /* Section Total Row - Beige */
         .section-total-row {
             background: #f5e6d3;
         }
         
         .section-total-row td {
             font-weight: bold;
-            padding: 6px 8px;
+            padding: 5px 8px;
         }
         
-        /* Items table column widths */
-        .items-table .col-sr { width: 5%; text-align: center; }
-        .items-table .col-name { width: 12%; text-align: left; }
-        .items-table .col-image { width: 10%; text-align: center; }
-        .items-table .col-size { width: 20%; text-align: center; }
-        .items-table .col-rate-box { width: 10%; text-align: center; }
-        .items-table .col-rate-sqft { width: 10%; text-align: center; }
-        .items-table .col-qty { width: 10%; text-align: center; }
-        .items-table .col-disc { width: 8%; text-align: center; }
-        .items-table .col-amount { width: 15%; text-align: right; }
-        
-        .item-image {
-            max-width: 48px;
-            max-height: 48px;
-            object-fit: contain;
-        }
-        
-        /* Totals Section - Full Width Table */
-        .totals-wrapper {
-            margin-bottom: 10px;
-            width: 100%;
-        }
-        
+        /* Totals Table */
         .totals-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
         }
         
         .totals-table td {
-            padding: 6px 10px;
+            border: 1px solid #8b6914;
+            padding: 5px 8px;
             font-size: 9pt;
+            color: #5a3825;
         }
         
         .totals-table .spacer-cell {
@@ -194,30 +237,31 @@
         }
         
         .totals-table .total-label {
-            border: 1px solid #000;
             text-align: right;
             font-weight: normal;
-            background: #ffffff;
         }
         
         .totals-table .total-value {
-            border: 1px solid #000;
             text-align: right;
             font-weight: bold;
-            background: #ffffff;
         }
         
-        /* Bank Details - Proper Table Structure */
+        .totals-table .final-row td {
+            background: #f5e6d3;
+            font-weight: bold;
+        }
+        
+        /* Bank Details Table */
         .bank-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
         }
         
         .bank-table td {
-            border: 1px solid #000;
+            border: 1px solid #8b6914;
             padding: 6px 8px;
             font-size: 8pt;
+            color: #5a3825;
             width: 20%;
         }
         
@@ -227,39 +271,43 @@
             margin-bottom: 2px;
         }
         
-        /* Remarks - Proper Table Structure */
+        /* Remarks Table */
         .remarks-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
         }
         
         .remarks-table td {
-            border: 1px solid #000;
+            border: 1px solid #8b6914;
             padding: 8px 10px;
             font-size: 8pt;
+            color: #5a3825;
         }
         
-        .remarks-title-cell {
+        .remarks-title {
             font-weight: bold;
             font-size: 9pt;
         }
         
-        /* Terms */
+        /* Terms Section */
         .terms-section {
-            margin-bottom: 14px;
+            padding: 8px 10px;
+            border: 1px solid #8b6914;
+            border-top: none;
         }
         
         .terms-title {
             font-weight: bold;
             font-size: 10pt;
+            color: #5a3825;
             margin-bottom: 5px;
         }
         
         .terms-section ol {
             margin-left: 18px;
             font-size: 7.5pt;
-            line-height: 1.55;
+            line-height: 1.5;
+            color: #5a3825;
         }
         
         /* Brand Logos */
@@ -268,224 +316,231 @@
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            gap: 13px 20px;
-            margin-bottom: 6px;
+            gap: 10px 15px;
+            padding: 8px 10px;
+            border: 1px solid #8b6914;
+            border-top: none;
         }
         
         .brand-logos img {
-            height: 44px;
+            height: 38px;
             width: auto;
             object-fit: contain;
         }
     </style>
 </head>
 <body>
-    <!-- Quotation Title - Centered, Bold, Brown -->
-    <div class="quotation-title">Quotation</div>
-    
-    <!-- Header Section with Logo -->
-    <div class="header-section">
-        <div class="left-with-logo">
-            <img src="{{ logos.main_logo }}" class="company-logo" alt="Logo">
-            <div class="company-info">
-                <div class="company-name">THE TILE SHOP</div>
-                <div class="company-subtitle">A Subsidary of SHREE SONANA SHETRPAL CERAMIC</div>
-                <div class="company-address">
-                    S No. 19, Shop No. 2,<br>
-                    Near Pravin Electronics, Pune Saswad Road,<br>
-                    Gondhale Nagar, Hadapsar, Pune - 411028
-                </div>
-                <div class="company-contact">
-                    Contact: +91 879 601 5150 / +91 702 099 8244<br>
-                    Email: thetileshoppune@gmail.com<br>
-                    GSTIN: 27ALBPJ3478P1ZJ
-                </div>
-            </div>
-        </div>
-        <div class="right-info">
-            <div>Quotation No. : {{ quotation_no }}</div>
-            <div>Date : {{ date }}</div>
-            {% if reference_name %}
-            <div>Reference Name : {{ reference_name }}</div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Customer Boxes as Proper Table -->
-    <table class="customer-table">
-        <tr>
-            <td>
-                <div class="customer-title">Buyer (Bill To):</div>
-                <div class="customer-content">
-                    <strong>{{ buyer.name }}</strong><br>
-                    {{ buyer.phone }}<br>
-                    {{ buyer.address }}<br>
-                    {% if buyer.gstin %}GSTIN: {{ buyer.gstin }}{% endif %}
-                </div>
-            </td>
-            <td>
-                <div class="customer-title">Consignee (Ship To):</div>
-                <div class="customer-content">
-                    <strong>{{ consignee.name }}</strong><br>
-                    {{ consignee.phone }}<br>
-                    {{ consignee.address }}
-                </div>
-            </td>
-        </tr>
-    </table>
-    
-    <!-- Items Table with Colored Sections -->
-    <table class="items-table">
-        <thead>
+    <div class="main-container">
+        <!-- Quotation Title -->
+        <div class="quotation-title">Quotation</div>
+        
+        <!-- Header Section -->
+        <table class="header-table">
             <tr>
-                <th class="col-sr">SR<br>NO.</th>
-                <th class="col-name">NAME</th>
-                <th class="col-image">IMAGE</th>
-                <th class="col-size">SIZE</th>
-                <th class="col-rate-box">RATE /<br>BOX</th>
-                <th class="col-rate-sqft">RATE /<br>SQFT</th>
-                <th class="col-qty">QUANTITY</th>
-                <th class="col-disc">DISC. (%)</th>
-                <th class="col-amount">AMOUNT</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% set sr = namespace(value=1) %}
-            {% for section in sections %}
-            <!-- Section Header - Brown Background -->
-            <tr class="section-header-row">
-                <td colspan="9">{{ section.name }}</td>
-            </tr>
-            <!-- Section Items -->
-            {% for item in section.line_items %}
-            <tr>
-                <td class="col-sr">{{ sr.value }}</td>
-                <td class="col-name">{{ item.name }}</td>
-                <td class="col-image">
-                    {% if item.image %}
-                    <img src="{{ item.image }}" class="item-image" alt="">
-                    {% endif %}
+                <td class="header-left">
+                    <div class="logo-company-wrapper">
+                        <img src="{{ logos.main_logo }}" class="company-logo" alt="Logo">
+                        <div class="company-info">
+                            <div class="company-name">THE TILE SHOP</div>
+                            <div class="company-subtitle">A Subsidiary of <strong>SHREE SONANA SHETRPAL</strong></div>
+                            <div class="company-subtitle"><strong>CERAMIC</strong></div>
+                            <div class="company-address">
+                                S No. 19, Shop No. 2,<br>
+                                Near Pravin Electronics, Pune Saswad Road,<br>
+                                Gondhale Nagar, Hadapsar, Pune - 411028
+                            </div>
+                            <div class="company-contact">
+                                <strong>Email:</strong> thetileshoppune@gmail.com<br>
+                                <strong>GSTIN:</strong> 27AAFFESDH324GN<br>
+                                <strong>PAN:</strong> 27AAFFESDH
+                            </div>
+                        </div>
+                    </div>
                 </td>
-                <td class="col-size">{{ item.size }}</td>
-                <td class="col-rate-box">{{ item.rate_box }}</td>
-                <td class="col-rate-sqft">{{ item.rate_sqft }}</td>
-                <td class="col-qty">{{ item.qty }}</td>
-                <td class="col-disc">{{ item.disc }}</td>
-                <td class="col-amount">{{ item.amount }}</td>
+                <td class="header-right">
+                    <div class="quotation-details">
+                        <div class="field"><span class="field-label">Quotation No. :</span> {{ quotation_no }}</div>
+                        <div class="field"><span class="field-label">Date :</span> {{ date }}</div>
+                        <div class="field"><span class="field-label">Reference Name :</span> {{ reference_name }}</div>
+                    </div>
+                </td>
             </tr>
-            {% set sr.value = sr.value + 1 %}
-            {% endfor %}
-            <!-- Section Total - Beige Background -->
-            <tr class="section-total-row">
-                <td colspan="8" style="text-align: right; padding-right: 12px;">{{ section.name }}'s Total Amount :</td>
-                <td class="col-amount">₹{{ section.total }}</td>
+        </table>
+        
+        <!-- Buyer / Consignee Section -->
+        <table class="customer-table">
+            <tr>
+                <td>
+                    <div class="customer-title">Buyer (Bill To):</div>
+                    <div class="customer-content">
+                        <strong>{{ buyer.name }}</strong><br>
+                        {{ buyer.phone }}<br>
+                        {{ buyer.address }}<br>
+                        {% if buyer.gstin %}GSTIN: {{ buyer.gstin }}{% endif %}
+                    </div>
+                </td>
+                <td>
+                    <div class="customer-title">Consignee (Ship To):</div>
+                    <div class="customer-content">
+                        <strong>{{ consignee.name }}</strong><br>
+                        {{ consignee.phone }}<br>
+                        {{ consignee.address }}
+                    </div>
+                </td>
             </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
-    <!-- Totals Section - Full Width Table (aligned to right) -->
-    <table class="totals-table" style="margin-top: -1px;">
-        <colgroup>
-            <col style="width: 55%;">
-            <col style="width: 25%;">
-            <col style="width: 20%;">
-        </colgroup>
-        <tr>
-            <td class="spacer-cell"></td>
-            <td class="total-label">Total Amount :</td>
-            <td class="total-value">₹{{ subtotal }}</td>
-        </tr>
-        <tr>
-            <td class="spacer-cell"></td>
-            <td class="total-label">Transport Charges :</td>
-            <td class="total-value">₹{{ charges.transport }}</td>
-        </tr>
-        <tr>
-            <td class="spacer-cell"></td>
-            <td class="total-label">Unloading Charges :</td>
-            <td class="total-value">₹{{ charges.unloading }}</td>
-        </tr>
-        <tr>
-            <td class="spacer-cell"></td>
-            <td class="total-label">GST Amount :</td>
-            <td class="total-value">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
-        </tr>
-        <tr>
-            <td class="spacer-cell"></td>
-            <td class="total-label" style="font-weight: bold; background: #f5e6d3;">Final Amount :</td>
-            <td class="total-value" style="background: #f5e6d3;">₹{{ grand_total }}</td>
-        </tr>
-    </table>
-    
-    <!-- Bank Details - Proper Table -->
-    <table class="bank-table">
-        <tr>
-            <td>
-                <span class="bank-label">Account Name:</span>
-                SHREE SONANA SHETRPAL CERAMIC
-            </td>
-            <td>
-                <span class="bank-label">Bank Name:</span>
-                HDFC BANK
-            </td>
-            <td>
-                <span class="bank-label">Account No.:</span>
-                50200069370271
-            </td>
-            <td>
-                <span class="bank-label">IFSC:</span>
-                HDFC0005291
-            </td>
-            <td>
-                <span class="bank-label">Branch:</span>
-                HYDE PARK
-            </td>
-        </tr>
-    </table>
-    
-    <!-- Remarks - Proper Table -->
-    <table class="remarks-table">
-        <tr>
-            <td class="remarks-title-cell">Overall Remarks :</td>
-        </tr>
-        <tr>
-            <td>{{ remarks or '' }}</td>
-        </tr>
-    </table>
-    
-    <!-- Terms & Conditions -->
-    <div class="terms-section">
-        <div class="terms-title">TERMS & CONDITION</div>
-        <ol>
-            <li>Payment: 100% Advance</li>
-            <li>2% Breakage mandatory</li>
-            <li>Delivery: 8-10 days as per availability.</li>
-            <li>Quotation Price valid for fifteen days.</li>
-            <li>Goods once sold will not be taken back or exchanged.</li>
-            <li>Quality complaints will not be entertained unless laid as instructed.</li>
-            <li>We are not responsible for any damage during transit.</li>
-            <li>Batch wise variation is inherent characteristic of ceramic, NO COMPLAINTS WILL BE ENTERTAINED AFTER INSTALLATION OF TILES.</li>
-            <li>Our responsibility ceases after the dispatch of goods from our premises.</li>
-        </ol>
-    </div>
-    
-    <!-- Brand Logos -->
-    <div class="brand-logos">
-        <img src="{{ logos.brand_01 }}" alt="">
-        <img src="{{ logos.brand_02 }}" alt="">
-        <img src="{{ logos.brand_03 }}" alt="">
-        <img src="{{ logos.brand_04 }}" alt="">
-        <img src="{{ logos.brand_05 }}" alt="">
-        <img src="{{ logos.brand_06 }}" alt="">
-        <img src="{{ logos.brand_07 }}" alt="">
-        <img src="{{ logos.brand_08 }}" alt="">
-        <img src="{{ logos.brand_09 }}" alt="">
-        <img src="{{ logos.brand_10 }}" alt="">
-        <img src="{{ logos.brand_11 }}" alt="">
-        <img src="{{ logos.brand_12 }}" alt="">
-        <img src="{{ logos.brand_13 }}" alt="">
-        <img src="{{ logos.brand_14 }}" alt="">
+        </table>
+        
+        <!-- Items Table - QUANTITY BEFORE RATES, NUMBERING RESETS PER SECTION -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="col-sr">SR<br>NO.</th>
+                    <th class="col-name">NAME</th>
+                    <th class="col-image">IMAGE</th>
+                    <th class="col-size">SIZE</th>
+                    <th class="col-qty">QUANTITY</th>
+                    <th class="col-rate-box">RATE /<br>BOX</th>
+                    <th class="col-rate-sqft">RATE /<br>SQFT</th>
+                    <th class="col-disc">DISC.<br>(%)</th>
+                    <th class="col-amount">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for section in sections %}
+                <!-- Section Header -->
+                <tr class="section-header-row">
+                    <td colspan="9">{{ section.name }}</td>
+                </tr>
+                <!-- Section Items - Numbering starts from 1 for each section -->
+                {% for item in section.line_items %}
+                <tr>
+                    <td class="col-sr">{{ loop.index }}</td>
+                    <td class="col-name">{{ item.name }}</td>
+                    <td class="col-image">
+                        {% if item.image %}
+                        <img src="{{ item.image }}" class="item-image" alt="">
+                        {% endif %}
+                    </td>
+                    <td class="col-size">{{ item.size }}</td>
+                    <td class="col-qty">{{ item.qty }}</td>
+                    <td class="col-rate-box">{{ item.rate_box }}</td>
+                    <td class="col-rate-sqft">{{ item.rate_sqft }}</td>
+                    <td class="col-disc">{{ item.disc }}</td>
+                    <td class="col-amount">{{ item.amount }}</td>
+                </tr>
+                {% endfor %}
+                <!-- Section Total -->
+                <tr class="section-total-row">
+                    <td colspan="8" style="text-align: right; padding-right: 10px;">{{ section.name }}'s Total Amount :</td>
+                    <td class="col-amount">₹{{ section.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Totals Section -->
+        <table class="totals-table">
+            <colgroup>
+                <col style="width: 58%;">
+                <col style="width: 22%;">
+                <col style="width: 20%;">
+            </colgroup>
+            <tr>
+                <td class="spacer-cell"></td>
+                <td class="total-label">Total Amount :</td>
+                <td class="total-value">₹{{ subtotal }}</td>
+            </tr>
+            <tr>
+                <td class="spacer-cell"></td>
+                <td class="total-label">Transport Charges :</td>
+                <td class="total-value">₹{{ charges.transport }}</td>
+            </tr>
+            <tr>
+                <td class="spacer-cell"></td>
+                <td class="total-label">Unloading Charges :</td>
+                <td class="total-value">₹{{ charges.unloading }}</td>
+            </tr>
+            <tr>
+                <td class="spacer-cell"></td>
+                <td class="total-label">GST Amount :</td>
+                <td class="total-value">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
+            </tr>
+            <tr class="final-row">
+                <td class="spacer-cell"></td>
+                <td class="total-label">Final Amount :</td>
+                <td class="total-value">₹{{ grand_total }}</td>
+            </tr>
+        </table>
+        
+        <!-- Bank Details -->
+        <table class="bank-table">
+            <tr>
+                <td>
+                    <span class="bank-label">Account Name:</span>
+                    SHREE SONANA SHETRPAL CERAMIC
+                </td>
+                <td>
+                    <span class="bank-label">Bank Name:</span>
+                    HDFC BANK
+                </td>
+                <td>
+                    <span class="bank-label">Account No.:</span>
+                    50200069370271
+                </td>
+                <td>
+                    <span class="bank-label">IFSC:</span>
+                    HDFC0005291
+                </td>
+                <td>
+                    <span class="bank-label">Branch:</span>
+                    HYDE PARK
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Remarks -->
+        <table class="remarks-table">
+            <tr>
+                <td><span class="remarks-title">Overall Remarks :</span></td>
+            </tr>
+            <tr>
+                <td>{{ remarks or '' }}</td>
+            </tr>
+        </table>
+        
+        <!-- Terms & Conditions -->
+        <div class="terms-section">
+            <div class="terms-title">TERMS & CONDITION</div>
+            <ol>
+                <li>Payment: 100% Advance</li>
+                <li>2% Breakage mandatory</li>
+                <li>Delivery: 8-10 days as per availability.</li>
+                <li>Quotation Price valid for fifteen days.</li>
+                <li>Goods once sold will not be taken back or exchanged.</li>
+                <li>Quality complaints will not be entertained unless laid as instructed.</li>
+                <li>We are not responsible for any damage during transit.</li>
+                <li>Batch wise variation is inherent characteristic of ceramic, NO COMPLAINTS WILL BE ENTERTAINED AFTER INSTALLATION OF TILES.</li>
+                <li>Our responsibility ceases after the dispatch of goods from our premises.</li>
+            </ol>
+        </div>
+        
+        <!-- Brand Logos -->
+        <div class="brand-logos">
+            <img src="{{ logos.brand_01 }}" alt="">
+            <img src="{{ logos.brand_02 }}" alt="">
+            <img src="{{ logos.brand_03 }}" alt="">
+            <img src="{{ logos.brand_04 }}" alt="">
+            <img src="{{ logos.brand_05 }}" alt="">
+            <img src="{{ logos.brand_06 }}" alt="">
+            <img src="{{ logos.brand_07 }}" alt="">
+            <img src="{{ logos.brand_08 }}" alt="">
+            <img src="{{ logos.brand_09 }}" alt="">
+            <img src="{{ logos.brand_10 }}" alt="">
+            <img src="{{ logos.brand_11 }}" alt="">
+            <img src="{{ logos.brand_12 }}" alt="">
+            <img src="{{ logos.brand_13 }}" alt="">
+            <img src="{{ logos.brand_14 }}" alt="">
+        </div>
     </div>
 </body>
 </html>
