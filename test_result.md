@@ -256,15 +256,18 @@ backend:
 
   - task: "Delete Invoice Functionality"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/App.js (line 1285-1293), backend/server.py (line 694-714)"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag, recalculates customer pending balance. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "VERIFIED: Delete Invoice functionality fully working. Created complete test invoice (TTS / 003 / 2025-26) with customer and line items ✅ Invoice appeared in GET /invoices list before deletion ✅ Customer pending balance tracked (₹1,585.00) ✅ DELETE /invoices/{invoice_id} returned success (URL-encoded 'TTS / 003 / 2025-26') ✅ Invoice properly soft-deleted (deleted: True flag set) ✅ Invoice no longer appears in GET /invoices list ✅ Customer's total_pending correctly recalculated to ₹0.00 after invoice deletion ✅ DELETE returns 404 for non-existent invoice ✅ All 10 tests passed. Soft delete and customer balance recalculation working perfectly."
 
 frontend:
   - task: "Dashboard Icons WHITE"
