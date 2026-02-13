@@ -317,14 +317,37 @@
             color: #5a3825;
         }
         
-        /* Brand Logos - No border */
+        /* Page break handling - ensure complete borders */
+        .terms-section, .bank-table, .remarks-table {
+            page-break-inside: avoid;
+        }
+        
+        /* If tables must break, ensure borders on both sides */
+        table {
+            border-collapse: collapse;
+        }
+        
+        tr {
+            page-break-inside: avoid;
+        }
+        
+        /* Brand Logos - 8 in first row, 7 in second row */
         .brand-logos {
+            display: block;
+            text-align: center;
+            padding: 12px 10px;
+        }
+        
+        .logo-row {
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            gap: 10px 15px;
-            padding: 8px 10px;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .logo-row:last-child {
+            margin-bottom: 0;
         }
         
         .brand-logos img {
