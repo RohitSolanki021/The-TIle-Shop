@@ -76,15 +76,15 @@ def _normalize_invoice_data(invoice: dict) -> dict:
                 'total': 0
             }
         
-        # Format item data
+        # Format item data - All amounts rounded off
         formatted_item = {
             'name': item.get('tile_name') or item.get('product_name', ''),
             'size': item.get('size', ''),
-            'rate_box': f"₹{item.get('rate_per_box', 0):.2f}",
-            'rate_sqft': f"₹{item.get('rate_per_sqft', 0):.2f}",
+            'rate_box': f"₹{round(item.get('rate_per_box', 0)):,}",
+            'rate_sqft': f"₹{round(item.get('rate_per_sqft', 0)):,}",
             'qty': f"{item.get('box_qty', 0)} box",
             'disc': f"{round(item.get('discount_percent', 0))}%",
-            'amount': f"₹{item.get('final_amount', 0):,.2f}",
+            'amount': f"₹{round(item.get('final_amount', 0)):,}",
             'image': item.get('tile_image', '')
         }
         
@@ -97,7 +97,7 @@ def _normalize_invoice_data(invoice: dict) -> dict:
         sections.append({
             'name': name,
             'line_items': section_data['line_items'],
-            'total': f"{section_data['total']:,.2f}"
+            'total': f"{round(section_data['total']):,}"
         })
     
     # Format date
