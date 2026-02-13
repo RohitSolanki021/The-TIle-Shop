@@ -21,6 +21,11 @@
             background: #fef7f7;
         }
         
+        .page-wrapper {
+            background: #fef7f7;
+            min-height: 297mm;
+        }
+        
         /* Quotation Title - Centered, Bold, Brown */
         .quotation-title {
             text-align: center;
@@ -44,9 +49,11 @@
         }
         
         .company-logo {
-            width: 90px;
+            width: 150px;
             height: auto;
             flex-shrink: 0;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         
         .company-info {
@@ -76,7 +83,7 @@
             min-width: 200px;
         }
         
-        /* Customer Boxes */
+        /* Customer Boxes - No borders, background color */
         .customer-row {
             display: flex;
             gap: 10px;
@@ -85,16 +92,17 @@
         
         .customer-box {
             flex: 1;
-            border: 1.5px solid #000;
-            padding: 7px 9px;
+            padding: 8px 0;
             min-height: 78px;
-            background: #fefefe;
+            background: transparent;
         }
         
         .customer-title {
             font-weight: bold;
             font-size: 9pt;
             margin-bottom: 5px;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #000;
         }
         
         .customer-content {
@@ -191,18 +199,20 @@
             width: 35%;
         }
         
-        /* Bank Details - Single Row */
+        /* Bank Details - No box border, just separators */
         .bank-details-row {
             display: flex;
-            border: 1.5px solid #000;
             margin-bottom: 10px;
-            background: #fefefe;
+            background: transparent;
+            padding: 8px 0;
+            border-top: 1.5px solid #000;
+            border-bottom: 1.5px solid #000;
         }
         
         .bank-cell {
             flex: 1;
             padding: 6px 8px;
-            border-right: 1px solid #000;
+            border-right: 1px solid #999;
             font-size: 8pt;
         }
         
@@ -216,7 +226,7 @@
             margin-bottom: 2px;
         }
         
-        /* Remarks */
+        /* Remarks - No border */
         .remarks-section {
             margin-bottom: 10px;
         }
@@ -225,14 +235,15 @@
             font-weight: bold;
             font-size: 9pt;
             margin-bottom: 3px;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #000;
         }
         
         .remarks-box {
-            border: 1.5px solid #000;
-            padding: 7px 9px;
+            padding: 7px 0;
             min-height: 38px;
             font-size: 8pt;
-            background: #fefefe;
+            background: transparent;
         }
         
         /* Terms */
