@@ -162,11 +162,11 @@ def _normalize_invoice_data(invoice: dict) -> dict:
         },
         'sections': sections,
         'charges': {
-            'transport': f"{round(invoice.get('transport_charges', 0)):,}",
-            'unloading': f"{round(invoice.get('unloading_charges', 0)):,}"
+            'transport': format_indian_currency(invoice.get('transport_charges', 0)).replace('₹', ''),
+            'unloading': format_indian_currency(invoice.get('unloading_charges', 0)).replace('₹', '')
         },
-        'subtotal': f"{round(invoice.get('subtotal', 0)):,}",
+        'subtotal': format_indian_currency(invoice.get('subtotal', 0)).replace('₹', ''),
         'gst_amount': invoice.get('gst_amount', 0),
-        'grand_total': f"{round(invoice.get('grand_total', 0)):,}",
+        'grand_total': format_indian_currency(invoice.get('grand_total', 0)).replace('₹', ''),
         'remarks': invoice.get('overall_remarks', '')
     }
