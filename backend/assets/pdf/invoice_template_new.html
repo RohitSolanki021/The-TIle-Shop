@@ -22,16 +22,24 @@
         }
         
         /* Header Section */
-        .quotation-title {
-            text-align: right;
-            font-size: 11pt;
-            margin-bottom: 8px;
-        }
-        
         .header-row {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 12px;
+        }
+        
+        .logo-and-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            flex: 1;
+        }
+        
+        .company-logo {
+            width: 100px;
+            height: auto;
+            flex-shrink: 0;
         }
         
         .left-section {
@@ -252,18 +260,21 @@
     
     <!-- Header Row -->
     <div class="header-row">
-        <div class="left-section">
-            <div class="company-name">THE TILE SHOP</div>
-            <div class="company-subtitle">A Subsidary of SHREE SONANA SHETRPAL CERAMIC</div>
-            <div class="company-address">
-                S No. 19, Shop No. 2,<br>
-                Near Pravin Electronics, Pune Saswad Road,<br>
-                Gondhale Nagar, Hadapsar, Pune - 411028
-            </div>
-            <div class="company-contact">
-                Contact: +91 879 601 5150 / +91 702 099 8244<br>
-                Email: thetileshoppune@gmail.com<br>
-                GSTIN: 27ALBPJ3478P1ZJ
+        <div class="logo-and-info">
+            <img src="{{ logos.main_logo }}" class="company-logo" alt="The Tile Shop">
+            <div class="left-section">
+                <div class="company-name">THE TILE SHOP</div>
+                <div class="company-subtitle">A Subsidary of SHREE SONANA SHETRPAL CERAMIC</div>
+                <div class="company-address">
+                    S No. 19, Shop No. 2,<br>
+                    Near Pravin Electronics, Pune Saswad Road,<br>
+                    Gondhale Nagar, Hadapsar, Pune - 411028
+                </div>
+                <div class="company-contact">
+                    Contact: +91 879 601 5150 / +91 702 099 8244<br>
+                    Email: thetileshoppune@gmail.com<br>
+                    GSTIN: 27ALBPJ3478P1ZJ
+                </div>
             </div>
         </div>
         <div class="right-section">
@@ -296,7 +307,7 @@
         </div>
     </div>
     
-    <!-- Items Table -->
+    <!-- Items Table with Sections -->
     <table>
         <thead>
             <tr>
@@ -314,6 +325,11 @@
         <tbody>
             {% set sr = namespace(value=1) %}
             {% for section in sections %}
+            <!-- Section Header Row -->
+            <tr>
+                <td colspan="9" class="section-header">{{ section.name }}</td>
+            </tr>
+            <!-- Section Items -->
             {% for item in section.line_items %}
             <tr>
                 <td class="col-sr">{{ sr.value }}</td>
@@ -332,6 +348,11 @@
             </tr>
             {% set sr.value = sr.value + 1 %}
             {% endfor %}
+            <!-- Section Total Row -->
+            <tr class="section-total-row">
+                <td colspan="8" style="text-align: right; padding-right: 10px;">{{ section.name }}'s Total Amount:</td>
+                <td class="col-amount">₹{{ section.total }}</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
