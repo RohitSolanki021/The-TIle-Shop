@@ -43,7 +43,7 @@ def generate_invoice_pdf_html(invoice: dict, output_path: str) -> str:
         # Setup Jinja2 environment
         logger.info(f"Loading template from: {TEMPLATE_DIR}")
         env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
-        template = env.get_template('invoice_template.html')
+        template = env.get_template('invoice_template_new.html')
         
         # Render HTML
         logger.info("Rendering HTML template...")
@@ -65,40 +65,29 @@ def _normalize_invoice_data(invoice: dict) -> dict:
     """
     Normalize invoice data for template rendering.
     """
-    # Group line items by location/section
-    sections_dict = {}
+    # Flatten all line items into one list (no section grouping for this template)
+    all_items = []
     
     for item in invoice.get('line_items', []):
-        location = item.get('location', 'Items')
-        if location not in sections_dict:
-            sections_dict[location] = {
-                'line_items': [],
-                'total': 0
-            }
-        
         # Format item data
         formatted_item = {
             'name': item.get('tile_name') or item.get('product_name', ''),
             'size': item.get('size', ''),
-            'rate_box': f"{item.get('rate_per_box', 0):.2f}",
-            'rate_sqft': f"{item.get('rate_per_sqft', 0):.2f}",
+            'rate_box': f"₹{item.get('rate_per_box', 0):.2f}",
+            'rate_sqft': f"₹{item.get('rate_per_sqft', 0):.2f}",
             'qty': f"{item.get('box_qty', 0)} box",
-            'disc': f"{round(item.get('discount_percent', 0))}",
-            'amount': f"{item.get('final_amount', 0):,.2f}",
+            'disc': f"{round(item.get('discount_percent', 0))}%",
+            'amount': f"₹{item.get('final_amount', 0):,.2f}",
             'image': item.get('tile_image', '')
         }
-        
-        sections_dict[location]['line_items'].append(formatted_item)
-        sections_dict[location]['total'] += item.get('final_amount', 0)
+        all_items.append(formatted_item)
     
-    # Convert to list format
-    sections = []
-    for name, section_data in sections_dict.items():
-        sections.append({
-            'name': name,
-            'line_items': section_data['line_items'],
-            'total': f"{section_data['total']:,.2f}"
-        })
+    # Create a single section with all items
+    sections = [{
+        'name': 'All Items',
+        'line_items': all_items,
+        'total': f"{sum(item.get('final_amount', 0) for item in invoice.get('line_items', [])):,.2f}"
+    }]
     
     # Format date
     date = invoice.get('invoice_date')
