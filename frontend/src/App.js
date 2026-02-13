@@ -388,6 +388,7 @@ function TilesManagement({ tiles, fetchTiles }) {
   // Combined sizes for dropdown (standard + existing custom)
   const allSizes = useMemo(() => {
     return [...STANDARD_SIZES, ...existingSizes];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingSizes]);
 
   const handleSubmit = async (e) => {
