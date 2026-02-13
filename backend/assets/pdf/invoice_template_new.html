@@ -18,11 +18,11 @@
             font-family: Arial, sans-serif;
             color: #000;
             font-size: 10pt;
-            background: #fef7f7;
+            background: #ffffff;
         }
         
         .page-wrapper {
-            background: #fef7f7;
+            background: #ffffff;
             min-height: 297mm;
         }
         
@@ -49,7 +49,7 @@
         }
         
         .company-logo {
-            width: 150px;
+            width: 180px;
             height: auto;
             flex-shrink: 0;
             image-rendering: -webkit-optimize-contrast;
@@ -83,26 +83,24 @@
             min-width: 200px;
         }
         
-        /* Customer Boxes - No borders, background color */
-        .customer-row {
-            display: flex;
-            gap: 10px;
+        /* Customer Boxes - Proper Table Structure */
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-bottom: 10px;
         }
         
-        .customer-box {
-            flex: 1;
-            padding: 8px 0;
-            min-height: 78px;
-            background: transparent;
+        .customer-table td {
+            border: 1px solid #000;
+            padding: 8px 10px;
+            vertical-align: top;
+            width: 50%;
         }
         
         .customer-title {
             font-weight: bold;
             font-size: 9pt;
             margin-bottom: 5px;
-            padding-bottom: 3px;
-            border-bottom: 1.5px solid #000;
         }
         
         .customer-content {
@@ -169,10 +167,8 @@
             object-fit: contain;
         }
         
-        /* Totals Section - Integrated in flow */
-        .totals-section {
-            width: 280px;
-            margin-left: auto;
+        /* Totals Section - Proper Table, Flows After Items */
+        .totals-wrapper {
             margin-bottom: 10px;
         }
         
@@ -187,37 +183,35 @@
             font-size: 9pt;
         }
         
+        .spacer-cell {
+            border: none;
+            background: transparent;
+        }
+        
         .total-label {
             text-align: right;
             font-weight: normal;
-            width: 65%;
+            width: 20%;
         }
         
         .total-value {
             text-align: right;
             font-weight: bold;
-            width: 35%;
+            width: 15%;
         }
         
-        /* Bank Details - No box border, just separators */
-        .bank-details-row {
-            display: flex;
+        /* Bank Details - Proper Table Structure */
+        .bank-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-bottom: 10px;
-            background: transparent;
-            padding: 8px 0;
-            border-top: 1.5px solid #000;
-            border-bottom: 1.5px solid #000;
         }
         
-        .bank-cell {
-            flex: 1;
+        .bank-table td {
+            border: 1px solid #000;
             padding: 6px 8px;
-            border-right: 1px solid #999;
             font-size: 8pt;
-        }
-        
-        .bank-cell:last-child {
-            border-right: none;
+            width: 20%;
         }
         
         .bank-label {
@@ -226,24 +220,22 @@
             margin-bottom: 2px;
         }
         
-        /* Remarks - No border */
-        .remarks-section {
+        /* Remarks - Proper Table Structure */
+        .remarks-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-bottom: 10px;
         }
         
-        .remarks-title {
-            font-weight: bold;
-            font-size: 9pt;
-            margin-bottom: 3px;
-            padding-bottom: 3px;
-            border-bottom: 1.5px solid #000;
+        .remarks-table td {
+            border: 1px solid #000;
+            padding: 8px 10px;
+            font-size: 8pt;
         }
         
-        .remarks-box {
-            padding: 7px 0;
-            min-height: 38px;
-            font-size: 8pt;
-            background: transparent;
+        .remarks-title-cell {
+            font-weight: bold;
+            font-size: 9pt;
         }
         
         /* Terms */
