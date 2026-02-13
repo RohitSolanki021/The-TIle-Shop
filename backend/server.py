@@ -600,7 +600,7 @@ async def get_invoices():
         logger.error(f"Error fetching invoices: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/invoices/{invoice_id}", response_model=Invoice)
+@api_router.get("/invoices/{invoice_id:path}", response_model=Invoice)
 async def get_invoice(invoice_id: str):
     """Get a specific invoice"""
     try:
@@ -622,7 +622,7 @@ async def get_invoice(invoice_id: str):
         logger.error(f"Error fetching invoice: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.put("/invoices/{invoice_id}", response_model=Invoice)
+@api_router.put("/invoices/{invoice_id:path}", response_model=Invoice)
 async def update_invoice(invoice_id: str, invoice_update: InvoiceUpdate):
     """Update an invoice (block if status is Paid)"""
     try:
