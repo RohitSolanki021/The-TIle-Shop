@@ -19,6 +19,39 @@ logger = logging.getLogger(__name__)
 TEMPLATE_DIR = Path(__file__).parent
 
 
+def format_indian_currency(amount):
+    """
+    Format number in Indian style (e.g., 1,23,456.00)
+    Indian format: last 3 digits, then groups of 2
+    """
+    amount = float(amount)
+    is_negative = amount < 0
+    amount = abs(amount)
+    
+    # Split into integer and decimal parts
+    int_part = int(amount)
+    decimal_part = f"{amount - int_part:.2f}"[1:]  # Gets .00 part
+    
+    # Convert to string and format
+    int_str = str(int_part)
+    
+    if len(int_str) <= 3:
+        formatted = int_str
+    else:
+        # Last 3 digits
+        last_three = int_str[-3:]
+        # Remaining digits, grouped by 2
+        remaining = int_str[:-3]
+        groups = []
+        while remaining:
+            groups.insert(0, remaining[-2:])
+            remaining = remaining[:-2]
+        formatted = ','.join(groups) + ',' + last_three
+    
+    result = f"₹{formatted}{decimal_part}"
+    return f"-{result}" if is_negative else result
+
+
 def generate_invoice_pdf_html(invoice: dict, output_path: str) -> str:
     """
     Generate invoice PDF from HTML template using WeasyPrint.
