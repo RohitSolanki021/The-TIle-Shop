@@ -375,23 +375,8 @@ function TilesManagement({ tiles, fetchTiles }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [useCustomSize, setUseCustomSize] = useState(false);
 
-  // Standard tile sizes for dropdown
-  const STANDARD_SIZES = [
-    '600x600mm',
-    '800x800mm',
-    '600x1200mm',
-    '800x1600mm',
-    '300x600mm',
-    '400x400mm',
-    '300x300mm',
-    '450x450mm',
-    '600x900mm',
-    '800x1200mm',
-    '1000x1000mm',
-    '1200x1200mm',
-    '1200x1800mm',
-    '1200x2400mm'
-  ];
+  // Standard tile sizes for dropdown (empty - users can add custom sizes)
+  const STANDARD_SIZES = [];
 
   // Get existing sizes from DB that are not in standard list
   const existingSizes = useMemo(() => {
