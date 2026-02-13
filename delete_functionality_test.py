@@ -385,7 +385,11 @@ def test_whatsapp_pdf_generation():
         print(f"📋 Testing PDF URL: {pdf_url}")
         
         try:
-            pdf_response = requests.get(pdf_url, timeout=30)
+            # Add a small delay to ensure invoice is fully created
+            import time
+            time.sleep(2)
+            
+            pdf_response = requests.get(pdf_url, timeout=45)
             
             if pdf_response.status_code == 200:
                 result.pass_test("PDF generation endpoint returned success")
@@ -411,12 +415,22 @@ def test_whatsapp_pdf_generation():
                     f.write(pdf_response.content)
                 result.pass_test("PDF saved to /tmp/whatsapp_test_invoice.pdf")
                 
+            elif pdf_response.status_code == 404:
+                # Try again with direct invoice access to debug
+                print("🔍 Debugging PDF generation issue...")
+                direct_response = requests.get(f"{BASE_URL}/invoices/{encoded_invoice_id}")
+                if direct_response.status_code == 200:
+                    result.fail_test("PDF generation failed: Invoice exists but PDF endpoint returns 404. Possible database sync issue.")
+                else:
+                    result.fail_test("PDF generation failed: Invoice not found in database")
+                print(f"Error response: {pdf_response.text}")
+                
             else:
                 result.fail_test(f"PDF generation failed: {pdf_response.status_code}")
                 print(f"Error response: {pdf_response.text}")
                 
         except requests.exceptions.Timeout:
-            result.fail_test("PDF generation request timed out (>30 seconds)")
+            result.fail_test("PDF generation request timed out (>45 seconds)")
         except Exception as e:
             result.fail_test(f"PDF generation request failed: {str(e)}")
         
