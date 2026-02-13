@@ -382,41 +382,39 @@
         </tbody>
     </table>
     
-    <!-- Totals Section - Full Width Table -->
-    <div class="totals-wrapper">
-        <table class="totals-table">
-            <colgroup>
-                <col style="width: 65%;">
-                <col style="width: 20%;">
-                <col style="width: 15%;">
-            </colgroup>
-            <tr>
-                <td class="spacer-cell"></td>
-                <td class="total-label">Total Amount :</td>
-                <td class="total-value">₹{{ subtotal }}</td>
-            </tr>
-            <tr>
-                <td class="spacer-cell"></td>
-                <td class="total-label">Transport Charges :</td>
-                <td class="total-value">₹{{ charges.transport }}</td>
-            </tr>
-            <tr>
-                <td class="spacer-cell"></td>
-                <td class="total-label">Unloading Charges :</td>
-                <td class="total-value">₹{{ charges.unloading }}</td>
-            </tr>
-            <tr>
-                <td class="spacer-cell"></td>
-                <td class="total-label">GST Amount :</td>
-                <td class="total-value">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
-            </tr>
-            <tr>
-                <td class="spacer-cell"></td>
-                <td class="total-label">Final Amount :</td>
-                <td class="total-value">₹{{ grand_total }}</td>
-            </tr>
-        </table>
-    </div>
+    <!-- Totals Section - Full Width Table (aligned to right) -->
+    <table class="totals-table" style="margin-top: -1px;">
+        <colgroup>
+            <col style="width: 55%;">
+            <col style="width: 25%;">
+            <col style="width: 20%;">
+        </colgroup>
+        <tr>
+            <td class="spacer-cell"></td>
+            <td class="total-label">Total Amount :</td>
+            <td class="total-value">₹{{ subtotal }}</td>
+        </tr>
+        <tr>
+            <td class="spacer-cell"></td>
+            <td class="total-label">Transport Charges :</td>
+            <td class="total-value">₹{{ charges.transport }}</td>
+        </tr>
+        <tr>
+            <td class="spacer-cell"></td>
+            <td class="total-label">Unloading Charges :</td>
+            <td class="total-value">₹{{ charges.unloading }}</td>
+        </tr>
+        <tr>
+            <td class="spacer-cell"></td>
+            <td class="total-label">GST Amount :</td>
+            <td class="total-value">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
+        </tr>
+        <tr>
+            <td class="spacer-cell"></td>
+            <td class="total-label" style="font-weight: bold; background: #f5e6d3;">Final Amount :</td>
+            <td class="total-value" style="background: #f5e6d3;">₹{{ grand_total }}</td>
+        </tr>
+    </table>
     
     <!-- Bank Details - Proper Table -->
     <table class="bank-table">
