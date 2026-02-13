@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000;
+            font-size: 9pt;
+        }
+        
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 8mm;
+            background: white;
+            page-break-after: always;
+        }
+        
+        .page:last-child {
+            page-break-after: auto;
+        }
+        
+        /* Header Section */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #000;
+        }
+        
+        .left-header {
+            flex: 1;
+        }
+        
+        .quotation-title {
+            font-size: 11pt;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 3px;
+        }
+        
+        .company-subtitle {
+            font-size: 8pt;
+            margin-bottom: 6px;
+        }
+        
+        .company-address {
+            font-size: 7.5pt;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+        
+        .company-contact {
+            font-size: 7.5pt;
+            line-height: 1.4;
+        }
+        
+        .right-header {
+            text-align: right;
+            font-size: 8pt;
+            line-height: 1.6;
+        }
+        
+        .right-header strong {
+            display: inline-block;
+            width: 120px;
+            text-align: left;
+        }
+        
+        /* Customer Section */
+        .customer-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .customer-box {
+            flex: 1;
+            border: 1px solid #000;
+            padding: 8px;
+            min-height: 80px;
+        }
+        
+        .customer-box-title {
+            font-weight: bold;
+            font-size: 9pt;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 2px;
+        }
+        
+        .customer-details {
+            font-size: 8pt;
+            line-height: 1.5;
+        }
+        
+        /* Table Section */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 8pt;
+        }
+        
+        thead {
+            background: #f0f0f0;
+        }
+        
+        th {
+            border: 1px solid #000;
+            padding: 5px 3px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 7.5pt;
+        }
+        
+        td {
+            border: 1px solid #000;
+            padding: 5px 3px;
+            vertical-align: middle;
+        }
+        
+        .col-sr { width: 5%; text-align: center; }
+        .col-name { width: 10%; text-align: left; }
+        .col-image { width: 10%; text-align: center; }
+        .col-size { width: 25%; text-align: center; }
+        .col-rate-box { width: 10%; text-align: right; }
+        .col-rate-sqft { width: 10%; text-align: right; }
+        .col-qty { width: 10%; text-align: center; }
+        .col-disc { width: 8%; text-align: center; }
+        .col-amount { width: 12%; text-align: right; font-weight: bold; }
+        
+        .item-image {
+            max-width: 45px;
+            max-height: 45px;
+            object-fit: contain;
+        }
+        
+        /* Totals Section */
+        .totals-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .bank-details {
+            flex: 1;
+            margin-right: 20px;
+        }
+        
+        .bank-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.5pt;
+        }
+        
+        .bank-table td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+        }
+        
+        .bank-label {
+            font-weight: bold;
+            width: 35%;
+            background: #f0f0f0;
+        }
+        
+        .totals-box {
+            width: 250px;
+        }
+        
+        .totals-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+        }
+        
+        .totals-table td {
+            border: 1px solid #000;
+            padding: 4px 8px;
+        }
+        
+        .total-label {
+            font-weight: bold;
+            text-align: left;
+        }
+        
+        .total-value {
+            text-align: right;
+            font-weight: bold;
+        }
+        
+        /* Remarks Section */
+        .remarks-section {
+            margin-bottom: 10px;
+        }
+        
+        .remarks-title {
+            font-weight: bold;
+            font-size: 9pt;
+            margin-bottom: 3px;
+        }
+        
+        .remarks-box {
+            border: 1px solid #000;
+            padding: 6px;
+            min-height: 40px;
+            font-size: 7.5pt;
+        }
+        
+        /* Terms Section */
+        .terms-section {
+            margin-bottom: 15px;
+        }
+        
+        .terms-title {
+            font-weight: bold;
+            font-size: 9pt;
+            margin-bottom: 5px;
+        }
+        
+        .terms-section ol {
+            margin-left: 15px;
+            font-size: 7pt;
+            line-height: 1.6;
+        }
+        
+        .terms-section li {
+            margin-bottom: 2px;
+        }
+        
+        /* Brand Logos Footer */
+        .brand-logos {
+            margin-top: 15px;
+            padding: 10px 5px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px 20px;
+        }
+        
+        .brand-logos img {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        /* Thank You Footer */
+        .page-footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 10pt;
+            font-weight: bold;
+            color: #5a3825;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="left-header">
+                <div class="quotation-title">Quotation</div>
+                <div class="company-name">THE TILE SHOP</div>
+                <div class="company-subtitle">A Subsidary of SHREE SONANA SHETRPAL CERAMIC</div>
+                <div class="company-address">
+                    S No. 19, Shop No. 2,<br>
+                    Near Pravin Electronics, Pune Saswad Road,<br>
+                    Gondhale Nagar, Hadapsar, Pune - 411028
+                </div>
+                <div class="company-contact">
+                    Contact: +91 879 601 5150 / +91 702 099 8244<br>
+                    Email: thetileshoppune@gmail.com<br>
+                    GSTIN: 27ALBPJ3478P1ZJ
+                </div>
+            </div>
+            <div class="right-header">
+                <div><strong>Quotation No. :</strong> {{ quotation_no }}</div>
+                <div><strong>Date :</strong> {{ date }}</div>
+                {% if reference_name %}
+                <div><strong>Reference Name :</strong> {{ reference_name }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Customer Section -->
+        <div class="customer-section">
+            <div class="customer-box">
+                <div class="customer-box-title">Buyer (Bill To):</div>
+                <div class="customer-details">
+                    <strong>{{ buyer.name }}</strong><br>
+                    {{ buyer.phone }}<br>
+                    {{ buyer.address }}<br>
+                    {% if buyer.gstin %}
+                    <strong>GSTIN:</strong> {{ buyer.gstin }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="customer-box">
+                <div class="customer-box-title">Consignee (Ship To):</div>
+                <div class="customer-details">
+                    <strong>{{ consignee.name }}</strong><br>
+                    {{ consignee.phone }}<br>
+                    {{ consignee.address }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Items Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-sr">SR<br>NO.</th>
+                    <th class="col-name">NAME</th>
+                    <th class="col-image">IMAGE</th>
+                    <th class="col-size">SIZE</th>
+                    <th class="col-rate-box">RATE /<br>BOX</th>
+                    <th class="col-rate-sqft">RATE /<br>SQFT</th>
+                    <th class="col-qty">QUANTITY</th>
+                    <th class="col-disc">DISC. (%)</th>
+                    <th class="col-amount">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set sr = namespace(value=1) %}
+                {% for section in sections %}
+                {% for item in section.line_items %}
+                <tr>
+                    <td class="col-sr">{{ sr.value }}</td>
+                    <td class="col-name">{{ item.name }}</td>
+                    <td class="col-image">
+                        {% if item.image %}
+                        <img src="{{ item.image }}" class="item-image" alt="Tile">
+                        {% endif %}
+                    </td>
+                    <td class="col-size">{{ item.size }}</td>
+                    <td class="col-rate-box">{{ item.rate_box }}</td>
+                    <td class="col-rate-sqft">{{ item.rate_sqft }}</td>
+                    <td class="col-qty">{{ item.qty }}</td>
+                    <td class="col-disc">{{ item.disc }}</td>
+                    <td class="col-amount">{{ item.amount }}</td>
+                </tr>
+                {% set sr.value = sr.value + 1 %}
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Totals and Bank Details Section -->
+        <div class="totals-section">
+            <div class="bank-details">
+                <table class="bank-table">
+                    <tr>
+                        <td class="bank-label">Account Name:</td>
+                        <td>SHREE SONANA SHETRPAL CERAMIC</td>
+                    </tr>
+                    <tr>
+                        <td class="bank-label">Bank Name:</td>
+                        <td>HDFC BANK</td>
+                    </tr>
+                    <tr>
+                        <td class="bank-label">Account No.:</td>
+                        <td>50200069370271</td>
+                    </tr>
+                    <tr>
+                        <td class="bank-label">IFSC:</td>
+                        <td>HDFC0005291</td>
+                    </tr>
+                    <tr>
+                        <td class="bank-label">Branch:</td>
+                        <td>HYDE PARK</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="totals-box">
+                <table class="totals-table">
+                    <tr>
+                        <td class="total-label">Total Amount :</td>
+                        <td class="total-value">₹{{ subtotal }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total-label">Transport Charges :</td>
+                        <td class="total-value">₹{{ charges.transport }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total-label">Unloading Charges :</td>
+                        <td class="total-value">₹{{ charges.unloading }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total-label">GST Amount :</td>
+                        <td class="total-value">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
+                    </tr>
+                    <tr style="background: #e0e0e0;">
+                        <td class="total-label">Final Amount :</td>
+                        <td class="total-value">₹{{ grand_total }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Remarks Section -->
+        <div class="remarks-section">
+            <div class="remarks-title">Overall Remarks :</div>
+            <div class="remarks-box">{{ remarks or '' }}</div>
+        </div>
+        
+        <!-- Terms & Conditions -->
+        <div class="terms-section">
+            <div class="terms-title">TERMS & CONDITION</div>
+            <ol>
+                <li>Payment: 100% Advance</li>
+                <li>2% Breakage mandatory</li>
+                <li>Delivery: 8-10 days as per availability.</li>
+                <li>Quotation Price valid for fifteen days.</li>
+                <li>Goods once sold will not be taken back or exchanged.</li>
+                <li>Quality complaints will not be entertained unless laid as instructed.</li>
+                <li>We are not responsible for any damage during transit.</li>
+                <li>Batch wise variation is inherent characteristic of ceramic, NO COMPLAINTS WILL BE ENTERTAINED AFTER INSTALLATION OF TILES.</li>
+                <li>Our responsibility ceases after the dispatch of goods from our premises.</li>
+            </ol>
+        </div>
+        
+        <!-- Brand Logos -->
+        <div class="brand-logos">
+            <img src="{{ logos.brand_01 }}" alt="Brand 1">
+            <img src="{{ logos.brand_02 }}" alt="Brand 2">
+            <img src="{{ logos.brand_03 }}" alt="Brand 3">
+            <img src="{{ logos.brand_04 }}" alt="Brand 4">
+            <img src="{{ logos.brand_05 }}" alt="Brand 5">
+            <img src="{{ logos.brand_06 }}" alt="Brand 6">
+            <img src="{{ logos.brand_07 }}" alt="Brand 7">
+            <img src="{{ logos.brand_08 }}" alt="Brand 8">
+            <img src="{{ logos.brand_09 }}" alt="Brand 9">
+            <img src="{{ logos.brand_10 }}" alt="Brand 10">
+            <img src="{{ logos.brand_11 }}" alt="Brand 11">
+            <img src="{{ logos.brand_12 }}" alt="Brand 12">
+            <img src="{{ logos.brand_13 }}" alt="Brand 13">
+            <img src="{{ logos.brand_14 }}" alt="Brand 14">
+        </div>
+        
+        <!-- Footer -->
+        <div class="page-footer">
+            Thank You for Your Business!
+        </div>
+    </div>
+</body>
+</html>
