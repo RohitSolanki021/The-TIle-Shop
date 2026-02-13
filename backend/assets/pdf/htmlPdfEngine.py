@@ -23,14 +23,14 @@ def format_indian_currency(amount):
     """
     Format number in Indian style (e.g., 1,23,456.00)
     Indian format: last 3 digits, then groups of 2
+    Always rounds to nearest whole number and shows .00
     """
     amount = float(amount)
     is_negative = amount < 0
     amount = abs(amount)
     
-    # Split into integer and decimal parts
-    int_part = int(amount)
-    decimal_part = f"{amount - int_part:.2f}"[1:]  # Gets .00 part
+    # Round to nearest whole number
+    int_part = round(amount)
     
     # Convert to string and format
     int_str = str(int_part)
@@ -48,7 +48,7 @@ def format_indian_currency(amount):
             remaining = remaining[:-2]
         formatted = ','.join(groups) + ',' + last_three
     
-    result = f"₹{formatted}{decimal_part}"
+    result = f"₹{formatted}.00"
     return f"-{result}" if is_negative else result
 
 
