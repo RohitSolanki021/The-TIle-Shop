@@ -362,9 +362,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "WhatsApp Share Functionality Test"
-    - "Delete Features (Tiles, Customers, Invoices) Test"
-    - "Remove Demo Data from Application"
+    - "All core delete and WhatsApp functionality verified and working"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
