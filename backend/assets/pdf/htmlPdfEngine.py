@@ -109,15 +109,15 @@ def _normalize_invoice_data(invoice: dict) -> dict:
                 'total': 0
             }
         
-        # Format item data - All amounts rounded off
+        # Format item data - Indian currency format with .00
         formatted_item = {
             'name': item.get('tile_name') or item.get('product_name', ''),
             'size': item.get('size', ''),
-            'rate_box': f"₹{round(item.get('rate_per_box', 0)):,}",
-            'rate_sqft': f"₹{round(item.get('rate_per_sqft', 0)):,}",
+            'rate_box': format_indian_currency(item.get('rate_per_box', 0)),
+            'rate_sqft': format_indian_currency(item.get('rate_per_sqft', 0)),
             'qty': f"{item.get('box_qty', 0)} box",
             'disc': f"{round(item.get('discount_percent', 0))}%",
-            'amount': f"₹{round(item.get('final_amount', 0)):,}",
+            'amount': format_indian_currency(item.get('final_amount', 0)),
             'image': item.get('tile_image', '')
         }
         
@@ -130,7 +130,7 @@ def _normalize_invoice_data(invoice: dict) -> dict:
         sections.append({
             'name': name,
             'line_items': section_data['line_items'],
-            'total': f"{round(section_data['total']):,}"
+            'total': format_indian_currency(section_data['total']).replace('₹', '')
         })
     
     # Format date
