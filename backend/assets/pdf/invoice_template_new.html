@@ -220,10 +220,15 @@
             padding: 5px 8px;
         }
         
-        /* Totals Table - Full Width Rows */
+        /* Totals Table - Full Width Rows with borders */
         .totals-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        .totals-table tr {
+            border: 1px solid #d4b896;
         }
         
         .totals-table td {
@@ -236,17 +241,18 @@
         .totals-table .total-label {
             text-align: right;
             font-weight: normal;
-            width: 25%;
         }
         
         .totals-table .total-value {
             text-align: right;
             font-weight: bold;
-            width: 15%;
         }
         
         .totals-table .empty-cell {
-            width: 60%;
+            border-left: 1px solid #d4b896;
+            border-right: none;
+            border-top: none;
+            border-bottom: none;
         }
         
         .totals-table .final-row td {
