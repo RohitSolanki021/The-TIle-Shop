@@ -129,11 +129,11 @@ def _normalize_invoice_data(invoice: dict) -> dict:
         },
         'sections': sections,
         'charges': {
-            'transport': f"{invoice.get('transport_charges', 0):,.2f}",
-            'unloading': f"{invoice.get('unloading_charges', 0):,.2f}"
+            'transport': f"{round(invoice.get('transport_charges', 0)):,}",
+            'unloading': f"{round(invoice.get('unloading_charges', 0)):,}"
         },
-        'subtotal': f"{invoice.get('subtotal', 0):,.2f}",
+        'subtotal': f"{round(invoice.get('subtotal', 0)):,}",
         'gst_amount': invoice.get('gst_amount', 0),
-        'grand_total': f"{invoice.get('grand_total', 0):,.2f}",
+        'grand_total': f"{round(invoice.get('grand_total', 0)):,}",
         'remarks': invoice.get('overall_remarks', '')
     }
