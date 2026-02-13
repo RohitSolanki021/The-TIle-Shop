@@ -116,7 +116,7 @@
         }
         
         .quotation-details .field {
-            border-bottom: 1px solid #d4b896;
+            border-bottom: 1px solid #000000;
             padding: 12px 0;
         }
         
@@ -136,7 +136,7 @@
         }
         
         .customer-table td {
-            border: 1px solid #d4b896;
+            border: 1px solid #000000;
             padding: 10px;
             vertical-align: top;
             width: 50%;
@@ -164,7 +164,7 @@
         
         .items-table th,
         .items-table td {
-            border: 1px solid #d4b896;
+            border: 1px solid #000000;
             padding: 5px 4px;
             font-size: 8pt;
             color: #5a3825;
@@ -226,11 +226,11 @@
         }
         
         .totals-table tr {
-            border: 1px solid #d4b896;
+            border: 1px solid #000000;
         }
         
         .totals-table td {
-            border: 1px solid #d4b896;
+            border: 1px solid #000000;
             padding: 5px 8px;
             font-size: 9pt;
             color: #5a3825;
@@ -247,7 +247,7 @@
         }
         
         .totals-table .empty-cell {
-            border-left: 1px solid #d4b896;
+            border-left: 1px solid #000000;
             border-right: none;
             border-top: none;
             border-bottom: none;
@@ -265,7 +265,7 @@
         }
         
         .bank-table td {
-            border: 1px solid #d4b896;
+            border: 1px solid #000000;
             padding: 6px 8px;
             font-size: 8pt;
             color: #5a3825;
@@ -285,7 +285,7 @@
         }
         
         .remarks-table td {
-            border: 1px solid #d4b896;
+            border: 1px solid #000000;
             padding: 8px 10px;
             font-size: 8pt;
             color: #5a3825;
@@ -299,7 +299,7 @@
         /* Terms Section */
         .terms-section {
             padding: 8px 10px;
-            border: 1px solid #d4b896;
+            border: 1px solid #000000;
             border-top: none;
         }
         
@@ -325,7 +325,7 @@
             align-items: center;
             gap: 10px 15px;
             padding: 8px 10px;
-            border: 1px solid #d4b896;
+            border: 1px solid #000000;
             border-top: none;
         }
         
@@ -453,29 +453,29 @@
                 <col style="width: 15%;">
             </colgroup>
             <tr>
-                <td style="border: 1px solid #d4b896;"></td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">Total Amount :</td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ subtotal }}</td>
+                <td style="border: 1px solid #000000;"></td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px;">Total Amount :</td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ subtotal }}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #d4b896;"></td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">Transport Charges :</td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ charges.transport }}</td>
+                <td style="border: 1px solid #000000;"></td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px;">Transport Charges :</td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ charges.transport }}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #d4b896;"></td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">Unloading Charges :</td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ charges.unloading }}</td>
+                <td style="border: 1px solid #000000;"></td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px;">Unloading Charges :</td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px; font-weight: bold;">₹{{ charges.unloading }}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #d4b896;"></td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">GST Amount :</td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
+                <td style="border: 1px solid #000000;"></td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px;">GST Amount :</td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px; font-weight: bold;">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #d4b896; background: #f5e6d3;"></td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold; background: #f5e6d3;">Final Amount :</td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold; background: #f5e6d3;">₹{{ grand_total }}</td>
+                <td style="border: 1px solid #000000; background: #f5e6d3;"></td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px; font-weight: bold; background: #f5e6d3;">Final Amount :</td>
+                <td style="border: 1px solid #000000; text-align: right; padding: 5px 8px; font-weight: bold; background: #f5e6d3;">₹{{ grand_total }}</td>
             </tr>
         </table>
         
