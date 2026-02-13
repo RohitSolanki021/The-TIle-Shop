@@ -1,0 +1,11 @@
+{
+  "name": "the-tile-shop",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "vercel-build": "cd frontend && yarn install && yarn build"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}
