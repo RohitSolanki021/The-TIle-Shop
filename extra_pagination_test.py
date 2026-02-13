@@ -7,7 +7,7 @@ Tests PDF generation with even more line items to verify pagination scales
 import requests
 from urllib.parse import quote
 
-BACKEND_URL = "https://code-fork-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://tile-invoice-app.preview.emergentagent.com/api"
 
 def test_extra_large_invoice():
     """Create invoice with 60+ items to force 3-4 pages"""

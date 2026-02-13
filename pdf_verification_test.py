@@ -7,7 +7,7 @@ import requests
 import sys
 from pathlib import Path
 
-BASE_URL = "https://code-fork-4.preview.emergentagent.com/api"
+BASE_URL = "https://tile-invoice-app.preview.emergentagent.com/api"
 
 def test_pdf_download_verification():
     """Test PDF download and verify file properties"""
