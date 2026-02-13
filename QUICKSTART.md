@@ -101,11 +101,21 @@
 3. **Import Project**:
    - Click "Add New" → "Project"
    - Select your repository
-4. **Configure Project**:
-   - Framework Preset: Vercel will auto-detect (React)
-   - Root Directory: Leave as `/` (Vercel will use vercel.json config)
-   - Build Command: Will use from `vercel.json`
-   - Output Directory: Will use from `vercel.json`
+
+4. **⚠️ CRITICAL: Configure Project Settings**:
+   
+   **Framework Preset:**
+   - Select: `Create React App`
+   
+   **Root Directory:** ⚠️ MUST SET THIS!
+   - Click "Edit" next to Root Directory
+   - Enter: `frontend`
+   - Click "Continue"
+   
+   **Build Settings** (auto-detected):
+   - Build Command: `yarn build`
+   - Output Directory: `build`
+   - Install Command: `yarn install`
 
 5. **Add Environment Variable**:
    - Key: `REACT_APP_BACKEND_URL`
