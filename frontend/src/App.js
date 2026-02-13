@@ -382,6 +382,7 @@ function TilesManagement({ tiles, fetchTiles }) {
   const existingSizes = useMemo(() => {
     const dbSizes = tiles.map(t => t.size);
     return [...new Set(dbSizes)].filter(s => !STANDARD_SIZES.includes(s));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tiles]);
 
   // Combined sizes for dropdown (standard + existing custom)
