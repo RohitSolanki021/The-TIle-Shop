@@ -226,15 +226,18 @@ backend:
 
   - task: "Delete Tile Functionality"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/App.js (line 437-445), backend/server.py (line 361-378)"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "VERIFIED: Delete Tile functionality fully working. Created test tile (600x600mm, coverage 3.0, box_packing 4) ✅ Tile appeared in GET /tiles list before deletion ✅ DELETE /tiles/{tile_id} returned success ✅ Tile properly soft-deleted (deleted: True flag set) ✅ Tile no longer appears in GET /tiles list after deletion ✅ DELETE returns 404 for non-existent tile ✅ All 5 tests passed. Soft delete implementation working correctly."
 
   - task: "Delete Customer Functionality"
     implemented: true
