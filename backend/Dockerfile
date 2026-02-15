@@ -5,16 +5,13 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install system dependencies required by WeasyPrint
-RUN apt-get update && apt-get install -y \
-    libcairo2 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libgdk-pixbuf2.0-dev \
     libffi-dev \
     shared-mime-info \
-    libglib2.0-0 \
-    libgobject-2.0-0 \
-    libpangoft2-1.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file
