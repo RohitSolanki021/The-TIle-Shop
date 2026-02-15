@@ -4,9 +4,10 @@ FROM python:3.11
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for WeasyPrint
+# Install minimal system dependencies for WeasyPrint
 RUN apt-get update && apt-get install -y \
     libpangocairo-1.0-0 \
+    libcairo2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file
