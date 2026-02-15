@@ -62,7 +62,7 @@
 5. **Configure Build**:
    - Root Directory: `backend`
    - Build Command: `pip install -r requirements.txt && apt-get update && apt-get install -y libpangoft2-1.0-0 libpango-1.0-0 libpangocairo-1.0-0`
-   - Start Command: `uvicorn server:app --host 0.0.0.0 --port $PORT`
+   - Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
 6. **Get your Railway URL**:
    - Click on your deployment
@@ -88,7 +88,7 @@
      ```
      pip install -r requirements.txt && apt-get update && apt-get install -y libpangoft2-1.0-0 libpango-1.0-0 libpangocairo-1.0-0
      ```
-   - Start Command: `uvicorn server:app --host 0.0.0.0 --port $PORT`
+   - Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 5. **Add Environment Variables** (same as Railway)
 6. **Deploy and get URL**
 

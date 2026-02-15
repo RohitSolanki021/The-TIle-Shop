@@ -27,7 +27,7 @@ A full-stack invoice generation application for The Tile Shop, featuring tile in
 │   ├── public/
 │   └── package.json
 ├── backend/           # FastAPI server
-│   ├── server.py
+│   ├── main.py
 │   ├── assets/        # PDF templates and logos
 │   ├── fonts/
 │   └── requirements.txt
@@ -52,7 +52,7 @@ echo "DB_NAME=tileshop" >> .env
 echo "PORT=8001" >> .env
 
 # Start server
-uvicorn server:app --reload --port 8001
+uvicorn main:app --reload --port 8001
 ```
 
 ### Frontend Setup

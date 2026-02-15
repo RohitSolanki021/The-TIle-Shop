@@ -75,7 +75,7 @@
 ### Backend (Deploy Separately):
 ```
 backend/
-├── server.py              ✅ FastAPI application
+├── main.py              ✅ FastAPI application
 ├── requirements.txt       ✅ Python dependencies
 ├── assets/               ✅ Templates & logos
 └── fonts/                ✅ Font files

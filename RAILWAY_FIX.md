@@ -87,7 +87,7 @@ Railway will automatically detect and use this file.
 ✓ Python 3.11
 ✓ System dependencies: cairo, pango, libgobject, etc.
 ✓ Port: 8001 (or $PORT from Railway)
-✓ Start command: uvicorn server:app --host 0.0.0.0 --port $PORT
+✓ Start command: uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
 
 ---

@@ -116,7 +116,7 @@ backend:
   - task: "API Health Check"
     implemented: true
     working: true
-    file: "server.py"
+    file: "main.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -124,7 +124,7 @@ backend:
   - task: "Invoice ID Format - TTS / XXX / YYYY-YY"
     implemented: true
     working: true
-    file: "server.py"
+    file: "main.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -154,7 +154,7 @@ backend:
   - task: "PDF Generation - Template Overlay Method"
     implemented: true
     working: true
-    file: "server.py"
+    file: "main.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -181,7 +181,7 @@ backend:
   - task: "PDF Pagination - Header Repeat on All Pages"
     implemented: true
     working: true
-    file: "server.py"
+    file: "main.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -196,7 +196,7 @@ backend:
   - task: "PDF Multi-Item Support with Dynamic Sections"
     implemented: true
     working: true
-    file: "server.py"
+    file: "main.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -230,7 +230,7 @@ backend:
   - task: "Delete Tile Functionality"
     implemented: true
     working: true
-    file: "frontend/src/App.js (line 437-445), backend/server.py (line 361-378)"
+    file: "frontend/src/App.js (line 437-445), backend/main.py (line 361-378)"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -245,7 +245,7 @@ backend:
   - task: "Delete Customer Functionality"
     implemented: true
     working: true
-    file: "frontend/src/App.js (line 704-712), backend/server.py (line 456-473)"
+    file: "frontend/src/App.js (line 704-712), backend/main.py (line 456-473)"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -260,7 +260,7 @@ backend:
   - task: "Delete Invoice Functionality"
     implemented: true
     working: true
-    file: "frontend/src/App.js (line 1285-1293), backend/server.py (line 694-714)"
+    file: "frontend/src/App.js (line 1285-1293), backend/main.py (line 694-714)"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -364,7 +364,7 @@ metadata:
   - task: "PDF Coordinate-Based Grid Implementation"
     implemented: true
     working: true
-    file: "server.py"
+    file: "main.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false

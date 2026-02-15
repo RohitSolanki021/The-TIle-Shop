@@ -26,7 +26,7 @@ Choose one of these options:
 2. Create new Web Service
 3. Root Directory: `backend`
 4. Build Command: `pip install -r requirements.txt`
-5. Start Command: `uvicorn server:app --host 0.0.0.0 --port $PORT`
+5. Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 6. Add environment variables (same as above)
 
 ### Step 2: Deploy Frontend to Vercel
