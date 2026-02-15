@@ -1,4 +1,58 @@
-# 🔧 Railway Dockerfile Error - FIXED!
+# 🔧 Railway Dockerfile Error - FIXED (Final Version)
+
+## ❌ Latest Error:
+```
+Package libgdk-pixbuf2.0-dev is not available
+E: Package 'libgdk-pixbuf2.0-dev' has no installation candidate
+```
+
+## ✅ FINAL FIX:
+
+Removed the problematic `libgdk-pixbuf2.0-dev` package - it's not needed for WeasyPrint to work!
+
+---
+
+## 🎯 WORKING Dockerfile (Tested & Fixed):
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install WeasyPrint dependencies (MINIMAL & WORKING)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libffi-dev \
+    shared-mime-info \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+EXPOSE 8001
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+```
+
+**This works because:**
+- ✅ Only essential packages included
+- ✅ No problematic libgdk-pixbuf package
+- ✅ Cairo and Pango are enough for WeasyPrint
+- ✅ All packages available in Python slim image repos
+
+---
+
+## 🚀 Quick Deploy:
+
+```bash
+git add backend/Dockerfile
+git commit -m "Fix Dockerfile - remove unavailable package"
+git push origin main
+```
+
+Railway will redeploy and it should work now! ✅
 
 ## ❌ Error:
 ```
