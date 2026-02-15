@@ -31,7 +31,7 @@ Build and enhance an invoice generation application for The Tile Shop, a tile re
 │   │       ├── invoice_template_new.html  # HTML template
 │   │       └── load_logos.py          # Logo loader
 │   ├── pdfs/                 # Generated PDFs output
-│   └── server.py             # FastAPI application
+│   └── main.py               # FastAPI application
 ├── frontend/
 │   └── src/
 │       ├── components/
