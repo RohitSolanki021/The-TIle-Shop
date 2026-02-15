@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/api/index.py"
+    }
+  ],
+  "env": {
+    "MONGO_URL": "@mongo_url",
+    "DB_NAME": "@db_name"
+  }
+}
