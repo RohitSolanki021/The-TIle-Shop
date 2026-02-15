@@ -1,5 +1,5 @@
 # Vercel Serverless Function Entry Point
-from server import app
+from main import app
 
 # Export for Vercel
 handler = app
