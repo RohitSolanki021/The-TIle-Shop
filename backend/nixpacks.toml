@@ -1,0 +1,19 @@
+# Railway Nixpacks configuration
+[phases.setup]
+nixPkgs = [
+  "python311",
+  "cairo",
+  "pango",
+  "gdk-pixbuf",
+  "libffi",
+  "glib",
+  "gobject-introspection"
+]
+
+[phases.install]
+cmds = [
+  "pip install -r requirements.txt"
+]
+
+[start]
+cmd = "uvicorn server:app --host 0.0.0.0 --port $PORT"
