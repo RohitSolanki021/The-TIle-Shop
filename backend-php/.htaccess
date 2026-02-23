@@ -1,0 +1,37 @@
+# The Tile Shop - Apache Configuration
+# Enable URL rewriting for clean API endpoints
+
+# Enable RewriteEngine
+RewriteEngine On
+
+# Allow access to assets
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route all /api/* requests to index.php
+RewriteRule ^api/(.*)$ index.php [QSA,L]
+
+# Route root to index.php
+RewriteRule ^$ index.php [L]
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# PHP settings
+php_value upload_max_filesize 10M
+php_value post_max_size 10M
+php_value max_execution_time 300
+php_value max_input_time 300
+
+# Disable directory listing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
