@@ -6,6 +6,11 @@
 
 $db = Database::getInstance()->getConnection();
 
+// Get request variables from router
+$requestMethod = $GLOBALS['requestMethod'];
+$id = $GLOBALS['id'] ?? null;
+$action = $GLOBALS['action'] ?? null;
+
 // GET /api/customers - Get all customers
 if ($requestMethod === 'GET' && !$id) {
     try {
