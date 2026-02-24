@@ -559,3 +559,638 @@ function App() {
         )}
 
         {/* TILES TAB - Continued in next part */}
+
+        {/* TILES TAB */}
+        {activeTab === 'tiles' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Tiles Management</h2>
+              <button
+                onClick={() => setShowTileForm(!showTileForm)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <Plus className="h-5 w-5" />
+                Add Tile
+              </button>
+            </div>
+
+            {/* Tile Form */}
+            {showTileForm && (
+              <div className="bg-white rounded-lg shadow p-6 mb-6">
+                <h3 className="text-lg font-semibold mb-4">
+                  {editingTile ? 'Edit Tile' : 'Add New Tile'}
+                </h3>
+                <form onSubmit={handleSaveTile} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Size *
+                    </label>
+                    <input
+                      type="text"
+                      value={tileForm.size}
+                      onChange={(e) => setTileForm({ ...tileForm, size: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g., 600x600mm"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Product Name
+                    </label>
+                    <input
+                      type="text"
+                      value={tileForm.product_name}
+                      onChange={(e) => setTileForm({ ...tileForm, product_name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Product name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Coverage (sqft)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={tileForm.coverage}
+                      onChange={(e) => setTileForm({ ...tileForm, coverage: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Box Packing
+                    </label>
+                    <input
+                      type="number"
+                      value={tileForm.box_packing}
+                      onChange={(e) => setTileForm({ ...tileForm, box_packing: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Rate per Sqft
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={tileForm.rate_per_sqft}
+                      onChange={(e) => setTileForm({ ...tileForm, rate_per_sqft: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Rate per Box
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={tileForm.rate_per_box}
+                      onChange={(e) => setTileForm({ ...tileForm, rate_per_box: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      <Save className="h-4 w-4" />
+                      {loading ? 'Saving...' : 'Save Tile'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetTileForm}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Tiles List */}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Coverage</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate/Sqft</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate/Box</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {tiles.map((tile) => (
+                    <tr key={tile.tile_id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tile.size}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tile.product_name || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tile.coverage} sqft</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{parseFloat(tile.rate_per_sqft || 0).toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{parseFloat(tile.rate_per_box || 0).toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => handleEditTile(tile)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTile(tile.tile_id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {tiles.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No tiles found. Add your first tile!
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* CUSTOMERS TAB */}
+        {activeTab === 'customers' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Customers Management</h2>
+              <button
+                onClick={() => setShowCustomerForm(!showCustomerForm)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <Plus className="h-5 w-5" />
+                Add Customer
+              </button>
+            </div>
+
+            {/* Customer Form */}
+            {showCustomerForm && (
+              <div className="bg-white rounded-lg shadow p-6 mb-6">
+                <h3 className="text-lg font-semibold mb-4">
+                  {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+                </h3>
+                <form onSubmit={handleSaveCustomer} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={customerForm.name}
+                      onChange={(e) => setCustomerForm({ ...customerForm, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone *
+                    </label>
+                    <input
+                      type="text"
+                      value={customerForm.phone}
+                      onChange={(e) => setCustomerForm({ ...customerForm, phone: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Address
+                    </label>
+                    <textarea
+                      value={customerForm.address}
+                      onChange={(e) => setCustomerForm({ ...customerForm, address: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      rows="2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      GSTIN
+                    </label>
+                    <input
+                      type="text"
+                      value={customerForm.gstin}
+                      onChange={(e) => setCustomerForm({ ...customerForm, gstin: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      <Save className="h-4 w-4" />
+                      {loading ? 'Saving...' : 'Save Customer'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetCustomerForm}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Customers List */}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Address</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">GSTIN</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pending</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {customers.map((customer) => (
+                    <tr key={customer.customer_id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customer.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{customer.address || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.gstin || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{parseFloat(customer.total_pending || 0).toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => handleEditCustomer(customer)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCustomer(customer.customer_id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {customers.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No customers found. Add your first customer!
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* INVOICES TAB - Part 1 */}
+        {activeTab === 'invoices' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Invoices Management</h2>
+              <button
+                onClick={() => setShowInvoiceForm(!showInvoiceForm)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <Plus className="h-5 w-5" />
+                Create Invoice
+              </button>
+            </div>
+
+            {/* Invoice Form */}
+            {showInvoiceForm && (
+              <div className="bg-white rounded-lg shadow p-6 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Create New Invoice</h3>
+                <form onSubmit={handleSaveInvoice} className="space-y-6">
+                  {/* Customer Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Select Customer *
+                    </label>
+                    <select
+                      value={invoiceForm.customer_id}
+                      onChange={(e) => setInvoiceForm({ ...invoiceForm, customer_id: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">-- Select Customer --</option>
+                      {customers.map((customer) => (
+                        <option key={customer.customer_id} value={customer.customer_id}>
+                          {customer.name} - {customer.phone}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Date */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={invoiceForm.date}
+                        onChange={(e) => setInvoiceForm({ ...invoiceForm, date: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Status
+                      </label>
+                      <select
+                        value={invoiceForm.status}
+                        onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="Draft">Draft</option>
+                        <option value="Sent">Sent</option>
+                        <option value="Paid">Paid</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Add Line Item */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-3">Add Items</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Select Tile *
+                        </label>
+                        <select
+                          value={currentLineItem.tile_id}
+                          onChange={(e) => handleTileSelect(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">-- Select Tile --</option>
+                          {tiles.map((tile) => (
+                            <option key={tile.tile_id} value={tile.tile_id}>
+                              {tile.size} - {tile.product_name || 'No Name'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Section Name
+                        </label>
+                        <input
+                          type="text"
+                          value={currentLineItem.section_name}
+                          onChange={(e) => setCurrentLineItem({ ...currentLineItem, section_name: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., Living Room"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Box Quantity *
+                        </label>
+                        <input
+                          type="number"
+                          value={currentLineItem.box_qty}
+                          onChange={(e) => setCurrentLineItem({ ...currentLineItem, box_qty: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Extra Sqft
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={currentLineItem.extra_sqft}
+                          onChange={(e) => setCurrentLineItem({ ...currentLineItem, extra_sqft: parseFloat(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Discount %
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={currentLineItem.discount_percent}
+                          onChange={(e) => setCurrentLineItem({ ...currentLineItem, discount_percent: parseFloat(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          type="button"
+                          onClick={handleAddLineItem}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        >
+                          Add Item
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Line Items List */}
+                  {invoiceForm.line_items.length > 0 && (
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold mb-3">Added Items</h4>
+                      <div className="space-y-2">
+                        {invoiceForm.line_items.map((item, index) => (
+                          <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <div className="flex-1">
+                              <p className="font-medium">{item.product_name} ({item.size})</p>
+                              <p className="text-sm text-gray-600">
+                                Qty: {item.box_qty} boxes | Rate: ₹{item.rate_per_sqft}/sqft | Discount: {item.discount_percent}%
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveLineItem(index)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Charges */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-3">Additional Charges</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          GST %
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={invoiceForm.gst_percent}
+                          onChange={(e) => setInvoiceForm({ ...invoiceForm, gst_percent: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Transport Charges
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={invoiceForm.transport_charges}
+                          onChange={(e) => setInvoiceForm({ ...invoiceForm, transport_charges: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Unloading Charges
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={invoiceForm.unloading_charges}
+                          onChange={(e) => setInvoiceForm({ ...invoiceForm, unloading_charges: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Amount Paid
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={invoiceForm.amount_paid}
+                          onChange={(e) => setInvoiceForm({ ...invoiceForm, amount_paid: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Submit Buttons */}
+                  <div className="flex gap-3 border-t pt-4">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      <Save className="h-5 w-5" />
+                      {loading ? 'Creating...' : 'Create Invoice'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetInvoiceForm}
+                      className="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      <X className="h-5 w-5" />
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Invoices List */}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pending</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.invoice_id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{invoice.invoice_id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.customer_name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(invoice.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ₹{parseFloat(invoice.grand_total).toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ₹{parseFloat(invoice.pending_balance).toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                          invoice.status === 'Sent' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {invoice.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => handleDownloadPDF(invoice)}
+                          className="text-green-600 hover:text-green-900 mr-3"
+                          title="Download PDF"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleWhatsAppShare(invoice)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                          title="Share on WhatsApp"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteInvoice(invoice.invoice_id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {invoices.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No invoices found. Create your first invoice!
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;
