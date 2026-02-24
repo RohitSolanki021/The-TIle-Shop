@@ -1,0 +1,81 @@
+{
+  "page_height": 842.25,
+  "page_width": 595.50,
+  
+  "background_color": [0.98, 0.96, 0.95],
+  
+  "quotation_box": {
+    "quotation_no_value": {"x": 371, "y_from_top": 58},
+    "date_value": {"x": 335, "y_from_top": 91},
+    "reference_name_value": {"x": 378, "y_from_top": 122}
+  },
+  
+  "buyer_section": {
+    "name": {"x": 40, "y_from_top": 180},
+    "phone": {"x": 40, "y_from_top": 191},
+    "address_line1": {"x": 40, "y_from_top": 202},
+    "address_line2": {"x": 40, "y_from_top": 211},
+    "gstin": {"x": 40, "y_from_top": 220}
+  },
+  
+  "consignee_section": {
+    "name": {"x": 310, "y_from_top": 180},
+    "phone": {"x": 310, "y_from_top": 191},
+    "address_line1": {"x": 310, "y_from_top": 202},
+    "address_line2": {"x": 310, "y_from_top": 211}
+  },
+  
+  "grid": {
+    "table_left": 28.3,
+    "table_right": 566.1,
+    "table_width": 537.8,
+    
+    "column_boundaries": {
+      "sr_no":     {"x0": 28.3,  "x1": 51.6,  "width": 23.3},
+      "name":      {"x0": 51.6,  "x1": 98.3,  "width": 46.6},
+      "image":     {"x0": 98.3,  "x1": 274.3, "width": 176.0},
+      "size":      {"x0": 274.3, "x1": 382.0, "width": 107.7},
+      "rate_box":  {"x0": 382.0, "x1": 414.0, "width": 32.0},
+      "rate_sqft": {"x0": 414.0, "x1": 442.0, "width": 28.0},
+      "quantity":  {"x0": 442.0, "x1": 487.0, "width": 45.0},
+      "disc":      {"x0": 487.0, "x1": 527.0, "width": 40.0},
+      "amount":    {"x0": 527.0, "x1": 566.1, "width": 39.1}
+    },
+    
+    "section_header_row": {
+      "y_top": 239,
+      "height": 16,
+      "text_box": {"x": 260, "y_top": 243, "width": 75, "height": 12}
+    },
+    
+    "item_rows": {
+      "start_y": 255,
+      "row_height": 18,
+      "row_height_with_image": 40,
+      "end_y_page1": 333,
+      "end_y_continuation": 780
+    },
+    
+    "section_total_row": {
+      "y_top": 333,
+      "height": 13,
+      "label_box": {"x": 414, "y_top": 336, "width": 112, "height": 10},
+      "value_box": {"x": 527, "y_top": 336, "width": 39, "height": 10}
+    }
+  },
+  
+  "financial_summary": {
+    "value_x": 340,
+    "total_amount": {"y_from_top": 355},
+    "transport": {"y_from_top": 368},
+    "unloading": {"y_from_top": 381},
+    "gst": {"y_from_top": 395},
+    "final_amount": {"y_from_top": 410}
+  },
+  
+  "overall_remarks": {
+    "x": 40,
+    "y_from_top": 480,
+    "max_width": 500
+  }
+}
