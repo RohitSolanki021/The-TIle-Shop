@@ -9,6 +9,13 @@ require_once __DIR__ . '/../utils/invoice_helper.php';
 $db = Database::getInstance()->getConnection();
 $helper = new InvoiceHelper($db);
 
+// Get request variables from router
+$requestMethod = $GLOBALS['requestMethod'];
+$id = $GLOBALS['id'] ?? null;
+$action = $GLOBALS['action'] ?? null;
+
+error_log("Invoices API - Method: $requestMethod, ID: " . ($id ?? 'null') . ", Action: " . ($action ?? 'null'));
+
 // GET /api/invoices - Get all invoices
 if ($requestMethod === 'GET' && !$id) {
     try {
