@@ -1315,24 +1315,19 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
 
   const handleWhatsAppShare = async (invoice) => {
     try {
-      // Ensure numeric values are properly converted
-      const grandTotal = parseFloat(invoice.grand_total) || 0;
-      const amountPaid = parseFloat(invoice.amount_paid) || 0;
-      const pendingBalance = parseFloat(invoice.pending_balance) || 0;
-      
       const message = `📋 *Invoice ${invoice.invoice_id}*\n\n` +
         `👤 Customer: ${invoice.customer_name}\n` +
         `📞 Phone: ${invoice.customer_phone}\n` +
-        `💰 Total Amount: ₹${grandTotal.toFixed(2)}\n` +
-        `✅ Paid: ₹${amountPaid.toFixed(2)}\n` +
-        `⏳ Pending: ₹${pendingBalance.toFixed(2)}\n` +
+        `💰 Total Amount: ₹${parseFloat(invoice.grand_total || 0).toFixed(2)}\n` +
+        `✅ Paid: ₹${parseFloat(invoice.amount_paid || 0).toFixed(2)}\n` +
+        `⏳ Pending: ₹${parseFloat(invoice.pending_balance || 0).toFixed(2)}\n` +
         `📊 Status: ${invoice.status}`;
       
       console.log('Fetching PDF for WhatsApp share:', invoice.invoice_id);
       
       // Get PDF from server
       const encodedInvoiceId = encodeURIComponent(invoice.invoice_id);
-      const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
+      const response = await axios.get(`${API}/public/invoices/${encodedInvoiceId}/pdf`, {
         responseType: 'blob'
       });
       
@@ -1368,8 +1363,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
         console.log('PDF downloaded, opening WhatsApp');
         
         // Open WhatsApp with message
-        const encodedInvoiceIdForUrl = encodeURIComponent(invoice.invoice_id);
-        const pdfUrl = `${BACKEND_URL}/api/invoices/${encodedInvoiceIdForUrl}/pdf`;
+        const pdfUrl = `${BACKEND_URL}/api/public/invoices/${encodedInvoiceId}/pdf`;
         const fullMessage = message + `\n\n📥 Download Invoice PDF:\n${pdfUrl}`;
         const encodedMessage = encodeURIComponent(fullMessage);
         
@@ -1383,17 +1377,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     } catch (error) {
       console.error('WhatsApp share error:', error);
       console.error('Error details:', error.response?.data);
-      
-      let errorMessage = 'Error sharing on WhatsApp: ';
-      if (error.response?.status === 404) {
-        errorMessage += 'Invoice not found';
-      } else if (error.response?.data?.error) {
-        errorMessage += error.response.data.error;
-      } else {
-        errorMessage += error.message;
-      }
-      
-      alert(errorMessage);
+      alert('Error sharing on WhatsApp: ' + (error.message || 'Unknown error'));
     }
   };
 
