@@ -1294,22 +1294,51 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
 
   const handleDownloadPDF = async (invoiceId) => {
     try {
-      // Use server-side PDF generation
+      console.log('Downloading PDF for invoice:', invoiceId);
+      
+      // Use server-side PDF generation (public endpoint)
       const encodedInvoiceId = encodeURIComponent(invoiceId);
-      const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
+      console.log('Encoded invoice ID:', encodedInvoiceId);
+      console.log('Fetching from:', `${API}/public/invoices/${encodedInvoiceId}/pdf`);
+      
+      const response = await axios.get(`${API}/public/invoices/${encodedInvoiceId}/pdf`, {
         responseType: 'blob'
       });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      console.log('PDF response received, size:', response.data.size, 'bytes');
+      console.log('Content type:', response.headers['content-type']);
+      
+      if (response.data.size === 0) {
+        throw new Error('PDF file is empty');
+      }
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Invoice_${invoiceId.replace(/\//g, '-')}.pdf`);
+      const safeFileName = invoiceId.replace(/\//g, '-').replace(/\s/g, '_');
+      link.setAttribute('download', `Invoice_${safeFileName}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      
+      console.log('✓ PDF downloaded successfully');
     } catch (error) {
       console.error('PDF download error:', error);
-      alert('Error downloading PDF: ' + error.message);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      let errorMessage = 'Error downloading PDF: ';
+      if (error.response?.status === 404) {
+        errorMessage += 'Invoice not found or PDF generation failed';
+      } else if (error.message === 'PDF file is empty') {
+        errorMessage += 'PDF generation returned empty file. Check backend logs.';
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
 
