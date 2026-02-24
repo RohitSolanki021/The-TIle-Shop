@@ -1338,32 +1338,46 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
 
   const handleWhatsAppShare = async (invoice) => {
     try {
+      // Ensure numeric values are properly converted
+      const grandTotal = parseFloat(invoice.grand_total) || 0;
+      const amountPaid = parseFloat(invoice.amount_paid) || 0;
+      const pendingBalance = parseFloat(invoice.pending_balance) || 0;
+      
       const message = `📋 *Invoice ${invoice.invoice_id}*\n\n` +
         `👤 Customer: ${invoice.customer_name}\n` +
         `📞 Phone: ${invoice.customer_phone}\n` +
-        `💰 Total Amount: ₹${invoice.grand_total.toFixed(2)}\n` +
-        `✅ Paid: ₹${invoice.amount_paid.toFixed(2)}\n` +
-        `⏳ Pending: ₹${invoice.pending_balance.toFixed(2)}\n` +
+        `💰 Total Amount: ₹${grandTotal.toFixed(2)}\n` +
+        `✅ Paid: ₹${amountPaid.toFixed(2)}\n` +
+        `⏳ Pending: ₹${pendingBalance.toFixed(2)}\n` +
         `📊 Status: ${invoice.status}`;
+      
+      console.log('Fetching PDF for WhatsApp share:', invoice.invoice_id);
       
       // Get PDF from server
       const encodedInvoiceId = encodeURIComponent(invoice.invoice_id);
       const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
         responseType: 'blob'
       });
+      
+      console.log('PDF received, size:', response.data.size);
+      
       const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
       
-      const safeFileName = invoice.invoice_id.replace(/\//g, '-');
+      const safeFileName = invoice.invoice_id.replace(/\//g, '-').replace(/\s/g, '_');
       const pdfFile = new File([pdfBlob], `Invoice_${safeFileName}.pdf`, { type: 'application/pdf' });
       
       // Check if Web Share API with files is supported (mainly mobile)
       if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        console.log('Using Web Share API');
         await navigator.share({
           files: [pdfFile],
           title: `Invoice ${invoice.invoice_id}`,
           text: message
         });
+        console.log('Successfully shared via Web Share API');
       } else {
+        console.log('Using fallback: download + WhatsApp web');
+        
         // Fallback: Download PDF and open WhatsApp with message
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
@@ -1374,16 +1388,35 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
         link.remove();
         window.URL.revokeObjectURL(url);
         
+        console.log('PDF downloaded, opening WhatsApp');
+        
         // Open WhatsApp with message
         const encodedInvoiceIdForUrl = encodeURIComponent(invoice.invoice_id);
         const pdfUrl = `${BACKEND_URL}/api/invoices/${encodedInvoiceIdForUrl}/pdf`;
         const fullMessage = message + `\n\n📥 Download Invoice PDF:\n${pdfUrl}`;
         const encodedMessage = encodeURIComponent(fullMessage);
-        window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        
+        // Try to detect phone number and pre-fill
+        const phone = invoice.customer_phone ? invoice.customer_phone.replace(/\D/g, '') : '';
+        const whatsappUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
+        
+        window.open(whatsappUrl, '_blank');
+        console.log('WhatsApp opened');
       }
     } catch (error) {
       console.error('WhatsApp share error:', error);
-      alert('Error sharing on WhatsApp: ' + error.message);
+      console.error('Error details:', error.response?.data);
+      
+      let errorMessage = 'Error sharing on WhatsApp: ';
+      if (error.response?.status === 404) {
+        errorMessage += 'Invoice not found';
+      } else if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
 
