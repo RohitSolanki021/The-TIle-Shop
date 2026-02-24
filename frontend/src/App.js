@@ -1303,10 +1303,14 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
   const handleDelete = async (invoiceId) => {
     if (window.confirm('Are you sure you want to delete this invoice?')) {
       try {
-        await axios.delete(`${API}/invoices/${invoiceId}`);
+        const encodedInvoiceId = encodeURIComponent(invoiceId);
+        await axios.delete(`${API}/invoices/${encodedInvoiceId}`);
         fetchInvoices();
+        fetchCustomers(); // Refresh to update pending balances
+        alert('Invoice deleted successfully!');
       } catch (error) {
-        alert('Error deleting invoice: ' + error.message);
+        console.error('Error deleting invoice:', error);
+        alert('Error deleting invoice: ' + (error.response?.data?.error || error.message));
       }
     }
   };
