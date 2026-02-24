@@ -1248,38 +1248,15 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     }
     
     try {
-      // Map frontend field names to PHP backend field names
-      const mappedLineItems = formData.line_items.map(item => ({
-        tile_id: item.tile_id || null,
-        section_name: item.location || '', // location -> section_name
-        product_name: item.tile_name || '', // tile_name -> product_name
-        size: item.size || '',
-        coverage: parseFloat(item.coverage) || 0,
-        box_coverage_sqft: parseFloat(item.coverage) || 0,
-        rate_per_sqft: parseFloat(item.rate_per_sqft) || 0,
-        rate_per_box: parseFloat(item.rate_per_box) || 0,
-        box_qty: parseInt(item.box_qty) || 0,
-        extra_sqft: parseFloat(item.extra_sqft) || 0,
-        discount_percent: parseFloat(item.discount_percent) || 0,
-        remarks: item.remarks || ''
-      }));
-
       const dataToSend = {
-        customer_id: formData.customer_id,
-        date: formData.date || new Date().toISOString().split('T')[0],
-        line_items: mappedLineItems,
-        gst_percent: parseFloat(formData.gst_percent) || 18,
+        ...formData,
         transport_charges: parseFloat(formData.transport_charges) || 0,
         unloading_charges: parseFloat(formData.unloading_charges) || 0,
         amount_paid: parseFloat(formData.amount_paid) || 0,
-        status: formData.status || 'Draft',
-        ship_to_name: formData.consignee_name || '', // consignee_name -> ship_to_name
-        ship_to_address: formData.consignee_address || '', // consignee_address -> ship_to_address
-        reference_name: formData.reference_name || '',
-        remarks: formData.remarks || ''
+        gst_percent: parseFloat(formData.gst_percent) || 18
       };
 
-      console.log('Sending to PHP backend:', dataToSend);
+      console.log('Sending to backend:', dataToSend);
 
       if (editingInvoice) {
         await axios.put(`${API}/invoices/${editingInvoice.invoice_id}`, dataToSend);
@@ -1296,7 +1273,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     } catch (error) {
       console.error('Error saving invoice:', error);
       console.error('Error details:', error.response?.data);
-      alert('Error: ' + (error.response?.data?.error || error.response?.data?.detail || error.message));
+      alert('Error: ' + (error.response?.data?.detail || error.response?.data?.error || error.message));
     }
   };
 
