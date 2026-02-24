@@ -1296,12 +1296,12 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     try {
       console.log('Downloading PDF for invoice:', invoiceId);
       
-      // Use server-side PDF generation (public endpoint)
+      // Use server-side PDF generation
       const encodedInvoiceId = encodeURIComponent(invoiceId);
       console.log('Encoded invoice ID:', encodedInvoiceId);
-      console.log('Fetching from:', `${API}/public/invoices/${encodedInvoiceId}/pdf`);
+      console.log('Fetching from:', `${API}/invoices/${encodedInvoiceId}/pdf`);
       
-      const response = await axios.get(`${API}/public/invoices/${encodedInvoiceId}/pdf`, {
+      const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
         responseType: 'blob'
       });
       
@@ -1356,7 +1356,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
       
       // Get PDF from server
       const encodedInvoiceId = encodeURIComponent(invoice.invoice_id);
-      const response = await axios.get(`${API}/public/invoices/${encodedInvoiceId}/pdf`, {
+      const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
         responseType: 'blob'
       });
       
@@ -1392,7 +1392,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
         console.log('PDF downloaded, opening WhatsApp');
         
         // Open WhatsApp with message
-        const pdfUrl = `${BACKEND_URL}/api/public/invoices/${encodedInvoiceId}/pdf`;
+        const pdfUrl = `${BACKEND_URL}/api/invoices/${encodedInvoiceId}/pdf`;
         const fullMessage = message + `\n\n📥 Download Invoice PDF:\n${pdfUrl}`;
         const encodedMessage = encodeURIComponent(fullMessage);
         
