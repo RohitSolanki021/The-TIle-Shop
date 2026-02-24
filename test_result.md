@@ -393,7 +393,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All core delete and WhatsApp functionality verified and working"
+    - "All core functionalities tested and working"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
