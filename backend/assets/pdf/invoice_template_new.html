@@ -418,7 +418,7 @@
                     <th class="col-image">IMAGE</th>
                     <th class="col-size">SIZE</th>
                     <th class="col-qty">QUANTITY</th>
-                    <th class="col-rate-box">RATE /<br>BOX</th>
+                    <th class="col-rate-box">RATE /<br>BOX / PC</th>
                     <th class="col-rate-sqft">RATE /<br>SQFT</th>
                     <th class="col-disc">DISC.<br>(%)</th>
                     <th class="col-amount">AMOUNT</th>
@@ -442,7 +442,7 @@
                     </td>
                     <td class="col-size">{{ item.size }}</td>
                     <td class="col-qty">{{ item.qty }}</td>
-                    <td class="col-rate-box">{{ item.rate_box }}</td>
+                    <td class="col-rate-box">{% if item.product_type == 'granite' %}{{ item.rate_display }}{% else %}{{ item.rate_box }}{% endif %}</td>
                     <td class="col-rate-sqft">{{ item.rate_sqft }}</td>
                     <td class="col-disc">{{ item.disc }}</td>
                     <td class="col-amount">{{ item.amount }}</td>

@@ -1741,10 +1741,34 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
 
   const handleWhatsAppShare = async (invoice) => {
     try {
+      // Build line items summary
+      let itemsSummary = '';
+      if (invoice.line_items && invoice.line_items.length > 0) {
+        itemsSummary = '\n\n📦 *Items:*\n';
+        invoice.line_items.forEach((item, idx) => {
+          const productType = item.product_type || 'tiles_box';
+          const typeLabel = productType === 'granite' ? 'Granite' : 
+                           productType === 'tile_pieces' ? 'Tile Pieces' : 'Tile Box';
+          const name = item.tile_name || item.product_name || 'Item';
+          
+          let rateInfo = '';
+          if (productType === 'granite') {
+            rateInfo = `₹${item.rate_per_piece}/pc × ${item.quantity} pc`;
+          } else if (productType === 'tile_pieces') {
+            rateInfo = `₹${item.rate_per_sqft}/sqft × ${item.extra_sqft} sqft`;
+          } else {
+            rateInfo = `₹${item.rate_per_box}/box × ${item.box_qty} box`;
+          }
+          
+          itemsSummary += `${idx + 1}. ${name} (${typeLabel})\n   ${item.location} - ${rateInfo}\n`;
+        });
+      }
+
       const message = `📋 *Invoice ${invoice.invoice_id}*\n\n` +
         `👤 Customer: ${invoice.customer_name}\n` +
         `📞 Phone: ${invoice.customer_phone}\n` +
-        `💰 Total Amount: ₹${parseFloat(invoice.grand_total || 0).toFixed(2)}\n` +
+        itemsSummary +
+        `\n💰 Total Amount: ₹${parseFloat(invoice.grand_total || 0).toFixed(2)}\n` +
         `✅ Paid: ₹${parseFloat(invoice.amount_paid || 0).toFixed(2)}\n` +
         `⏳ Pending: ₹${parseFloat(invoice.pending_balance || 0).toFixed(2)}\n` +
         `📊 Status: ${invoice.status}`;

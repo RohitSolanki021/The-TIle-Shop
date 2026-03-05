@@ -111,17 +111,18 @@ def _normalize_invoice_data(invoice: dict) -> dict:
             }
         
         product_type = item.get('product_type', 'tiles_box')
+        base_name = item.get('tile_name') or item.get('product_name', '')
         
         # Format item data based on product type
         if product_type == 'granite':
             # Granite: show quantity (pieces) and rate per piece
             formatted_item = {
                 'product_type': 'granite',
-                'name': item.get('tile_name') or item.get('product_name', ''),
+                'name': f"{base_name} (Granite)",
                 'size': item.get('size', ''),
-                'rate_box': '-',  # Not applicable
-                'rate_sqft': '-',  # Not applicable
-                'rate_piece': format_indian_currency(item.get('rate_per_piece', 0)),
+                'rate_display': format_indian_currency(item.get('rate_per_piece', 0)).replace('₹', '') + '/pc',
+                'rate_box': '-',
+                'rate_sqft': '-',
                 'qty': f"{item.get('quantity', 1)} pc",
                 'disc': f"{round(item.get('discount_percent', 0))}%",
                 'amount': format_indian_currency(item.get('final_amount', 0)),
@@ -131,11 +132,11 @@ def _normalize_invoice_data(invoice: dict) -> dict:
             # Tile pieces: show sqft and rate per sqft (no box info)
             formatted_item = {
                 'product_type': 'tile_pieces',
-                'name': item.get('tile_name') or item.get('product_name', ''),
+                'name': f"{base_name} (Tile Pieces)",
                 'size': item.get('size', ''),
-                'rate_box': '-',  # Not applicable
+                'rate_display': format_indian_currency(item.get('rate_per_sqft', 0)).replace('₹', '') + '/sqft',
+                'rate_box': '-',
                 'rate_sqft': format_indian_currency(item.get('rate_per_sqft', 0)),
-                'rate_piece': '-',
                 'qty': f"{item.get('extra_sqft', 0)} sqft",
                 'disc': f"{round(item.get('discount_percent', 0))}%",
                 'amount': format_indian_currency(item.get('final_amount', 0)),
@@ -143,13 +144,15 @@ def _normalize_invoice_data(invoice: dict) -> dict:
             }
         else:
             # Default: tiles_box - show box rate, sqft rate, box qty
+            rate_box_val = item.get('rate_per_box', 0)
+            rate_sqft_val = item.get('rate_per_sqft', 0)
             formatted_item = {
                 'product_type': 'tiles_box',
-                'name': item.get('tile_name') or item.get('product_name', ''),
+                'name': f"{base_name} (Tile Box)",
                 'size': item.get('size', ''),
-                'rate_box': format_indian_currency(item.get('rate_per_box', 0)),
-                'rate_sqft': format_indian_currency(item.get('rate_per_sqft', 0)),
-                'rate_piece': '-',
+                'rate_display': format_indian_currency(rate_box_val).replace('₹', '') + '/box',
+                'rate_box': format_indian_currency(rate_box_val),
+                'rate_sqft': format_indian_currency(rate_sqft_val),
                 'qty': f"{item.get('box_qty', 0)} box",
                 'disc': f"{round(item.get('discount_percent', 0))}%",
                 'amount': format_indian_currency(item.get('final_amount', 0)),
