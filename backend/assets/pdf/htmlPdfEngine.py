@@ -23,14 +23,16 @@ def format_indian_currency(amount):
     """
     Format number in Indian style (e.g., 1,23,456.00)
     Indian format: last 3 digits, then groups of 2
-    Always rounds to nearest whole number and shows .00
+    Always shows 2 decimal places
     """
     amount = float(amount)
     is_negative = amount < 0
     amount = abs(amount)
     
-    # Round to nearest whole number
-    int_part = round(amount)
+    # Round to 2 decimal places
+    amount = round(amount, 2)
+    int_part = int(amount)
+    dec_part = round((amount - int_part) * 100)
     
     # Convert to string and format
     int_str = str(int_part)
@@ -48,7 +50,9 @@ def format_indian_currency(amount):
             remaining = remaining[:-2]
         formatted = ','.join(groups) + ',' + last_three
     
-    result = f"₹{formatted}.00"
+    # Format decimal part with leading zero if needed
+    dec_str = f"{dec_part:02d}"
+    result = f"₹{formatted}.{dec_str}"
     return f"-{result}" if is_negative else result
 
 
@@ -209,7 +213,7 @@ def _normalize_invoice_data(invoice: dict) -> dict:
             'unloading': format_indian_currency(invoice.get('unloading_charges', 0)).replace('₹', '')
         },
         'subtotal': format_indian_currency(invoice.get('subtotal', 0)).replace('₹', ''),
-        'gst_amount': invoice.get('gst_amount', 0),
+        'gst_amount': format_indian_currency(invoice.get('gst_amount', 0)).replace('₹', ''),
         'grand_total': format_indian_currency(invoice.get('grand_total', 0)).replace('₹', ''),
         'remarks': invoice.get('overall_remarks', '')
     }

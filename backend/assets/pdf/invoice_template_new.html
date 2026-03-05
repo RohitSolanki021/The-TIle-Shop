@@ -482,7 +482,7 @@
             <tr>
                 <td style="border: 1px solid #d4b896;"></td>
                 <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px;">GST Amount :</td>
-                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">{% if gst_amount > 0 %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
+                <td style="border: 1px solid #d4b896; text-align: right; padding: 5px 8px; font-weight: bold;">{% if gst_amount and gst_amount != '0.00' %}₹{{ gst_amount }}{% else %}As applicable{% endif %}</td>
             </tr>
             <tr>
                 <td style="border: 1px solid #d4b896; background: #f5e6d3;"></td>
