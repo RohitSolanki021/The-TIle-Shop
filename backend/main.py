@@ -85,6 +85,37 @@ class TileUpdate(BaseModel):
     coverage: Optional[float] = None
     box_packing: Optional[int] = None
 
+# Granite Models
+class Granite(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    granite_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    size: Optional[str] = None  # e.g., "8ft x 4ft"
+    thickness: Optional[str] = None  # e.g., "18mm", "20mm"
+    color: Optional[str] = None
+    rate_per_piece: float = 0.0
+    rate_per_sqft: float = 0.0
+    active: bool = True
+    deleted: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class GraniteCreate(BaseModel):
+    name: str
+    size: Optional[str] = None
+    thickness: Optional[str] = None
+    color: Optional[str] = None
+    rate_per_piece: float = 0.0
+    rate_per_sqft: float = 0.0
+
+class GraniteUpdate(BaseModel):
+    name: Optional[str] = None
+    size: Optional[str] = None
+    thickness: Optional[str] = None
+    color: Optional[str] = None
+    rate_per_piece: Optional[float] = None
+    rate_per_sqft: Optional[float] = None
+
 class Customer(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
@@ -110,12 +141,13 @@ class CustomerUpdate(BaseModel):
     gstin: Optional[str] = None
 
 class InvoiceLineItem(BaseModel):
+    product_type: str = "tiles_box"  # 'tiles_box', 'tile_pieces', 'granite'
     location: str
     tile_name: Optional[str] = None  # Manual text entry for tile name (new field)
     product_name: Optional[str] = None  # Kept for backward compatibility
     tile_image: Optional[str] = None  # Base64 encoded image
-    size: str  # Selected from existing tile sizes
-    box_qty: int = Field(ge=0)
+    size: Optional[str] = None  # Selected from existing tile sizes or manual entry
+    box_qty: int = Field(ge=0, default=0)
     extra_sqft: float = Field(ge=0, default=0)
     rate_per_sqft: float = 0  # User enters this OR rate_per_box
     rate_per_box: float = 0  # Auto-calculated from rate_per_sqft or vice versa
@@ -123,6 +155,10 @@ class InvoiceLineItem(BaseModel):
     coverage: float = Field(ge=0, default=0)  # Auto-fetched from tile based on size
     box_coverage_sqft: float = Field(ge=0, default=0)  # Kept for backward compatibility
     box_packing: int = Field(ge=0, default=0)  # Auto-fetched from tile based on size
+    # Granite specific fields
+    granite_id: Optional[str] = None
+    quantity: int = Field(ge=0, default=1)  # For granites (piece count)
+    rate_per_piece: float = 0  # For granites
     # Calculated fields
     total_sqft: float = 0
     amount_before_discount: float = 0
@@ -203,22 +239,37 @@ def calculate_bidirectional_rate(coverage: float, rate_sqft: Optional[float], ra
     return rate_sqft or 0, rate_box or 0
 
 def calculate_line_item(item: InvoiceLineItem) -> InvoiceLineItem:
-    """Calculate all fields for a line item"""
-    # Get coverage (support both old and new field names)
-    coverage = item.coverage if item.coverage > 0 else item.box_coverage_sqft
+    """Calculate all fields for a line item based on product type"""
+    product_type = item.product_type or 'tiles_box'
     
-    # Calculate bidirectional rates
-    item.rate_per_sqft, item.rate_per_box = calculate_bidirectional_rate(
-        coverage, item.rate_per_sqft, item.rate_per_box
-    )
+    if product_type == 'granite':
+        # Granite: quantity * rate_per_piece
+        quantity = item.quantity if item.quantity > 0 else 1
+        item.amount_before_discount = quantity * item.rate_per_piece
+        item.total_sqft = 0  # Not applicable for granites
+        
+    elif product_type == 'tile_pieces':
+        # Tile pieces: extra_sqft (used as total sqft) * rate_per_sqft
+        item.total_sqft = item.extra_sqft
+        item.amount_before_discount = item.total_sqft * item.rate_per_sqft
+        
+    else:
+        # tiles_box: box_qty * coverage + extra_sqft
+        # Get coverage (support both old and new field names)
+        coverage = item.coverage if item.coverage > 0 else item.box_coverage_sqft
+        
+        # Calculate bidirectional rates
+        item.rate_per_sqft, item.rate_per_box = calculate_bidirectional_rate(
+            coverage, item.rate_per_sqft, item.rate_per_box
+        )
+        
+        # Calculate total sqft using coverage
+        item.total_sqft = (item.box_qty * coverage) + item.extra_sqft
+        
+        # Calculate amount before discount
+        item.amount_before_discount = item.total_sqft * item.rate_per_sqft
     
-    # Calculate total sqft using coverage
-    item.total_sqft = (item.box_qty * coverage) + item.extra_sqft
-    
-    # Calculate amount before discount
-    item.amount_before_discount = item.total_sqft * item.rate_per_sqft
-    
-    # Calculate discount
+    # Calculate discount (common for all types)
     item.discount_amount = item.amount_before_discount * (item.discount_percent / 100)
     
     # Calculate final amount
@@ -375,6 +426,102 @@ async def delete_tile(tile_id: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting tile: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ==================== GRANITES ENDPOINTS ====================
+
+@api_router.post("/granites", response_model=Granite)
+async def create_granite(granite_input: GraniteCreate):
+    """Create a new granite"""
+    try:
+        granite_dict = granite_input.model_dump()
+        granite = Granite(**granite_dict)
+        doc = granite.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        
+        await db.granites.insert_one(doc)
+        return granite
+    except Exception as e:
+        logger.error(f"Error creating granite: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/granites", response_model=List[Granite])
+async def get_granites():
+    """Get all granites (excluding soft-deleted)"""
+    try:
+        granites = []
+        cursor = db.granites.find({"deleted": {"$ne": True}}, {"_id": 0})
+        async for doc in cursor:
+            granites.append(Granite(**doc))
+        return granites
+    except Exception as e:
+        logger.error(f"Error fetching granites: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/granites/{granite_id}", response_model=Granite)
+async def get_granite(granite_id: str):
+    """Get a specific granite by ID"""
+    try:
+        doc = await db.granites.find_one(
+            {"granite_id": granite_id, "deleted": {"$ne": True}},
+            {"_id": 0}
+        )
+        if not doc:
+            raise HTTPException(status_code=404, detail="Granite not found")
+        return Granite(**doc)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching granite: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/granites/{granite_id}", response_model=Granite)
+async def update_granite(granite_id: str, granite_update: GraniteUpdate):
+    """Update an existing granite"""
+    try:
+        existing = await db.granites.find_one(
+            {"granite_id": granite_id, "deleted": {"$ne": True}},
+            {"_id": 0}
+        )
+        if not existing:
+            raise HTTPException(status_code=404, detail="Granite not found")
+        
+        update_data = {k: v for k, v in granite_update.model_dump().items() if v is not None}
+        
+        if update_data:
+            await db.granites.update_one(
+                {"granite_id": granite_id},
+                {"$set": update_data}
+            )
+        
+        updated = await db.granites.find_one({"granite_id": granite_id}, {"_id": 0})
+        return Granite(**updated)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating granite: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/granites/{granite_id}")
+async def delete_granite(granite_id: str):
+    """Soft delete a granite"""
+    try:
+        existing = await db.granites.find_one(
+            {"granite_id": granite_id, "deleted": {"$ne": True}},
+            {"_id": 0}
+        )
+        if not existing:
+            raise HTTPException(status_code=404, detail="Granite not found")
+        
+        await db.granites.update_one(
+            {"granite_id": granite_id},
+            {"$set": {"deleted": True, "active": False}}
+        )
+        return {"message": "Granite deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting granite: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ==================== CUSTOMERS ENDPOINTS ====================
@@ -581,6 +728,74 @@ async def create_invoice(invoice_input: InvoiceCreate):
         logger.error(f"Error creating invoice: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ==================== PRO INVOICE ENGINE ====================
+# Import the PRO Invoice Engine for PDF generation
+# NOTE: PDF routes MUST be defined BEFORE generic invoice routes to avoid path matching issues
+
+from assets.pdf.htmlPdfEngine import generate_invoice_pdf_html
+
+@api_router.get("/invoices/{invoice_id:path}/pdf")
+async def get_invoice_pdf(invoice_id: str):
+    """Generate and return PDF for invoice"""
+    try:
+        invoice = await db.invoices.find_one({"invoice_id": invoice_id, "deleted": False}, {"_id": 0})
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Invoice not found")
+        
+        pdf_dir = ROOT_DIR / "pdfs"
+        pdf_dir.mkdir(exist_ok=True)
+        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
+        pdf_path = pdf_dir / f"{safe_filename}.pdf"
+        
+        generate_invoice_pdf_html(invoice, str(pdf_path))
+        
+        return FileResponse(
+            path=str(pdf_path),
+            media_type='application/pdf',
+            filename=f"Invoice_{safe_filename}.pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=Invoice_{safe_filename}.pdf",
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "no-cache"
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating PDF: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/public/invoices/{invoice_id:path}/pdf")
+async def get_public_invoice_pdf(invoice_id: str):
+    """Public endpoint for PDF download (for WhatsApp sharing)"""
+    try:
+        invoice = await db.invoices.find_one({"invoice_id": invoice_id, "deleted": False}, {"_id": 0})
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Invoice not found")
+        
+        pdf_dir = ROOT_DIR / "pdfs"
+        pdf_dir.mkdir(exist_ok=True)
+        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
+        pdf_path = pdf_dir / f"{safe_filename}.pdf"
+        
+        generate_invoice_pdf_html(invoice, str(pdf_path))
+        
+        return FileResponse(
+            path=str(pdf_path),
+            media_type='application/pdf',
+            filename=f"Invoice_{safe_filename}.pdf",
+            headers={
+                "Content-Disposition": f"inline; filename=Invoice_{safe_filename}.pdf",
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "public, max-age=3600"
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating PDF: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/invoices", response_model=List[Invoice])
 async def get_invoices():
     """Get all invoices (excluding soft-deleted)"""
@@ -716,74 +931,6 @@ async def delete_invoice(invoice_id: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting invoice: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# ==================== PRO INVOICE ENGINE ====================
-# Import the PRO Invoice Engine for PDF generation
-
-from assets.pdf.htmlPdfEngine import generate_invoice_pdf_html
-
-@api_router.get("/invoices/{invoice_id:path}/pdf")
-async def get_invoice_pdf(invoice_id: str):
-    """Generate and return PDF for invoice"""
-    try:
-        invoice = await db.invoices.find_one({"invoice_id": invoice_id, "deleted": False}, {"_id": 0})
-        if not invoice:
-            raise HTTPException(status_code=404, detail="Invoice not found")
-        
-        pdf_dir = ROOT_DIR / "pdfs"
-        pdf_dir.mkdir(exist_ok=True)
-        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
-        pdf_path = pdf_dir / f"{safe_filename}.pdf"
-        
-        generate_invoice_pdf_html(invoice, str(pdf_path))
-        
-        return FileResponse(
-            path=str(pdf_path),
-            media_type='application/pdf',
-            filename=f"Invoice_{safe_filename}.pdf",
-            headers={
-                "Content-Disposition": f"attachment; filename=Invoice_{safe_filename}.pdf",
-                "Access-Control-Allow-Origin": "*",
-                "Cache-Control": "no-cache"
-            }
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error generating PDF: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@api_router.get("/public/invoices/{invoice_id:path}/pdf")
-async def get_public_invoice_pdf(invoice_id: str):
-    """Public endpoint for PDF download (for WhatsApp sharing)"""
-    try:
-        invoice = await db.invoices.find_one({"invoice_id": invoice_id, "deleted": False}, {"_id": 0})
-        if not invoice:
-            raise HTTPException(status_code=404, detail="Invoice not found")
-        
-        pdf_dir = ROOT_DIR / "pdfs"
-        pdf_dir.mkdir(exist_ok=True)
-        safe_filename = invoice_id.replace(" / ", "-").replace("/", "-")
-        pdf_path = pdf_dir / f"{safe_filename}.pdf"
-        
-        generate_invoice_pdf_html(invoice, str(pdf_path))
-        
-        return FileResponse(
-            path=str(pdf_path),
-            media_type='application/pdf',
-            filename=f"Invoice_{safe_filename}.pdf",
-            headers={
-                "Content-Disposition": f"inline; filename=Invoice_{safe_filename}.pdf",
-                "Access-Control-Allow-Origin": "*",
-                "Cache-Control": "public, max-age=3600"
-            }
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error generating PDF: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ==================== ROOT ENDPOINTS ====================

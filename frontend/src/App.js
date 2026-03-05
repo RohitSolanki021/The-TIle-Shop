@@ -3,7 +3,7 @@ import axios from 'axios';
 import { 
   Package, Users, FileText, Plus, Edit2, Trash2, Save, X, 
   Download, Share2, Search, Menu, Home, Camera, Upload, Image,
-  ChevronDown, ChevronRight, LogOut
+  ChevronDown, ChevronRight, LogOut, Layers, Square
 } from 'lucide-react';
 import './App.css';
 import Login from './components/Login';
@@ -20,6 +20,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [tiles, setTiles] = useState([]);
+  const [granites, setGranites] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -75,6 +76,7 @@ function App() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchTiles();
+      fetchGranites();
       fetchCustomers();
       fetchInvoices();
     }
@@ -86,6 +88,16 @@ function App() {
       setTiles(response.data);
     } catch (error) {
       console.error('Error fetching tiles:', error);
+    }
+  };
+
+  const fetchGranites = async () => {
+    try {
+      const response = await axios.get(`${API}/granites`);
+      setGranites(response.data);
+    } catch (error) {
+      console.error('Error fetching granites:', error);
+      setGranites([]); // Initialize empty if endpoint doesn't exist yet
     }
   };
 
@@ -174,6 +186,13 @@ function App() {
                 testId="nav-tiles"
               />
               <NavItem
+                icon={<Layers />}
+                label="Granites"
+                active={activeTab === 'granites'}
+                onClick={() => { setActiveTab('granites'); setShowMobileMenu(false); }}
+                testId="nav-granites"
+              />
+              <NavItem
                 icon={<Users />}
                 label="Customers"
                 active={activeTab === 'customers'}
@@ -205,6 +224,7 @@ function App() {
             {activeTab === 'dashboard' && (
               <Dashboard 
                 tiles={tiles} 
+                granites={granites}
                 customers={customers} 
                 invoices={invoices}
                 onNavigate={setActiveTab}
@@ -213,6 +233,9 @@ function App() {
             {activeTab === 'tiles' && (
               <TilesManagement tiles={tiles} fetchTiles={fetchTiles} />
             )}
+            {activeTab === 'granites' && (
+              <GranitesManagement granites={granites} fetchGranites={fetchGranites} />
+            )}
             {activeTab === 'customers' && (
               <CustomersManagement customers={customers} fetchCustomers={fetchCustomers} />
             )}
@@ -220,8 +243,10 @@ function App() {
               <InvoicesManagement 
                 invoices={invoices} 
                 tiles={tiles}
+                granites={granites}
                 customers={customers}
-                fetchInvoices={fetchInvoices} 
+                fetchInvoices={fetchInvoices}
+                fetchCustomers={fetchCustomers}
               />
             )}
           </main>
@@ -251,9 +276,10 @@ function NavItem({ icon, label, active, onClick, testId }) {
 }
 
 // Dashboard Component
-function Dashboard({ tiles, customers, invoices, onNavigate }) {
+function Dashboard({ tiles, granites = [], customers, invoices, onNavigate }) {
   const activeTiles = tiles.filter(t => t.active).length;
-  const totalPending = customers.reduce((sum, c) => sum + c.total_pending, 0);
+  const activeGranites = granites.filter(g => g.active !== false).length;
+  const totalPending = customers.reduce((sum, c) => sum + (c.total_pending || 0), 0);
   const draftInvoices = invoices.filter(i => i.status === 'Draft').length;
   const paidInvoices = invoices.filter(i => i.status === 'Paid').length;
 
@@ -263,7 +289,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Overview</h2>
         
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <StatCard
             icon={<Package />}
             title="Active Tiles"
@@ -272,6 +298,15 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
             color="blue"
             testId="stat-active-tiles"
             onClick={() => onNavigate('tiles')}
+          />
+          <StatCard
+            icon={<Layers />}
+            title="Granites"
+            value={activeGranites}
+            total={granites.length}
+            color="purple"
+            testId="stat-granites"
+            onClick={() => onNavigate('granites')}
           />
           <StatCard
             icon={<Users />}
@@ -286,7 +321,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
             title="Total Invoices"
             value={invoices.length}
             subtitle={`${paidInvoices} Paid, ${draftInvoices} Draft`}
-            color="purple"
+            color="blue"
             testId="stat-total-invoices"
             onClick={() => onNavigate('invoices')}
           />
@@ -316,7 +351,7 @@ function Dashboard({ tiles, customers, invoices, onNavigate }) {
                 <p className="text-sm text-gray-600">{invoice.customer_name}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-gray-800">₹{invoice.grand_total.toFixed(2)}</p>
+                <p className="font-bold text-gray-800">₹{(invoice.grand_total || 0).toFixed(2)}</p>
                 <span className={`text-xs px-2 py-1 rounded-full ${
                   invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
                   invoice.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
@@ -660,6 +695,271 @@ function TilesManagement({ tiles, fetchTiles }) {
   );
 }
 
+// Granites Management Component
+function GranitesManagement({ granites, fetchGranites }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editingGranite, setEditingGranite] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    size: '',
+    thickness: '',
+    color: '',
+    rate_per_piece: '',
+    rate_per_sqft: ''
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const dataToSend = {
+        ...formData,
+        rate_per_piece: parseFloat(formData.rate_per_piece) || 0,
+        rate_per_sqft: parseFloat(formData.rate_per_sqft) || 0
+      };
+      
+      if (editingGranite) {
+        await axios.put(`${API}/granites/${editingGranite.granite_id}`, dataToSend);
+      } else {
+        await axios.post(`${API}/granites`, dataToSend);
+      }
+      fetchGranites();
+      resetForm();
+    } catch (error) {
+      alert('Error: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const handleDelete = async (graniteId) => {
+    if (window.confirm('Are you sure you want to delete this granite?')) {
+      try {
+        await axios.delete(`${API}/granites/${graniteId}`);
+        fetchGranites();
+      } catch (error) {
+        alert('Error deleting granite');
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', size: '', thickness: '', color: '', rate_per_piece: '', rate_per_sqft: '' });
+    setEditingGranite(null);
+    setShowForm(false);
+  };
+
+  const startEdit = (granite) => {
+    setFormData({
+      name: granite.name || '',
+      size: granite.size || '',
+      thickness: granite.thickness || '',
+      color: granite.color || '',
+      rate_per_piece: granite.rate_per_piece || '',
+      rate_per_sqft: granite.rate_per_sqft || ''
+    });
+    setEditingGranite(granite);
+    setShowForm(true);
+  };
+
+  const filteredGranites = granites.filter(g =>
+    (g.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (g.size || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (g.color || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6" data-testid="granites-management">
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Granites Management</h2>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center justify-center space-x-2 text-white px-6 py-3 rounded-lg transition shadow-lg hover:shadow-xl"
+            style={{background: 'linear-gradient(to right, #5a3825, #6b4a35)'}}
+            data-testid="add-granite-button"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Add Granite</span>
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              placeholder="Search granites..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+              data-testid="granite-search-input"
+            />
+          </div>
+        </div>
+
+        {/* Add/Edit Form */}
+        {showForm && (
+          <div className="mb-6 p-6 bg-gray-50 rounded-lg border-2 border-[#d4c4b0]" data-testid="granite-form">
+            <h3 className="text-lg font-semibold mb-4">
+              {editingGranite ? 'Edit Granite' : 'Add New Granite'}
+            </h3>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Granite Name *</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825]"
+                    placeholder="e.g., Black Galaxy, Tan Brown"
+                    required
+                    data-testid="granite-name-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Size (L x W)</label>
+                  <input
+                    type="text"
+                    value={formData.size}
+                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825]"
+                    placeholder="e.g., 8ft x 4ft, 6ft x 3ft"
+                    data-testid="granite-size-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Thickness</label>
+                  <input
+                    type="text"
+                    value={formData.thickness}
+                    onChange={(e) => setFormData({ ...formData, thickness: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825]"
+                    placeholder="e.g., 18mm, 20mm"
+                    data-testid="granite-thickness-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                  <input
+                    type="text"
+                    value={formData.color}
+                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825]"
+                    placeholder="e.g., Black, Brown, Grey"
+                    data-testid="granite-color-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Piece (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.rate_per_piece}
+                    onChange={(e) => setFormData({ ...formData, rate_per_piece: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825]"
+                    placeholder="Price per slab"
+                    data-testid="granite-rate-piece-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Sqft (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.rate_per_sqft}
+                    onChange={(e) => setFormData({ ...formData, rate_per_sqft: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825]"
+                    placeholder="Price per sqft (optional)"
+                    data-testid="granite-rate-sqft-input"
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="submit"
+                  className="flex items-center space-x-2 px-6 py-2 rounded-lg text-white transition"
+                  style={{background: 'linear-gradient(to right, #5a3825, #6b4a35)'}}
+                  data-testid="granite-submit-button"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{editingGranite ? 'Update' : 'Save'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex items-center space-x-2 bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition"
+                  data-testid="granite-cancel-button"
+                >
+                  <X className="h-4 w-4" />
+                  <span>Cancel</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Granites Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full" data-testid="granites-table">
+            <thead>
+              <tr className="bg-gradient-to-r from-[#5a3825] to-[#6b4a35] text-white">
+                <th className="px-4 py-3 text-left rounded-tl-lg">Name</th>
+                <th className="px-4 py-3 text-left">Size</th>
+                <th className="px-4 py-3 text-left">Thickness</th>
+                <th className="px-4 py-3 text-left">Color</th>
+                <th className="px-4 py-3 text-right">Rate/Piece</th>
+                <th className="px-4 py-3 text-right">Rate/Sqft</th>
+                <th className="px-4 py-3 text-center rounded-tr-lg">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredGranites.map((granite, index) => (
+                <tr
+                  key={granite.granite_id}
+                  className={`border-b border-gray-100 hover:bg-[#fef7f7] transition ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                  data-testid={`granite-row-${granite.granite_id}`}
+                >
+                  <td className="px-4 py-3 font-medium">{granite.name}</td>
+                  <td className="px-4 py-3">{granite.size || '-'}</td>
+                  <td className="px-4 py-3">{granite.thickness || '-'}</td>
+                  <td className="px-4 py-3">{granite.color || '-'}</td>
+                  <td className="px-4 py-3 text-right">₹{(granite.rate_per_piece || 0).toFixed(2)}</td>
+                  <td className="px-4 py-3 text-right">{granite.rate_per_sqft ? `₹${granite.rate_per_sqft.toFixed(2)}` : '-'}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-center space-x-2">
+                      <button
+                        onClick={() => startEdit(granite)}
+                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                        data-testid={`edit-granite-${granite.granite_id}`}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(granite.granite_id)}
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
+                        data-testid={`delete-granite-${granite.granite_id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filteredGranites.length === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              <Layers className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+              <p>No granites found. Add your first granite to get started!</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Customers Management Component
 function CustomersManagement({ customers, fetchCustomers }) {
   const [showForm, setShowForm] = useState(false);
@@ -901,7 +1201,7 @@ function CustomersManagement({ customers, fetchCustomers }) {
 }
 
 // Invoices Management Component
-function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
+function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchInvoices, fetchCustomers }) {
   const [showForm, setShowForm] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
@@ -921,6 +1221,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     gst_percent: 0
   });
   const [currentLineItem, setCurrentLineItem] = useState({
+    product_type: 'tiles_box', // 'tiles_box', 'tile_pieces', 'granite'
     location: '',
     tile_name: '',  // Manual text entry
     size: '',       // Select from existing sizes
@@ -931,7 +1232,11 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     discount_percent: 0,
     tile_image: null,
     coverage: 0,    // Auto-fetched from tile
-    box_packing: 0  // Auto-fetched from tile
+    box_packing: 0,  // Auto-fetched from tile
+    // Granite specific fields
+    granite_id: '',
+    quantity: 1,    // For granites (piece count)
+    rate_per_piece: 0
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -945,6 +1250,45 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
 
   // Calculate current line item cost preview
   const lineItemPreview = useMemo(() => {
+    const productType = currentLineItem.product_type || 'tiles_box';
+    
+    // Granite calculation
+    if (productType === 'granite') {
+      if (!currentLineItem.tile_name) return null;
+      const qty = currentLineItem.quantity || 1;
+      const ratePerPiece = currentLineItem.rate_per_piece || 0;
+      const beforeDiscount = qty * ratePerPiece;
+      const discount = beforeDiscount * (currentLineItem.discount_percent / 100);
+      const finalAmount = beforeDiscount - discount;
+      
+      return {
+        productType: 'granite',
+        quantity: qty,
+        beforeDiscount: beforeDiscount.toFixed(2),
+        discount: discount.toFixed(2),
+        finalAmount: finalAmount.toFixed(2)
+      };
+    }
+    
+    // Tile pieces calculation (manual sqft entry)
+    if (productType === 'tile_pieces') {
+      if (!currentLineItem.tile_name) return null;
+      const totalSqft = currentLineItem.extra_sqft || 0; // Using extra_sqft as the total sqft for pieces
+      const rateSqft = currentLineItem.rate_per_sqft || 0;
+      const beforeDiscount = totalSqft * rateSqft;
+      const discount = beforeDiscount * (currentLineItem.discount_percent / 100);
+      const finalAmount = beforeDiscount - discount;
+      
+      return {
+        productType: 'tile_pieces',
+        totalSqft: totalSqft.toFixed(2),
+        beforeDiscount: beforeDiscount.toFixed(2),
+        discount: discount.toFixed(2),
+        finalAmount: finalAmount.toFixed(2)
+      };
+    }
+    
+    // Default: Tiles in box calculation
     if (!currentLineItem.tile_name || !currentLineItem.size) return null;
     
     const coverage = currentLineItem.coverage || 0;
@@ -956,6 +1300,7 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
     const finalAmount = beforeDiscount - discount;
     
     return {
+      productType: 'tiles_box',
       coverage: coverage,
       totalSqft: totalSqft.toFixed(2),
       beforeDiscount: beforeDiscount.toFixed(2),
@@ -1040,11 +1385,31 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
   // Calculate real-time totals
   const calculateTotals = useMemo(() => {
     const subtotal = formData.line_items.reduce((sum, item) => {
-      // Use coverage stored in the line item
+      const productType = item.product_type || 'tiles_box';
+      
+      // Granite calculation
+      if (productType === 'granite') {
+        const qty = item.quantity || 1;
+        const ratePerPiece = item.rate_per_piece || 0;
+        const beforeDiscount = qty * ratePerPiece;
+        const discount = beforeDiscount * ((item.discount_percent || 0) / 100);
+        return sum + (beforeDiscount - discount);
+      }
+      
+      // Tile pieces calculation (manual sqft)
+      if (productType === 'tile_pieces') {
+        const totalSqft = item.extra_sqft || 0; // Total sqft entered manually
+        const rateSqft = item.rate_per_sqft || 0;
+        const beforeDiscount = totalSqft * rateSqft;
+        const discount = beforeDiscount * ((item.discount_percent || 0) / 100);
+        return sum + (beforeDiscount - discount);
+      }
+      
+      // Default: Tiles in box calculation
       const coverage = item.coverage || item.box_coverage_sqft || 0;
-      const totalSqft = (item.box_qty * coverage) + item.extra_sqft;
-      const beforeDiscount = totalSqft * item.rate_per_sqft;
-      const discount = beforeDiscount * (item.discount_percent / 100);
+      const totalSqft = (item.box_qty * coverage) + (item.extra_sqft || 0);
+      const beforeDiscount = totalSqft * (item.rate_per_sqft || 0);
+      const discount = beforeDiscount * ((item.discount_percent || 0) / 100);
       return sum + (beforeDiscount - discount);
     }, 0);
     
@@ -1204,14 +1569,41 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
   };
 
   const handleAddLineItem = () => {
-    if (!currentLineItem.location || !currentLineItem.tile_name || !currentLineItem.size) {
-      alert('Please fill in all required fields (Location, Tile Name, Size)');
-      return;
-    }
+    const productType = currentLineItem.product_type || 'tiles_box';
     
-    if (currentLineItem.rate_per_sqft <= 0 && currentLineItem.rate_per_box <= 0) {
-      alert('Please enter Rate per Sqft or Rate per Box');
-      return;
+    // Validation based on product type
+    if (productType === 'granite') {
+      if (!currentLineItem.location || !currentLineItem.tile_name) {
+        alert('Please fill in all required fields (Location, Granite Name)');
+        return;
+      }
+      if (currentLineItem.rate_per_piece <= 0) {
+        alert('Please enter Rate per Piece for granite');
+        return;
+      }
+    } else if (productType === 'tile_pieces') {
+      if (!currentLineItem.location || !currentLineItem.tile_name) {
+        alert('Please fill in all required fields (Location, Tile Name)');
+        return;
+      }
+      if (currentLineItem.rate_per_sqft <= 0) {
+        alert('Please enter Rate per Sqft');
+        return;
+      }
+      if (currentLineItem.extra_sqft <= 0) {
+        alert('Please enter Total Sqft');
+        return;
+      }
+    } else {
+      // tiles_box
+      if (!currentLineItem.location || !currentLineItem.tile_name || !currentLineItem.size) {
+        alert('Please fill in all required fields (Location, Tile Name, Size)');
+        return;
+      }
+      if (currentLineItem.rate_per_sqft <= 0 && currentLineItem.rate_per_box <= 0) {
+        alert('Please enter Rate per Sqft or Rate per Box');
+        return;
+      }
     }
     
     setFormData({
@@ -1219,7 +1611,9 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
       line_items: [...formData.line_items, { ...currentLineItem }]
     });
     
+    // Reset line item with current product type preserved
     setCurrentLineItem({
+      product_type: currentLineItem.product_type,
       location: '',
       tile_name: '',
       size: '',
@@ -1230,7 +1624,10 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
       discount_percent: 0,
       tile_image: null,
       coverage: 0,
-      box_packing: 0
+      box_packing: 0,
+      granite_id: '',
+      quantity: 1,
+      rate_per_piece: 0
     });
   };
 
@@ -1626,92 +2023,308 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
             {/* Line Items Section */}
             <div className="border-t pt-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Add Line Items</h4>
+              
+              {/* Product Type Selection */}
+              <div className="mb-4 p-4 bg-gradient-to-r from-[#fef7f7] to-[#fff5f0] rounded-lg border border-[#d4c4b0]">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Product Type *</label>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentLineItem({
+                      ...currentLineItem,
+                      product_type: 'tiles_box',
+                      size: '',
+                      coverage: 0,
+                      box_packing: 0,
+                      box_qty: 0,
+                      extra_sqft: 0,
+                      rate_per_sqft: 0,
+                      rate_per_box: 0,
+                      quantity: 1,
+                      rate_per_piece: 0
+                    })}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition border-2 ${
+                      currentLineItem.product_type === 'tiles_box' 
+                        ? 'border-[#5a3825] bg-[#5a3825] text-white' 
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-[#5a3825]'
+                    }`}
+                    data-testid="product-type-tiles-box"
+                  >
+                    <Package className="h-4 w-4" />
+                    <span>Tiles (Box)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentLineItem({
+                      ...currentLineItem,
+                      product_type: 'tile_pieces',
+                      size: '',
+                      coverage: 0,
+                      box_packing: 0,
+                      box_qty: 0,
+                      extra_sqft: 0,
+                      rate_per_sqft: 0,
+                      rate_per_box: 0,
+                      quantity: 1,
+                      rate_per_piece: 0
+                    })}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition border-2 ${
+                      currentLineItem.product_type === 'tile_pieces' 
+                        ? 'border-[#5a3825] bg-[#5a3825] text-white' 
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-[#5a3825]'
+                    }`}
+                    data-testid="product-type-tile-pieces"
+                  >
+                    <Square className="h-4 w-4" />
+                    <span>Tile Pieces</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentLineItem({
+                      ...currentLineItem,
+                      product_type: 'granite',
+                      size: '',
+                      coverage: 0,
+                      box_packing: 0,
+                      box_qty: 0,
+                      extra_sqft: 0,
+                      rate_per_sqft: 0,
+                      rate_per_box: 0,
+                      quantity: 1,
+                      rate_per_piece: 0
+                    })}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition border-2 ${
+                      currentLineItem.product_type === 'granite' 
+                        ? 'border-[#5a3825] bg-[#5a3825] text-white' 
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-[#5a3825]'
+                    }`}
+                    data-testid="product-type-granite"
+                  >
+                    <Layers className="h-4 w-4" />
+                    <span>Granite</span>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {currentLineItem.product_type === 'tiles_box' && 'Pre-filled data from tile inventory (size, coverage, box packing)'}
+                  {currentLineItem.product_type === 'tile_pieces' && 'Manual entry for individual tiles not in boxes - enter sqft and rate manually'}
+                  {currentLineItem.product_type === 'granite' && 'Granite slabs sold by piece - enter quantity and rate per piece'}
+                </p>
+              </div>
+
+              {/* Dynamic Form Fields based on Product Type */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                {/* Location - Common to all */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
                   <input
                     type="text"
                     value={currentLineItem.location}
                     onChange={(e) => setCurrentLineItem({ ...currentLineItem, location: e.target.value })}
-                    placeholder="e.g., Main Floor"
+                    placeholder="e.g., Main Floor, Kitchen"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                     data-testid="line-item-location-input"
                   />
                 </div>
+
+                {/* Product Name - Label changes based on type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tile Name *</label>
-                  <input
-                    type="text"
-                    value={currentLineItem.tile_name}
-                    onChange={(e) => setCurrentLineItem({ ...currentLineItem, tile_name: e.target.value })}
-                    placeholder="e.g., Vitrified Premium"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                    data-testid="line-item-tile-name-input"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {currentLineItem.product_type === 'granite' ? 'Granite Name *' : 'Tile Name *'}
+                  </label>
+                  {currentLineItem.product_type === 'granite' ? (
+                    <select
+                      value={currentLineItem.tile_name}
+                      onChange={(e) => {
+                        const selectedGranite = granites.find(g => g.name === e.target.value);
+                        if (selectedGranite) {
+                          setCurrentLineItem({
+                            ...currentLineItem,
+                            tile_name: selectedGranite.name,
+                            granite_id: selectedGranite.granite_id,
+                            size: selectedGranite.size || '',
+                            rate_per_piece: selectedGranite.rate_per_piece || 0
+                          });
+                        } else {
+                          setCurrentLineItem({
+                            ...currentLineItem,
+                            tile_name: e.target.value,
+                            granite_id: '',
+                            rate_per_piece: 0
+                          });
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-granite-select"
+                    >
+                      <option value="">-- Select Granite --</option>
+                      {granites.map(g => (
+                        <option key={g.granite_id} value={g.name}>
+                          {g.name} {g.size ? `(${g.size})` : ''} - ₹{(g.rate_per_piece || 0).toFixed(2)}/pc
+                        </option>
+                      ))}
+                      <option value="custom">+ Custom Granite</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={currentLineItem.tile_name}
+                      onChange={(e) => setCurrentLineItem({ ...currentLineItem, tile_name: e.target.value })}
+                      placeholder={currentLineItem.product_type === 'tile_pieces' ? 'e.g., Individual Tile' : 'e.g., Vitrified Premium'}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-tile-name-input"
+                    />
+                  )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Size *</label>
-                  <select
-                    value={currentLineItem.size}
-                    onChange={(e) => handleSizeSelect(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                    data-testid="line-item-size-select"
-                  >
-                    <option value="">-- Select Size --</option>
-                    {availableSizes.map(size => (
-                      <option key={size} value={size}>{size}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Box Quantity *</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={currentLineItem.box_qty}
-                    onChange={(e) => handleBoxQtyChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                    data-testid="line-item-box-qty-input"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Extra Sqft</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={currentLineItem.extra_sqft}
-                    onChange={(e) => handleExtraSqftChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                    data-testid="line-item-extra-sqft-input"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Sqft (₹) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={currentLineItem.rate_per_sqft}
-                    onChange={(e) => handleRateSqftChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                    data-testid="line-item-rate-sqft-input"
-                    placeholder="Enter rate per sqft"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Box (₹) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={currentLineItem.rate_per_box}
-                    onChange={(e) => handleRateBoxChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                    data-testid="line-item-rate-box-input"
-                    placeholder="Auto-calculated or enter"
-                  />
-                </div>
+
+                {/* TILES BOX: Size Selection */}
+                {currentLineItem.product_type === 'tiles_box' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Size *</label>
+                    <select
+                      value={currentLineItem.size}
+                      onChange={(e) => handleSizeSelect(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-size-select"
+                    >
+                      <option value="">-- Select Size --</option>
+                      {availableSizes.map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* TILE PIECES: Size (manual) */}
+                {currentLineItem.product_type === 'tile_pieces' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Size (Optional)</label>
+                    <input
+                      type="text"
+                      value={currentLineItem.size}
+                      onChange={(e) => setCurrentLineItem({ ...currentLineItem, size: e.target.value })}
+                      placeholder="e.g., 2x2 ft, 600x600mm"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-tile-pieces-size-input"
+                    />
+                  </div>
+                )}
+
+                {/* GRANITE: Size (auto-filled or manual) */}
+                {currentLineItem.product_type === 'granite' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Size (L x W)</label>
+                    <input
+                      type="text"
+                      value={currentLineItem.size}
+                      onChange={(e) => setCurrentLineItem({ ...currentLineItem, size: e.target.value })}
+                      placeholder="e.g., 8ft x 4ft"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-granite-size-input"
+                    />
+                  </div>
+                )}
+
+                {/* TILES BOX: Box Quantity */}
+                {currentLineItem.product_type === 'tiles_box' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Box Quantity *</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={currentLineItem.box_qty}
+                      onChange={(e) => handleBoxQtyChange(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-box-qty-input"
+                    />
+                  </div>
+                )}
+
+                {/* TILES BOX & TILE PIECES: Extra Sqft / Total Sqft */}
+                {(currentLineItem.product_type === 'tiles_box' || currentLineItem.product_type === 'tile_pieces') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {currentLineItem.product_type === 'tile_pieces' ? 'Total Sqft *' : 'Extra Sqft'}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={currentLineItem.extra_sqft}
+                      onChange={(e) => handleExtraSqftChange(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      placeholder={currentLineItem.product_type === 'tile_pieces' ? 'Enter total sqft' : 'Additional sqft'}
+                      data-testid="line-item-extra-sqft-input"
+                    />
+                  </div>
+                )}
+
+                {/* TILES BOX & TILE PIECES: Rate per Sqft */}
+                {(currentLineItem.product_type === 'tiles_box' || currentLineItem.product_type === 'tile_pieces') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Sqft (₹) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={currentLineItem.rate_per_sqft}
+                      onChange={(e) => handleRateSqftChange(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-rate-sqft-input"
+                      placeholder="Enter rate per sqft"
+                    />
+                  </div>
+                )}
+
+                {/* TILES BOX ONLY: Rate per Box */}
+                {currentLineItem.product_type === 'tiles_box' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Box (₹)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={currentLineItem.rate_per_box}
+                      onChange={(e) => handleRateBoxChange(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-rate-box-input"
+                      placeholder="Auto-calculated or enter"
+                    />
+                  </div>
+                )}
+
+                {/* GRANITE: Quantity (pieces) */}
+                {currentLineItem.product_type === 'granite' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Quantity (Pieces) *</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={currentLineItem.quantity}
+                      onChange={(e) => setCurrentLineItem({ ...currentLineItem, quantity: parseInt(e.target.value) || 1 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-granite-qty-input"
+                    />
+                  </div>
+                )}
+
+                {/* GRANITE: Rate per Piece */}
+                {currentLineItem.product_type === 'granite' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Piece (₹) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={currentLineItem.rate_per_piece}
+                      onChange={(e) => setCurrentLineItem({ ...currentLineItem, rate_per_piece: parseFloat(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      data-testid="line-item-rate-piece-input"
+                      placeholder="Price per slab/piece"
+                    />
+                  </div>
+                )}
+
+                {/* Discount - Common to all */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Discount %</label>
                   <input
@@ -1727,8 +2340,8 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                 </div>
               </div>
 
-              {/* Auto-populated tile info display */}
-              {currentLineItem.coverage > 0 && (
+              {/* Auto-populated tile info display - Only for tiles_box */}
+              {currentLineItem.product_type === 'tiles_box' && currentLineItem.coverage > 0 && (
                 <div className="bg-[#fef7f7] rounded-lg p-3 border border-[#d4c4b0] mt-3">
                   <div className="flex gap-6">
                     <p className="text-sm text-[#5a3825]">
@@ -1743,19 +2356,35 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                 </div>
               )}
 
-              {/* Line Item Cost Preview */}
-              {lineItemPreview && currentLineItem.tile_name && (currentLineItem.rate_per_sqft > 0 || currentLineItem.rate_per_box > 0) && (
+              {/* Line Item Cost Preview - Updated for all types */}
+              {lineItemPreview && currentLineItem.tile_name && (
                 <div className="bg-[#fef7f7] rounded-lg p-3 border-2 border-[#d4c4b0] mt-3">
                   <h5 className="text-sm font-bold text-gray-800 mb-2">Current Item Cost Preview</h5>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
-                    <div>
-                      <span className="text-gray-600">Coverage:</span>
-                      <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.coverage} sqft/box</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Total Sqft:</span>
-                      <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.totalSqft}</span>
-                    </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    {lineItemPreview.productType === 'tiles_box' && (
+                      <>
+                        <div>
+                          <span className="text-gray-600">Coverage:</span>
+                          <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.coverage} sqft/box</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Total Sqft:</span>
+                          <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.totalSqft}</span>
+                        </div>
+                      </>
+                    )}
+                    {lineItemPreview.productType === 'tile_pieces' && (
+                      <div>
+                        <span className="text-gray-600">Total Sqft:</span>
+                        <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.totalSqft}</span>
+                      </div>
+                    )}
+                    {lineItemPreview.productType === 'granite' && (
+                      <div>
+                        <span className="text-gray-600">Quantity:</span>
+                        <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.quantity} pc</span>
+                      </div>
+                    )}
                     <div>
                       <span className="text-gray-600">Before Disc:</span>
                       <span className="ml-1 font-bold text-[#5a3825]">₹{lineItemPreview.beforeDiscount}</span>
@@ -1856,11 +2485,12 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                     <thead className="bg-gray-100">
                       <tr>
                         <th className="px-4 py-2 text-left">Image</th>
+                        <th className="px-4 py-2 text-left">Type</th>
                         <th className="px-4 py-2 text-left">Location</th>
-                        <th className="px-4 py-2 text-left">Tile Name</th>
+                        <th className="px-4 py-2 text-left">Name</th>
                         <th className="px-4 py-2 text-left">Size</th>
-                        <th className="px-4 py-2 text-left">Box Qty</th>
-                        <th className="px-4 py-2 text-left">Rate/Sqft</th>
+                        <th className="px-4 py-2 text-left">Qty/Sqft</th>
+                        <th className="px-4 py-2 text-left">Rate</th>
                         <th className="px-4 py-2 text-left">Disc%</th>
                         <th className="px-4 py-2 text-right">Actions</th>
                       </tr>
@@ -1882,11 +2512,28 @@ function InvoicesManagement({ invoices, tiles, customers, fetchInvoices }) {
                               </div>
                             )}
                           </td>
+                          <td className="px-4 py-2">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              item.product_type === 'granite' ? 'bg-purple-100 text-purple-800' :
+                              item.product_type === 'tile_pieces' ? 'bg-blue-100 text-blue-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {item.product_type === 'granite' ? 'Granite' :
+                               item.product_type === 'tile_pieces' ? 'Tile Pcs' : 'Box'}
+                            </span>
+                          </td>
                           <td className="px-4 py-2">{item.location}</td>
                           <td className="px-4 py-2">{item.tile_name || item.product_name}</td>
-                          <td className="px-4 py-2">{item.size}</td>
-                          <td className="px-4 py-2">{item.box_qty}</td>
-                          <td className="px-4 py-2">₹{item.rate_per_sqft}</td>
+                          <td className="px-4 py-2">{item.size || '-'}</td>
+                          <td className="px-4 py-2">
+                            {item.product_type === 'granite' ? `${item.quantity} pc` :
+                             item.product_type === 'tile_pieces' ? `${item.extra_sqft} sqft` :
+                             `${item.box_qty} box${item.extra_sqft > 0 ? ` +${item.extra_sqft} sqft` : ''}`}
+                          </td>
+                          <td className="px-4 py-2">
+                            {item.product_type === 'granite' ? `₹${item.rate_per_piece}/pc` :
+                             `₹${item.rate_per_sqft}/sqft`}
+                          </td>
                           <td className="px-4 py-2">{item.discount_percent}%</td>
                           <td className="px-4 py-2 text-right">
                             <button
