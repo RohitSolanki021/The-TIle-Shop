@@ -1,7 +1,7 @@
 # The Tile Shop - Invoice Generation Application
 
 ## Original Problem Statement
-Build and enhance an invoice generation application for The Tile Shop, a tile retail business. The primary goal is to create pixel-perfect PDF invoices that match a reference design provided by the user.
+Build and enhance an invoice generation application for The Tile Shop, a tile and granite retail business. The primary goal is to create pixel-perfect PDF invoices that match a reference design provided by the user.
 
 ## Core Requirements
 1. Implement a login page with credentials: `Thetileshop` / `Vicky123`
@@ -12,6 +12,7 @@ Build and enhance an invoice generation application for The Tile Shop, a tile re
 6. Proper table structure for all sections
 7. Support sectioning of items (e.g., 'KITCHEN', 'BATHROOM')
 8. Updated Terms & Conditions with user-provided text
+9. **Support multiple product types**: Tiles (Box), Tile Pieces, Granites
 
 ## Tech Stack
 - **Frontend**: React
@@ -42,14 +43,23 @@ Build and enhance an invoice generation application for The Tile Shop, a tile re
 ## Key API Endpoints
 - `POST /api/invoices` - Create new invoice
 - `GET /api/invoices/{invoice_id}/pdf` - Generate and download PDF
-- `GET /api/public/invoices/{invoice_id}/pdf` - Public PDF endpoint
+- `GET /api/granites` - Get all granites
+- `POST /api/granites` - Create new granite
+- `PUT /api/granites/{granite_id}` - Update granite
+- `DELETE /api/granites/{granite_id}` - Delete granite
 
 ## Database Schema
-- **customers**: `{ customer_id, name, address, gstin }`
-- **tiles**: `{ tile_id, name, size, image_url }`
-- **invoices**: `{ invoice_id, customer_id, date, reference_name, line_items: [{tile_id, quantity, rate, section}] }`
+- **customers**: `{ customer_id, name, phone, address, gstin, total_pending }`
+- **tiles**: `{ tile_id, size, coverage, box_packing, active }`
+- **granites**: `{ granite_id, name, size, thickness, color, rate_per_piece, rate_per_sqft, active }`
+- **invoices**: `{ invoice_id, customer_id, line_items: [{product_type, ...}], transport_charges, ... }`
 
-## What's Been Implemented (Feb 13, 2026)
+## Product Types in Invoices
+- **tiles_box**: Tiles sold by box - uses size dropdown, box qty, coverage (sqft/box), rate per sqft/box
+- **tile_pieces**: Individual tiles not in boxes - manual sqft entry, rate per sqft
+- **granite**: Granite slabs - quantity (pieces), rate per piece
+
+## What's Been Implemented
 
 ### Authentication System
 - ✅ Login/Logout flow for frontend application
@@ -57,16 +67,8 @@ Build and enhance an invoice generation application for The Tile Shop, a tile re
 
 ### PDF Generation System
 - ✅ Migrated from reportlab to WeasyPrint + Jinja2
-- ✅ HTML template (`invoice_template_new.html`) with:
-  - White background
-  - High-quality main logo (crisp, not blurry)
-  - Full-width tables with proper structure
-  - Section headers with brown background
-  - Section totals with beige background
-  - Highlighted Final Amount row
-  - Bank details table
-  - Terms & Conditions section
-  - 14 partner brand logos at bottom
+- ✅ HTML template with proper table structure
+- ✅ Support for different product types in PDF output
 
 ### Invoice Features
 - ✅ Buyer (Bill To) / Consignee (Ship To) sections
@@ -77,6 +79,24 @@ Build and enhance an invoice generation application for The Tile Shop, a tile re
 - ✅ GST amount calculation
 - ✅ Overall remarks section
 
+### Granites Management (Mar 5, 2026)
+- ✅ Dashboard shows Granites in sidebar navigation
+- ✅ Dashboard shows Granites stat card with count
+- ✅ Granites Management page with CRUD operations
+- ✅ Granite fields: Name, Size (L x W), Thickness, Color, Rate/Piece, Rate/Sqft
+- ✅ Search functionality for granites
+
+### Multi-Product Type Invoice (Mar 5, 2026)
+- ✅ Product Type selector in invoice creation: Tiles (Box), Tile Pieces, Granite
+- ✅ Dynamic form fields based on product type
+- ✅ Tiles (Box): Size dropdown, Box Qty, Extra Sqft, Rate/Sqft, Rate/Box
+- ✅ Tile Pieces: Manual Size, Total Sqft, Rate/Sqft (no box calculations)
+- ✅ Granite: Granite dropdown (select from saved), Size (L x W), Quantity (Pieces), Rate/Piece
+- ✅ Line items table shows product type badge (Box/Tile Pcs/Granite)
+- ✅ Real-time cost preview for all product types
+- ✅ Backend calculation handles all product types
+- ✅ PDF generation adapts to product type
+
 ## Login Credentials
 - **Username**: `Thetileshop`
 - **Password**: `Vicky123`
@@ -86,9 +106,11 @@ Build and enhance an invoice generation application for The Tile Shop, a tile re
   ```bash
   sudo apt-get install --reinstall libpangoft2-1.0-0 libpango-1.0-0 libpangocairo-1.0-0
   ```
+- **PDF route 404**: Ensure PDF routes are defined BEFORE generic invoice routes in main.py
 
 ## Future Tasks / Backlog
 - [ ] Delete obsolete PDF engine files (pdfEngine.js, pdfEngine.py)
 - [ ] Add product images to invoice items
 - [ ] Email invoice functionality
-- [ ] Invoice status tracking (Draft/Sent/Paid)
+- [ ] Invoice status tracking improvements
+- [ ] PHP backend for Hostinger deployment (partially completed in php_backend/)
