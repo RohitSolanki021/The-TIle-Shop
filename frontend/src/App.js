@@ -2485,12 +2485,11 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                     <thead className="bg-gray-100">
                       <tr>
                         <th className="px-4 py-2 text-left">Image</th>
-                        <th className="px-4 py-2 text-left">Type</th>
                         <th className="px-4 py-2 text-left">Location</th>
                         <th className="px-4 py-2 text-left">Name</th>
                         <th className="px-4 py-2 text-left">Size</th>
-                        <th className="px-4 py-2 text-left">Qty/Sqft</th>
-                        <th className="px-4 py-2 text-left">Rate</th>
+                        <th className="px-4 py-2 text-left">Qty</th>
+                        <th className="px-4 py-2 text-left">Rate/Box/Pc</th>
                         <th className="px-4 py-2 text-left">Disc%</th>
                         <th className="px-4 py-2 text-right">Actions</th>
                       </tr>
@@ -2512,18 +2511,20 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                               </div>
                             )}
                           </td>
-                          <td className="px-4 py-2">
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              item.product_type === 'granite' ? 'bg-purple-100 text-purple-800' :
-                              item.product_type === 'tile_pieces' ? 'bg-blue-100 text-blue-800' :
-                              'bg-green-100 text-green-800'
-                            }`}>
-                              {item.product_type === 'granite' ? 'Granite' :
-                               item.product_type === 'tile_pieces' ? 'Tile Pcs' : 'Box'}
-                            </span>
-                          </td>
                           <td className="px-4 py-2">{item.location}</td>
-                          <td className="px-4 py-2">{item.tile_name || item.product_name}</td>
+                          <td className="px-4 py-2">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{item.tile_name || item.product_name}</span>
+                              <span className={`text-xs mt-1 px-2 py-0.5 rounded-full w-fit ${
+                                item.product_type === 'granite' ? 'bg-purple-100 text-purple-800' :
+                                item.product_type === 'tile_pieces' ? 'bg-blue-100 text-blue-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {item.product_type === 'granite' ? 'Granite' :
+                                 item.product_type === 'tile_pieces' ? 'Tile Pieces' : 'Tile Box'}
+                              </span>
+                            </div>
+                          </td>
                           <td className="px-4 py-2">{item.size || '-'}</td>
                           <td className="px-4 py-2">
                             {item.product_type === 'granite' ? `${item.quantity} pc` :
@@ -2531,8 +2532,18 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                              `${item.box_qty} box${item.extra_sqft > 0 ? ` +${item.extra_sqft} sqft` : ''}`}
                           </td>
                           <td className="px-4 py-2">
-                            {item.product_type === 'granite' ? `₹${item.rate_per_piece}/pc` :
-                             `₹${item.rate_per_sqft}/sqft`}
+                            <div className="flex flex-col text-sm">
+                              {item.product_type === 'granite' ? (
+                                <span>₹{item.rate_per_piece}/pc</span>
+                              ) : item.product_type === 'tile_pieces' ? (
+                                <span>₹{item.rate_per_sqft}/sqft</span>
+                              ) : (
+                                <>
+                                  <span>₹{item.rate_per_box}/box</span>
+                                  <span className="text-gray-500 text-xs">₹{item.rate_per_sqft}/sqft</span>
+                                </>
+                              )}
+                            </div>
                           </td>
                           <td className="px-4 py-2">{item.discount_percent}%</td>
                           <td className="px-4 py-2 text-right">
