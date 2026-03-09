@@ -119,29 +119,29 @@ def _normalize_invoice_data(invoice: dict) -> dict:
         
         # Format item data based on product type
         if product_type == 'granite':
-            # Granite: show quantity (pieces) and rate per piece
+            # Granite: measured in square feet (total_sqft * rate_per_sqft)
             formatted_item = {
                 'product_type': 'granite',
                 'name': f"{base_name} (Granite)",
                 'size': item.get('size', ''),
-                'rate_display': format_indian_currency(item.get('rate_per_piece', 0)).replace('₹', '') + '/pc',
+                'rate_display': format_indian_currency(item.get('rate_per_sqft', 0)).replace('₹', '') + '/sqft',
                 'rate_box': '-',
-                'rate_sqft': '-',
-                'qty': f"{item.get('quantity', 1)} pc",
+                'rate_sqft': format_indian_currency(item.get('rate_per_sqft', 0)),
+                'qty': f"{item.get('total_sqft', item.get('extra_sqft', 0))} sqft",
                 'disc': f"{round(item.get('discount_percent', 0))}%",
                 'amount': format_indian_currency(item.get('final_amount', 0)),
                 'image': item.get('tile_image', '')
             }
         elif product_type == 'tile_pieces':
-            # Tile pieces: show sqft and rate per sqft (no box info)
+            # Tile pieces: measured in pieces (quantity * rate_per_piece)
             formatted_item = {
                 'product_type': 'tile_pieces',
                 'name': f"{base_name} (Tile Pieces)",
                 'size': item.get('size', ''),
-                'rate_display': format_indian_currency(item.get('rate_per_sqft', 0)).replace('₹', '') + '/sqft',
-                'rate_box': '-',
-                'rate_sqft': format_indian_currency(item.get('rate_per_sqft', 0)),
-                'qty': f"{item.get('extra_sqft', 0)} sqft",
+                'rate_display': format_indian_currency(item.get('rate_per_piece', 0)).replace('₹', '') + '/pc',
+                'rate_box': format_indian_currency(item.get('rate_per_piece', 0)),
+                'rate_sqft': '-',
+                'qty': f"{item.get('quantity', 1)} pc",
                 'disc': f"{round(item.get('discount_percent', 0))}%",
                 'amount': format_indian_currency(item.get('final_amount', 0)),
                 'image': item.get('tile_image', '')
