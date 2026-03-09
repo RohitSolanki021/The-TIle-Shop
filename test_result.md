@@ -191,6 +191,19 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+backend:
+  - task: "GST calculation on TOTAL amount (subtotal + transport + unloading)"
+    implemented: true
+    working: true
+    file: "main.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: GST calculation working perfectly on TOTAL amount. Test scenario: Line item ₹10,000 + Transport ₹1,000 + Unloading ₹500 = ₹11,500. GST 18% = ₹2,070. Grand Total ₹13,570. Verified calculation logic: amount_before_gst = subtotal + transport + unloading; gst_amount = amount_before_gst × (gst_percent/100). Also tested 0% GST scenario successfully."
+
 agent_communication:
   - agent: "main"
     message: "SWAPPED CALCULATION METHODS: Changed Granite from pieces to sqft, and Tile Pieces from sqft to pieces. Backend calculate_line_item() function updated. Frontend form fields swapped. Need to test: 1) Create invoice with Granite item - verify sqft × rate_per_sqft calculation, 2) Create invoice with Tile Pieces item - verify quantity × rate_per_piece calculation, 3) Verify PDF generation shows correct values. Login: Thetileshop / Vicky123"
@@ -198,3 +211,5 @@ agent_communication:
     message: "BACKEND TESTING COMPLETED: All swapped calculations are working correctly. Tested: 1) Granite sqft calculation (50×100=5000) ✅, 2) Tile pieces calculation (10×250=2500) ✅, 3) Tiles box unchanged ✅. Also verified edge cases with discounts, mixed product invoices, and GST calculations. All API endpoints responding correctly. Backend is fully functional with the swapped calculation methods."
   - agent: "testing"
     message: "PDF GENERATION TESTING COMPLETED: ✅ All tests passed! Successfully tested the exact requested scenario: Granite item with extra_sqft=25, rate_per_sqft=200 shows '25 sqft' and '200.00/sqft' in PDF. Tile pieces item with quantity=15, rate_per_piece=500 shows '15 pc' and '500.00/pc' in PDF. PDF template correctly handles swapped display formats. Generated 2MB+ PDFs with proper formatting. All calculations verified: Granite 25×200=5000, Tile Pieces 15×500=7500."
+  - agent: "testing"
+    message: "GST CALCULATION TESTING COMPLETED: ✅ Comprehensive testing passed! GST is correctly calculated on TOTAL amount (subtotal + transport + unloading). Tested exact scenario: ₹10,000 line item + ₹1,000 transport + ₹500 unloading = ₹11,500 × 18% GST = ₹2,070. Grand Total: ₹13,570. Backend implementation at lines 284-286 in calculate_invoice_totals() function is working perfectly. Also verified 0% GST scenario and edge cases. All 5/5 tests passed."
