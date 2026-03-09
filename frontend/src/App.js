@@ -1252,8 +1252,26 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
   const lineItemPreview = useMemo(() => {
     const productType = currentLineItem.product_type || 'tiles_box';
     
-    // Granite calculation
+    // Granite calculation - measured in square feet
     if (productType === 'granite') {
+      if (!currentLineItem.tile_name) return null;
+      const totalSqft = currentLineItem.extra_sqft || 0; // Using extra_sqft as total sqft input
+      const rateSqft = currentLineItem.rate_per_sqft || 0;
+      const beforeDiscount = totalSqft * rateSqft;
+      const discount = beforeDiscount * (currentLineItem.discount_percent / 100);
+      const finalAmount = beforeDiscount - discount;
+      
+      return {
+        productType: 'granite',
+        totalSqft: totalSqft.toFixed(2),
+        beforeDiscount: beforeDiscount.toFixed(2),
+        discount: discount.toFixed(2),
+        finalAmount: finalAmount.toFixed(2)
+      };
+    }
+    
+    // Tile pieces calculation - measured in pieces
+    if (productType === 'tile_pieces') {
       if (!currentLineItem.tile_name) return null;
       const qty = currentLineItem.quantity || 1;
       const ratePerPiece = currentLineItem.rate_per_piece || 0;
@@ -1262,26 +1280,8 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
       const finalAmount = beforeDiscount - discount;
       
       return {
-        productType: 'granite',
-        quantity: qty,
-        beforeDiscount: beforeDiscount.toFixed(2),
-        discount: discount.toFixed(2),
-        finalAmount: finalAmount.toFixed(2)
-      };
-    }
-    
-    // Tile pieces calculation (manual sqft entry)
-    if (productType === 'tile_pieces') {
-      if (!currentLineItem.tile_name) return null;
-      const totalSqft = currentLineItem.extra_sqft || 0; // Using extra_sqft as the total sqft for pieces
-      const rateSqft = currentLineItem.rate_per_sqft || 0;
-      const beforeDiscount = totalSqft * rateSqft;
-      const discount = beforeDiscount * (currentLineItem.discount_percent / 100);
-      const finalAmount = beforeDiscount - discount;
-      
-      return {
         productType: 'tile_pieces',
-        totalSqft: totalSqft.toFixed(2),
+        quantity: qty,
         beforeDiscount: beforeDiscount.toFixed(2),
         discount: discount.toFixed(2),
         finalAmount: finalAmount.toFixed(2)
@@ -1573,25 +1573,27 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
     
     // Validation based on product type
     if (productType === 'granite') {
+      // Granite: measured in square feet
       if (!currentLineItem.location || !currentLineItem.tile_name) {
         alert('Please fill in all required fields (Location, Granite Name)');
         return;
       }
-      if (currentLineItem.rate_per_piece <= 0) {
-        alert('Please enter Rate per Piece for granite');
-        return;
-      }
-    } else if (productType === 'tile_pieces') {
-      if (!currentLineItem.location || !currentLineItem.tile_name) {
-        alert('Please fill in all required fields (Location, Tile Name)');
-        return;
-      }
       if (currentLineItem.rate_per_sqft <= 0) {
-        alert('Please enter Rate per Sqft');
+        alert('Please enter Rate per Sqft for granite');
         return;
       }
       if (currentLineItem.extra_sqft <= 0) {
         alert('Please enter Total Sqft');
+        return;
+      }
+    } else if (productType === 'tile_pieces') {
+      // Tile pieces: measured in pieces
+      if (!currentLineItem.location || !currentLineItem.tile_name) {
+        alert('Please fill in all required fields (Location, Tile Name)');
+        return;
+      }
+      if (currentLineItem.rate_per_piece <= 0) {
+        alert('Please enter Rate per Piece');
         return;
       }
     } else {
@@ -2130,8 +2132,8 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   {currentLineItem.product_type === 'tiles_box' && 'Pre-filled data from tile inventory (size, coverage, box packing)'}
-                  {currentLineItem.product_type === 'tile_pieces' && 'Manual entry for individual tiles not in boxes - enter sqft and rate manually'}
-                  {currentLineItem.product_type === 'granite' && 'Granite slabs sold by piece - enter quantity and rate per piece'}
+                  {currentLineItem.product_type === 'tile_pieces' && 'Individual tiles sold by piece - enter quantity and rate per piece'}
+                  {currentLineItem.product_type === 'granite' && 'Granite measured in square feet - enter total sqft and rate per sqft'}
                 </p>
               </div>
 
@@ -2263,12 +2265,10 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                   </div>
                 )}
 
-                {/* TILES BOX & TILE PIECES: Extra Sqft / Total Sqft */}
-                {(currentLineItem.product_type === 'tiles_box' || currentLineItem.product_type === 'tile_pieces') && (
+                {/* TILES BOX: Extra Sqft */}
+                {currentLineItem.product_type === 'tiles_box' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {currentLineItem.product_type === 'tile_pieces' ? 'Total Sqft *' : 'Extra Sqft'}
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Extra Sqft</label>
                     <input
                       type="number"
                       step="0.01"
@@ -2276,14 +2276,14 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                       value={currentLineItem.extra_sqft}
                       onChange={(e) => handleExtraSqftChange(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                      placeholder={currentLineItem.product_type === 'tile_pieces' ? 'Enter total sqft' : 'Additional sqft'}
+                      placeholder="Additional sqft"
                       data-testid="line-item-extra-sqft-input"
                     />
                   </div>
                 )}
 
-                {/* TILES BOX & TILE PIECES: Rate per Sqft */}
-                {(currentLineItem.product_type === 'tiles_box' || currentLineItem.product_type === 'tile_pieces') && (
+                {/* TILES BOX & GRANITE: Rate per Sqft */}
+                {(currentLineItem.product_type === 'tiles_box' || currentLineItem.product_type === 'granite') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Sqft (₹) *</label>
                     <input
@@ -2316,8 +2316,25 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                   </div>
                 )}
 
-                {/* GRANITE: Quantity (pieces) */}
+                {/* GRANITE: Total Sqft */}
                 {currentLineItem.product_type === 'granite' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Sqft *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={currentLineItem.extra_sqft}
+                      onChange={(e) => handleExtraSqftChange(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
+                      placeholder="Enter total sqft"
+                      data-testid="line-item-granite-sqft-input"
+                    />
+                  </div>
+                )}
+
+                {/* TILE PIECES: Quantity (pieces) */}
+                {currentLineItem.product_type === 'tile_pieces' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Quantity (Pieces) *</label>
                     <input
@@ -2326,13 +2343,13 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                       value={currentLineItem.quantity}
                       onChange={(e) => setCurrentLineItem({ ...currentLineItem, quantity: parseInt(e.target.value) || 1 })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
-                      data-testid="line-item-granite-qty-input"
+                      data-testid="line-item-tile-pieces-qty-input"
                     />
                   </div>
                 )}
 
-                {/* GRANITE: Rate per Piece */}
-                {currentLineItem.product_type === 'granite' && (
+                {/* TILE PIECES: Rate per Piece */}
+                {currentLineItem.product_type === 'tile_pieces' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Rate per Piece (₹) *</label>
                     <input
@@ -2343,7 +2360,7 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                       onChange={(e) => setCurrentLineItem({ ...currentLineItem, rate_per_piece: parseFloat(e.target.value) || 0 })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5a3825] focus:border-transparent"
                       data-testid="line-item-rate-piece-input"
-                      placeholder="Price per slab/piece"
+                      placeholder="Price per piece"
                     />
                   </div>
                 )}
@@ -2399,14 +2416,14 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                     )}
                     {lineItemPreview.productType === 'tile_pieces' && (
                       <div>
-                        <span className="text-gray-600">Total Sqft:</span>
-                        <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.totalSqft}</span>
+                        <span className="text-gray-600">Quantity:</span>
+                        <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.quantity} pc</span>
                       </div>
                     )}
                     {lineItemPreview.productType === 'granite' && (
                       <div>
-                        <span className="text-gray-600">Quantity:</span>
-                        <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.quantity} pc</span>
+                        <span className="text-gray-600">Total Sqft:</span>
+                        <span className="ml-1 font-bold text-[#5a3825]">{lineItemPreview.totalSqft}</span>
                       </div>
                     )}
                     <div>

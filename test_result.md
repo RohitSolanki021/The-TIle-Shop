@@ -103,82 +103,12 @@
 #====================================================================================================
 
 user_problem_statement: |
-  1. Replace pdfEngine.js with user-provided version for proper invoice generation
-  2. Add login page with admin authentication (username: Thetileshop, password: Vicky123)
-  3. Test invoice generation with new PDF engine
-  
-  Previous requirements (COMPLETED):
-  - Invoice PDF matches reference template EXACTLY (pixel-perfect)
-  - Quotation number format: TTS / XXX / YYYY-YY (financial year format)
-  - Financial year changes in April (April 2025 to March 2026 = 2025-26)
+  Swap the calculation methods for Granite and Tile Pieces:
+  - Before: Granite = pieces (quantity × rate_per_piece), Tile Pieces = sqft (total_sqft × rate_per_sqft)
+  - After: Granite = sqft (total_sqft × rate_per_sqft), Tile Pieces = pieces (quantity × rate_per_piece)
 
 backend:
-  - task: "API Health Check"
-    implemented: true
-    working: true
-    file: "main.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-
-  - task: "Invoice ID Format - TTS / XXX / YYYY-YY"
-    implemented: true
-    working: true
-    file: "main.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "New format TTS / 001 / 2025-26 implemented. Sequence auto-increments. Financial year changes in April."
-      - working: true
-        agent: "testing"
-        comment: "VERIFIED: Invoice ID format TTS / XXX / YYYY-YY working correctly. Created invoices TTS / 003 / 2025-26 and TTS / 004 / 2025-26. Auto-increment working (3→4). Financial year 2025-26 correct for Feb 2026. Regex pattern validation passed."
-
-  - task: "HTML-Based PDF Generation"
-    implemented: true
-    working: true
-    file: "assets/pdf/htmlPdfEngine.py, assets/pdf/invoice_template.html"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "NEW TASK: Replaced template overlay method with HTML-to-PDF generation using WeasyPrint. Created professional HTML invoice template matching THE TILE SHOP design. Proper tables with sections (LIVING ROOM, BATHROOM, etc.), section totals, bank details, terms & conditions. Mock data like 'MAIN FLOOR' removed - all data now comes from actual invoice. Fixed Python dict .items() conflict by renaming to line_items. Generated test PDF successfully (25KB). Clean, professional invoices without prefilled template data."
-      - working: true
-        agent: "testing"
-        comment: "COMPREHENSIVE TESTING COMPLETED: HTML-based PDF generation fully functional. Created test invoice TTS / 004 / 2025-26 with 3 sections (LIVING ROOM, BEDROOM, BATHROOM) and 5 items as per review request. VERIFIED: ✅ Customer 'Test Builder Pvt Ltd' with correct details ✅ Invoice ID format TTS / XXX / 2025-26 working ✅ Multi-section support (LIVING ROOM: 2 items, BEDROOM: 1 item, BATHROOM: 2 items) ✅ Calculations accurate: Subtotal ₹3,862.08, GST 18% ₹695.17, Grand Total ₹5,657.25 ✅ PDF generation successful: 307,934 bytes (300.7 KB) - confirms HTML method vs template overlay ✅ PDF download endpoints working (both private and public) ✅ Reference name 'Contractor Rajesh Kumar' and remarks correctly included ✅ Transport charges ₹800, Unloading charges ₹300 ✅ All 14 brand logos and main logo loading correctly ✅ Professional HTML template with proper styling ✅ WeasyPrint engine generating clean PDFs without template overlay artifacts. HTML-based PDF generation FULLY WORKING."
-
-  - task: "PDF Generation - Template Overlay Method"
-    implemented: true
-    working: true
-    file: "main.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "TEMPLATE OVERLAY implemented. Uses invoice-template.pdf as fixed background, overlays only dynamic text at fixed coordinates. No layout recreation. PDF size ~593KB."
-      - working: true
-        agent: "testing"
-        comment: "PDF generation verified. Template overlay confirmed - all template elements preserved, invoice data overlaid correctly."
-      - working: true
-        agent: "testing"
-        comment: "VERIFIED: PDF template overlay method working correctly. Generated PDF size 593,257 bytes (579KB+) confirms template overlay vs recreated layout. URL-encoded invoice IDs work (TTS%20%2F%20004%20%2F%202025-26). PDF headers valid. Template integration functional."
-      - working: true
-        agent: "testing"
-        comment: "COMPREHENSIVE TESTING COMPLETED: Created invoice TTS / 007 / 2025-26 with full workflow verification. PDF generation produces 593,244 bytes (579.3 KB) confirming template overlay method. Price calculations verified: subtotal ₹10,164.00, GST ₹1,829.52, grand total ₹14,993.52. URL encoding works correctly. All review request requirements satisfied."
-      - working: "NA"
-        agent: "main"
-        comment: "PAGINATION FIX: Refactored PDF generation to ensure template (header + table column headers) repeats on EVERY page. Changed from single multi-page overlay to per-page overlay creation. Each page now: 1) Loads fresh template PDF copy 2) Creates single-page overlay with dynamic content 3) Merges overlay onto template. This ensures SR NO, NAME, IMAGE, SIZE columns appear pixel-identical on all pages."
-      - working: true
-        agent: "testing"
-        comment: "FINAL VERIFICATION WITH PAGINATION: Template overlay method confirmed working with pagination fix. Single page PDFs: ~593KB, 2-page PDFs: ~1,205KB, 3-page PDFs: ~1,813KB. File size progression confirms template overlay method with per-page generation. All template elements (headers, table columns) correctly repeat on every page."
-
-  - task: "PDF Pagination - Header Repeat on All Pages"
+  - task: "Granite calculation - measured in square feet"
     implemented: true
     working: true
     file: "main.py"
@@ -188,12 +118,12 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "NEW TASK: Fixed pagination so template background (company header + table column headers) repeats on every page. Implemented create_page_overlay() function for per-page overlay generation. Fixed MAX_CONTENT_Y bug. Row Y now resets correctly on each page. Totals only on last page."
+        comment: "IMPLEMENTED: Changed granite calculation from quantity × rate_per_piece to total_sqft × rate_per_sqft in calculate_line_item() function"
       - working: true
         agent: "testing"
-        comment: "COMPREHENSIVE PAGINATION TESTING COMPLETED: Created multiple test invoices with 38+ and 66+ line items to force multi-page PDFs. Verified: 1) 38 items → 2-page PDF (1,205KB), 2) 66 items → 3-page PDF (1,813KB). Backend logs confirm per-page overlay generation working: 'Generated page 1/3', 'Generated page 2/3', 'Generated page 3/3'. Template overlay method confirmed. create_page_overlay() function successfully creates fresh template copy for each page ensuring headers and table column headers (SR NO, NAME, IMAGE, SIZE, RATE/BOX, etc.) repeat identically on ALL pages. Pagination fix VERIFIED and WORKING."
+        comment: "TESTED: Granite sqft calculation working correctly. Test case: extra_sqft=50, rate_per_sqft=100, expected=5000, actual=5000. Also tested with discounts and mixed invoices - all calculations accurate."
 
-  - task: "PDF Multi-Item Support with Dynamic Sections"
+  - task: "Tile Pieces calculation - measured in pieces"
     implemented: true
     working: true
     file: "main.py"
@@ -203,205 +133,50 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "MAJOR REWRITE: Complete refactor of PDF generation to support: 1) Multiple items per section with proper row rendering loop 2) Dynamic section names (SA replaces MAIN FLOOR) 3) Dynamic section totals computed from items 4) Helper functions: draw_text_in_box(), draw_currency_in_box(), draw_white_mask() for pixel-perfect alignment 5) White rectangle masking to cover template MAIN FLOOR text 6) Box-based positioning for all elements 7) Right-aligned currency values"
+        comment: "IMPLEMENTED: Changed tile_pieces calculation from total_sqft × rate_per_sqft to quantity × rate_per_piece in calculate_line_item() function"
       - working: true
         agent: "testing"
-        comment: "COMPREHENSIVE TESTING COMPLETED: Created invoice TTS / 007 / 2025-26 with 6 items all in SA section. VERIFIED: 1) All 6 items rendered as separate rows without overlap 2) Dynamic section name 'SA' working (replaces MAIN FLOOR) 3) Section total calculated correctly: SA's Total Amount: ₹4,021.73 4) PDF generation successful: 596,648 bytes (583KB) confirming template overlay method 5) Proper box-based alignment with SR NO, NAME, SIZE, RATE/BOX, RATE/SQFT, QTY, DISC, AMOUNT columns 6) Currency values right-aligned with Rupee symbol 7) No text overlapping with footer sections. Backend logs show 'Generated page 1/1 with 8 items' (header + 6 items + total). PDF Multi-Item Support with Dynamic Sections FULLY WORKING."
-      - working: true
-        agent: "testing"
-        comment: "REVIEW REQUEST VERIFICATION COMPLETED: Created test invoice TTS / 009 / 2025-26 specifically for SA section template replacement testing. VERIFIED ALL REVIEW REQUIREMENTS: ✅ Created invoice with section name 'SA' and 6 items (>5 required) ✅ PDF generation produces 2-page PDF (1,188,980 bytes / 1161KB) confirming template overlay method ✅ cover_and_write() functionality working: background color (0.98, 0.96, 0.95) covers 'MAIN FLOOR' text ✅ Dynamic section name 'SA' replaces 'MAIN FLOOR' in section header ✅ Dynamic section total 'SA's Total Amount' replaces 'MAIN FLOOR's Total Amount' ✅ Total value ₹30,099.63 computed correctly from all 6 SA items ✅ All item rows strictly positioned inside table grid ✅ URL encoding works (TTS%20%2F%20009%20%2F%202025-26) ✅ Backend logs confirm per-page generation: 'Generated page 1/2', 'Generated page 2/2' ✅ Template-accurate replacement system FULLY FUNCTIONAL"
-
-
-  - task: "WhatsApp Share Functionality"
-    implemented: true
-    working: true
-    file: "frontend/src/App.js (line 1316-1365)"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "WhatsApp share implemented using Web Share API (mobile) and fallback download+link (desktop). Function downloads PDF from backend, shares via native API or opens WhatsApp web with invoice details and PDF link. Needs testing."
-      - working: true
-        agent: "testing"
-        comment: "VERIFIED: WhatsApp Share functionality fully working. Created test invoice (TTS / 004 / 2025-26) for PDF generation ✅ PUBLIC PDF endpoint working perfectly (GET /public/invoices/{invoice_id}/pdf) ✅ PDF Content-Type: application/pdf ✅ PDF size reasonable (>100KB) ✅ PDF successfully generated and saved ✅ WhatsApp share preparation complete - public PDF endpoint provides the PDF file needed for sharing. Minor: Private PDF endpoint has URL parsing issue but public endpoint (used by WhatsApp) working fine. 4/5 tests passed - all critical WhatsApp functionality operational."
-
-  - task: "Delete Tile Functionality"
-    implemented: true
-    working: true
-    file: "frontend/src/App.js (line 437-445), backend/main.py (line 361-378)"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag. Needs testing."
-      - working: true
-        agent: "testing"
-        comment: "VERIFIED: Delete Tile functionality fully working. Created test tile (600x600mm, coverage 3.0, box_packing 4) ✅ Tile appeared in GET /tiles list before deletion ✅ DELETE /tiles/{tile_id} returned success ✅ Tile properly soft-deleted (deleted: True flag set) ✅ Tile no longer appears in GET /tiles list after deletion ✅ DELETE returns 404 for non-existent tile ✅ All 5 tests passed. Soft delete implementation working correctly."
-
-  - task: "Delete Customer Functionality"
-    implemented: true
-    working: true
-    file: "frontend/src/App.js (line 704-712), backend/main.py (line 456-473)"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag. Needs testing."
-      - working: true
-        agent: "testing"
-        comment: "VERIFIED: Delete Customer functionality fully working. Created test customer ('Test Customer', phone '9876543210', GSTIN '06TEST1234F1Z5') ✅ Customer appeared in GET /customers list before deletion ✅ DELETE /customers/{customer_id} returned success ✅ Customer properly soft-deleted (deleted: True flag set) ✅ Customer no longer appears in GET /customers list after deletion ✅ DELETE returns 404 for non-existent customer ✅ All 5 tests passed. Soft delete implementation working correctly."
-
-  - task: "Delete Invoice Functionality"
-    implemented: true
-    working: true
-    file: "frontend/src/App.js (line 1285-1293), backend/main.py (line 694-714)"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Soft delete implemented. Frontend confirms deletion via confirm dialog. Backend sets 'deleted: True' flag, recalculates customer pending balance. Needs testing."
-      - working: true
-        agent: "testing"
-        comment: "VERIFIED: Delete Invoice functionality fully working. Created complete test invoice (TTS / 003 / 2025-26) with customer and line items ✅ Invoice appeared in GET /invoices list before deletion ✅ Customer pending balance tracked (₹1,585.00) ✅ DELETE /invoices/{invoice_id} returned success (URL-encoded 'TTS / 003 / 2025-26') ✅ Invoice properly soft-deleted (deleted: True flag set) ✅ Invoice no longer appears in GET /invoices list ✅ Customer's total_pending correctly recalculated to ₹0.00 after invoice deletion ✅ DELETE returns 404 for non-existent invoice ✅ All 10 tests passed. Soft delete and customer balance recalculation working perfectly."
-
-  - task: "Remove Demo Data from Application"
-    implemented: true
-    working: true
-    file: "Multiple files"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "DEMO DATA CLEANUP COMPLETED: ✅ Removed all test PDF files from root (test_invoice_TTS_*.pdf, extra_large_invoice_TTS_*.pdf) ✅ Removed test Python scripts (backend_test.py, backend_test_pro.py, extra_pagination_test.py, pdf_verification_test.py) ✅ Removed test_reports directory ✅ Removed .screenshots directory ✅ Removed backend/tests directory (test_crud_delete.py) ✅ Removed tests directory ✅ Cleaned all demo PDFs from backend/pdfs/ directory ✅ Cleaned MongoDB database (4 tiles, 6 customers, 4 invoices deleted) ✅ Application now in clean state with no demo data. Only essential files remain: backend/, frontend/, memory/, test_result.md, README.md"
-
-  - task: "Remove Demo Tile Sizes from Dropdown"
-    implemented: true
-    working: true
-    file: "frontend/src/App.js (line 378-379)"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "DEMO TILE SIZES REMOVED: Emptied STANDARD_SIZES array (previously contained 14 hardcoded sizes: 600x600mm, 800x800mm, etc.). Now dropdown will only show '+ Enter Custom Size' option and any existing sizes from database. Users must add their own custom tile sizes. Frontend restarted to apply changes."
-
-
+        comment: "TESTED: Tile pieces calculation working correctly. Test case: quantity=10, rate_per_piece=250, expected=2500, actual=2500. Edge cases and discount calculations also verified."
 
 frontend:
-  - task: "Dashboard Icons WHITE"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-
-  - task: "Remove Emergent Branding"
-    implemented: true
-    working: true
-    file: "public/index.html"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-
-  - task: "Size Dropdown in Tiles Management"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-
-  - task: "Login Page with Admin Authentication"
-    implemented: true
-    working: true
-    file: "components/Login.js, App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "NEW TASK: Implemented Login component with authentication. Credentials: Username='Thetileshop', Password='Vicky123'. Uses localStorage for session persistence. Added logout button in header (desktop) and sidebar (mobile). Protected all routes with authentication check."
-      - working: true
-        agent: "testing"
-        comment: "LOGIN AND PDF DOWNLOAD TESTING COMPLETED: Tested complete user flow with invoice TTS / 001 / 2025-26. ✅ LOGIN FUNCTIONALITY: Successfully logged in with credentials Thetileshop/Vicky123, localStorage session persistence working, dashboard loaded correctly, navigation functional. ✅ PDF DOWNLOAD FUNCTIONALITY: Found invoice TTS / 001 / 2025-26 for customer Rohit Solanki (₹17561.00), clicked green PDF download button, all console logs verified: 'Downloading PDF for invoice: TTS / 001 / 2025-26', 'PDF response received, size: 2333706 bytes' (2.3 MB PDF), 'Content type: application/pdf', '✓ PDF downloaded successfully'. ✅ NO ERRORS: No error messages in console or on page. ✅ URL ENCODING: Properly handles invoice ID with spaces/slashes (TTS%20%2F%20001%20%2F%202025-26). PDF generation endpoint /api/public/invoices/{encodedInvoiceId}/pdf working perfectly. Login and PDF download functionality FULLY WORKING."
-
-  - task: "Replace pdfEngine.js with User Version"
+  - task: "Granite form fields - sqft inputs"
     implemented: true
     working: "NA"
-    file: "pdf/pdfEngine.js"
+    file: "App.js"
     stuck_count: 0
-
-
-agent_communication:
-  - agent: "main"
-    message: "COMPREHENSIVE TESTING REQUIRED: Ready to test WhatsApp share functionality and delete features. Backend DELETE endpoints implemented for tiles, customers, and invoices (soft delete). Frontend has handleWhatsAppShare(), handleDeleteTile(), handleDeleteCustomer(), handleDeleteInvoice() functions. WhatsApp share uses Web Share API for mobile (with PDF file) and fallback to download+link for desktop. All services running. Need to test: 1) Create test data (tiles, customers, invoices), 2) Test delete for all entities, 3) Test WhatsApp share with an invoice, 4) After testing, remove all demo data (test PDFs, test scripts, test_reports, .screenshots)."
-  - agent: "testing"
-    message: "COMPREHENSIVE DELETE AND WHATSAPP TESTING COMPLETED: All delete functionality and WhatsApp share preparation fully operational. ✅ DELETE TILES: 5/5 tests passed - soft delete working, tiles removed from GET /tiles list ✅ DELETE CUSTOMERS: 5/5 tests passed - soft delete working, customers removed from GET /customers list ✅ DELETE INVOICES: 10/10 tests passed - soft delete working, invoices removed from GET /invoices list, customer pending balance properly recalculated ✅ WHATSAPP PDF GENERATION: 4/5 tests passed - public PDF endpoint working (critical for WhatsApp), PDF generation successful, proper Content-Type headers. Minor: private PDF endpoint has URL parsing issue but public endpoint functional. RESULT: All review request requirements satisfied - soft delete implemented correctly for all entities, WhatsApp share preparation working via public PDF endpoint. Ready for production use."
-
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "NEW TASK: Replaced existing pdfEngine.js with user-provided cleaner version. New engine uses template maps from JSON files (template_map.page1.json and template_map.cont.json). Simplified utilities and main PDF generation function. Maintains template overlay method for pixel-perfect PDFs."
+        comment: "IMPLEMENTED: Granite form now shows Total Sqft and Rate per Sqft inputs instead of Quantity and Rate per Piece"
+
+  - task: "Tile Pieces form fields - piece inputs"
+    implemented: true
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "IMPLEMENTED: Tile Pieces form now shows Quantity (Pieces) and Rate per Piece inputs instead of Total Sqft and Rate per Sqft"
 
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
-  - task: "PDF Coordinate-Based Grid Implementation"
-    implemented: true
-    working: true
-    file: "main.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "COMPREHENSIVE COORDINATE GRID TESTING COMPLETED: Created test invoice TTS / 010 / 2025-26 with 6 items in SA section specifically for coordinate verification. VERIFIED ALL REVIEW REQUEST COORDINATES: ✅ Section header row: x=260, y_top=243, width=75, height=12 (template_map.json confirmed) ✅ Item rows: startY=255, rowHeight=18/40, endY=333 (page 1) ✅ Section total row: label_box x=414, value_box x=527 ✅ PDF generation successful: 2-page PDF (1,188,911 bytes / 1161KB) ✅ Template overlay method confirmed by file size ✅ All 17/17 tests passed ✅ Backend logs show proper pagination: 'Generated page 1/2', 'Generated page 2/2' ✅ SA section total calculated: ₹47,347.70 ✅ Grid-based positioning system implemented correctly ✅ Background masking covers 'MAIN FLOOR' text ✅ Dynamic section name 'SA' replaces 'MAIN FLOOR' ✅ Dynamic section total 'SA's Total Amount' working ✅ URL encoding handles spaces/slashes correctly ✅ Coordinate system constants match review specifications exactly ✅ PDF saved to /tmp/sa_grid_test.pdf for inspection. COORDINATE-BASED GRID IMPLEMENTATION FULLY WORKING AND VERIFIED."
-
-  - task: "PRO Invoice Engine - Multi-Section Support and Pagination Testing"
-    implemented: true
-    working: true
-    file: "assets/pdf/pdfEngine.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "NEW TASK: Comprehensive testing required for PRO Invoice Engine with 3 specific test scenarios: 1) 1 item in SA section, 2) 10 items in SA+KITCHEN sections, 3) 50 items in SA+KITCHEN+BATHROOM sections. Need to verify template overlay method, section headers, pagination, and PDF sizes."
-      - working: true
-        agent: "testing"
-        comment: "PRO INVOICE ENGINE COMPREHENSIVE TESTING COMPLETED: All 3 test scenarios successfully executed. TEST 1: 1 item in SA section → 593KB single-page PDF ✅ TEST 2: 10 items in SA(5)+KITCHEN(5) → 599KB single-page PDF ✅ TEST 3: 50 items in SA(20)+KITCHEN(15)+BATHROOM(15) → 1.16MB multi-page PDF ✅ VERIFIED: Section headers replace 'MAIN FLOOR' correctly, section totals calculated accurately (SA: ₹244,969.20, KITCHEN: ₹209,709.74, BATHROOM: ₹311,104.98), template overlay method working, auto-pagination functional, no text overlap, items stay within table grid. Backend logs confirm: template maps loading correctly, page generation working (1-2 pages as expected), PRO Invoice Engine fully functional. All review request objectives achieved - multi-section support and pagination working perfectly."
-
 test_plan:
-  current_focus:
-    - "All core functionalities tested and working"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "HTML-BASED PDF GENERATION IMPLEMENTED: Switched from template overlay to HTML-to-PDF using WeasyPrint and Jinja2. Created professional invoice_template.html with clean design matching THE TILE SHOP branding. Key features: 1) Tables with proper headers (SR NO, NAME, IMAGE, SIZE, RATE/BOX, RATE/SQFT, QUANTITY, DISC, AMOUNT), 2) Section grouping (LIVING ROOM, BATHROOM, etc.) with individual totals, 3) Customer details (Bill To/Ship To), 4) Bank details and Terms & Conditions, 5) Grand total with charges breakdown. Fixed Python dict .items() naming conflict. No mock data - all content from actual invoice database. Test PDF generated successfully (TTS / 003 / 2025-26). Ready for testing with real invoice data."
+    message: "SWAPPED CALCULATION METHODS: Changed Granite from pieces to sqft, and Tile Pieces from sqft to pieces. Backend calculate_line_item() function updated. Frontend form fields swapped. Need to test: 1) Create invoice with Granite item - verify sqft × rate_per_sqft calculation, 2) Create invoice with Tile Pieces item - verify quantity × rate_per_piece calculation, 3) Verify PDF generation shows correct values. Login: Thetileshop / Vicky123"
   - agent: "testing"
-    message: "COMPLETE INVOICE GENERATION FLOW TESTING COMPLETED: Successfully tested the complete invoice generation workflow as per review request. Created customer 'Test Builder Pvt Ltd' with specified details (Plot 123, Industrial Area, Hansi, Haryana, GSTIN: 06ABCDE1234F1Z5). Generated invoice TTS / 004 / 2025-26 with 3 sections: LIVING ROOM (2 items: Marble Finish Tiles, Granite Tiles), BEDROOM (1 item: Wooden Look Tiles), BATHROOM (2 items: Ceramic Wall Tiles, Anti-Slip Floor Tiles). All calculations verified: subtotal ₹3,862.08, GST 18% ₹695.17, transport ₹800, unloading ₹300, grand total ₹5,657.25. PDF generation working perfectly - 300.7 KB file size confirms HTML-based generation (vs 590KB+ template overlay). Both private and public PDF endpoints functional. Reference name 'Contractor Rajesh Kumar' and remarks 'Delivery within 3 days. Handle with care.' correctly included. HTML-based PDF engine fully operational with WeasyPrint, professional styling, and all 14 brand logos + main logo loading correctly. All 24/24 tests passed - invoice generation flow working flawlessly."
-  - agent: "testing"
-    message: "PDF DOWNLOAD FUNCTIONALITY TESTING COMPLETED: User requested test of PDF download for invoice TTS / 001 / 2025-26. COMPREHENSIVE TEST RESULTS: ✅ Login successful with Thetileshop/Vicky123 credentials ✅ Navigation to Invoices tab working ✅ Invoice TTS / 001 / 2025-26 found (Customer: Rohit Solanki, Grand Total: ₹17561.00, Status: Draft) ✅ Green PDF button clickable and functional ✅ ALL EXPECTED CONSOLE LOGS VERIFIED: 'Downloading PDF for invoice: TTS / 001 / 2025-26', 'Encoded invoice ID: TTS%20%2F%20001%20%2F%202025-26', 'Fetching from: https://granite-tile-swap.preview.emergentagent.com/api/public/invoices/TTS%20%2F%20001%20%2F%202025-26/pdf', 'PDF response received, size: 2333706 bytes', 'Content type: application/pdf', '✓ PDF downloaded successfully' ✅ PDF file size: 2.3 MB (substantial content confirms proper generation) ✅ No errors in console or on page ✅ Public PDF endpoint working perfectly. RESULT: PDF download functionality is FULLY WORKING and meets all review request requirements. Application ready for production use."
+    message: "BACKEND TESTING COMPLETED: All swapped calculations are working correctly. Tested: 1) Granite sqft calculation (50×100=5000) ✅, 2) Tile pieces calculation (10×250=2500) ✅, 3) Tiles box unchanged ✅. Also verified edge cases with discounts, mixed product invoices, and GST calculations. All API endpoints responding correctly. Backend is fully functional with the swapped calculation methods."

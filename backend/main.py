@@ -243,15 +243,15 @@ def calculate_line_item(item: InvoiceLineItem) -> InvoiceLineItem:
     product_type = item.product_type or 'tiles_box'
     
     if product_type == 'granite':
-        # Granite: quantity * rate_per_piece
-        quantity = item.quantity if item.quantity > 0 else 1
-        item.amount_before_discount = quantity * item.rate_per_piece
-        item.total_sqft = 0  # Not applicable for granites
+        # Granite: measured in square feet (total_sqft * rate_per_sqft)
+        item.total_sqft = item.extra_sqft  # extra_sqft is used as total sqft input
+        item.amount_before_discount = item.total_sqft * item.rate_per_sqft
         
     elif product_type == 'tile_pieces':
-        # Tile pieces: extra_sqft (used as total sqft) * rate_per_sqft
-        item.total_sqft = item.extra_sqft
-        item.amount_before_discount = item.total_sqft * item.rate_per_sqft
+        # Tile pieces: measured in pieces (quantity * rate_per_piece)
+        quantity = item.quantity if item.quantity > 0 else 1
+        item.amount_before_discount = quantity * item.rate_per_piece
+        item.total_sqft = 0  # Not applicable for tile pieces (sold by piece)
         
     else:
         # tiles_box: box_qty * coverage + extra_sqft
