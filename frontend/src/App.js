@@ -1691,53 +1691,14 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
     }
   };
 
-  const handleDownloadPDF = async (invoiceId) => {
+  const handleDownloadPDF = (invoiceId) => {
     try {
-      console.log('Downloading PDF for invoice:', invoiceId);
-      
-      // Use server-side PDF generation
       const encodedInvoiceId = encodeURIComponent(invoiceId);
-      console.log('Encoded invoice ID:', encodedInvoiceId);
-      console.log('Fetching from:', `${API}/invoices/${encodedInvoiceId}/pdf`);
-      
-      const response = await axios.get(`${API}/invoices/${encodedInvoiceId}/pdf`, {
-        responseType: 'blob'
-      });
-      
-      console.log('PDF response received, size:', response.data.size, 'bytes');
-      console.log('Content type:', response.headers['content-type']);
-      
-      if (response.data.size === 0) {
-        throw new Error('PDF file is empty');
-      }
-      
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      const safeFileName = invoiceId.replace(/\//g, '-').replace(/\s/g, '_');
-      link.setAttribute('download', `Invoice_${safeFileName}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      console.log('✓ PDF downloaded successfully');
+      const url = `${API}/invoices/${encodedInvoiceId}/pdf`;
+      window.open(url, '_blank');
     } catch (error) {
-      console.error('PDF download error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
-      let errorMessage = 'Error downloading PDF: ';
-      if (error.response?.status === 404) {
-        errorMessage += 'Invoice not found or PDF generation failed';
-      } else if (error.message === 'PDF file is empty') {
-        errorMessage += 'PDF generation returned empty file. Check backend logs.';
-      } else {
-        errorMessage += error.message;
-      }
-      
-      alert(errorMessage);
+      console.error('Invoice open error:', error);
+      alert('Error opening invoice: ' + error.message);
     }
   };
 
@@ -1755,9 +1716,11 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
           
           let rateInfo = '';
           if (productType === 'granite') {
-            rateInfo = `₹${item.rate_per_piece}/pc × ${item.quantity} pc`;
+            // Granite: measured in sqft
+            rateInfo = `₹${item.rate_per_sqft}/sqft × ${item.total_sqft || item.extra_sqft} sqft`;
           } else if (productType === 'tile_pieces') {
-            rateInfo = `₹${item.rate_per_sqft}/sqft × ${item.extra_sqft} sqft`;
+            // Tile pieces: measured in pieces
+            rateInfo = `₹${item.rate_per_piece}/pc × ${item.quantity} pc`;
           } else {
             rateInfo = `₹${item.rate_per_box}/box × ${item.box_qty} box`;
           }
@@ -2564,15 +2527,15 @@ function InvoicesManagement({ invoices, tiles, granites = [], customers, fetchIn
                           </td>
                           <td className="px-4 py-2">{item.size || '-'}</td>
                           <td className="px-4 py-2">
-                            {item.product_type === 'granite' ? `${item.quantity} pc` :
-                             item.product_type === 'tile_pieces' ? `${item.extra_sqft} sqft` :
+                            {item.product_type === 'granite' ? `${item.extra_sqft || item.total_sqft || 0} sqft` :
+                             item.product_type === 'tile_pieces' ? `${item.quantity} pc` :
                              `${item.box_qty} box${item.extra_sqft > 0 ? ` +${item.extra_sqft} sqft` : ''}`}
                           </td>
                           <td className="px-4 py-2">
                             {item.product_type === 'granite' ? (
-                              <span>₹{item.rate_per_piece}/pc</span>
-                            ) : item.product_type === 'tile_pieces' ? (
                               <span>₹{item.rate_per_sqft}/sqft</span>
+                            ) : item.product_type === 'tile_pieces' ? (
+                              <span>₹{item.rate_per_piece}/pc</span>
                             ) : (
                               <div className="flex flex-col text-sm">
                                 <span>₹{item.rate_per_box}/box</span>
